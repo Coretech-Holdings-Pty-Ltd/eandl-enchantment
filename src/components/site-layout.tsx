@@ -2,7 +2,7 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { useState, type ReactNode } from 'react'
 import { ArrowUpRight, Menu, X, LockKeyhole } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import logo from '@/assets/el-logo.png.asset.json'
+import logo from '@/assets/el-logo-complete.png.asset.json'
 import profile from '@/assets/el-company-profile.pdf.asset.json'
 import guide from '@/assets/el-package-guide.pdf.asset.json'
 
