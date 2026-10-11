@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { SiteLayout } from '@/components/site-layout'
 import { services, pageHead } from '@/lib/site-content'
 
-export const Route = createFileRoute('/contact')({ validateSearch: (s: Record<string,unknown>) => ({ service: typeof s.service === 'string' ? s.service : undefined }), head: () => pageHead('Let’s talk', 'Speak to E and L Holdings about technology, infrastructure, investment and Grow Online website packages. Contact our South African team.'), component: Contact })
+export const Route = createFileRoute('/contact')({ validateSearch: (s: Record<string,unknown>): { service?: string } => ({ service: typeof s['service'] === 'string' ? s['service'] : undefined }), head: () => pageHead('Let’s talk', 'Speak to E and L Holdings about technology, infrastructure, investment and Grow Online website packages. Contact our South African team.'), component: Contact })
 function Contact() {
  const { service } = Route.useSearch()
  const [prepared,setPrepared] = useState(false)
