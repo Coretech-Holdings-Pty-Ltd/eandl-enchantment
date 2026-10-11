@@ -1,0 +1,30 @@
+import { Code2, Monitor, Network, TrendingUp, Zap, Compass } from 'lucide-react'
+
+export const services = [
+ { id: 'consulting', title: 'Enterprise IT Consulting', short: 'Clarity before complexity. Technology strategy, business analysis and transformation built around your goals.', icon: Compass, features: ['Technology strategy and digital transformation', 'Systems and technical business analysis', 'Infrastructure optimisation and procurement guidance', 'Vendor selection and project advisory'], description: 'Make your next technology decision with confidence. We connect business needs to practical technology roadmaps, informed procurement and effective delivery.' },
+ { id: 'software', title: 'Software & Digital Platforms', short: 'From a first website to a connected business platform. Designed, developed and delivered with care.', icon: Code2, features: ['Custom application development and integration', 'Websites, e-commerce and booking systems', 'Quality assurance, testing and deployment', 'Continuous improvement and monthly platform support'], description: 'Turn an idea into a dependable digital product. Our delivery spans design, development, integration, testing and long-term improvement, with CoreTech powering our subscription website builds.' },
+ { id: 'hardware', title: 'Hardware & Software Supply', short: 'Business-ready technology. Reliable sourcing, quality checks and support from trusted partners.', icon: Monitor, features: ['Laptops, desktops, servers and storage', 'Business software and security licences', 'Bulk procurement, quality testing and delivery', 'Manufacturer partnerships and after-sales support'], description: 'Equip your team with technology that is ready for business. Our manufacturer and distribution partnerships support informed selection, competitive procurement, bulk fulfilment and after-sales assistance.' },
+ { id: 'support', title: 'Networks, Support & Security', short: 'Stay connected. Stay protected. Proactive support that keeps your operations moving.', icon: Network, features: ['Managed support, maintenance and monitoring', 'LAN, WAN and secure Wi-Fi networking', 'Threat assessments and vulnerability management', 'Security testing and incident response'], description: 'Build resilient operations with secure connectivity and accountable technical care. From network design to ongoing maintenance, we help protect the systems your business depends on.' },
+ { id: 'investment', title: 'Investment & Growth Solutions', short: 'More than funding. Strategic support that helps ambitious businesses unlock their next chapter.', icon: TrendingUp, features: ['SMME and startup growth support', 'Working capital and purchase-order funding', 'Equipment and sector-specific financing', 'Technology, property, automotive, agriculture and industry'], description: 'Access practical growth support across finance, technology, property, automotive, agriculture, retail, manufacturing and energy. Funding options are scoped to your business needs and subject to assessment.' },
+ { id: 'power', title: 'Power & Infrastructure', short: 'Power your progress. Reliable distribution, backup and renewable energy infrastructure.', icon: Zap, features: ['Transformers, switchgear and distribution boards', 'UPS, battery backup and generators', 'Solar, energy storage and hybrid systems', 'Transformer accessories, testing and maintenance'], description: 'Strengthen operational continuity with power distribution, backup systems and renewable energy solutions. Our capabilities include transformer accessories, testing and maintenance for demanding infrastructure environments.' },
+]
+
+export const packages = [
+ { name: 'Spark', label: 'Your first step online', prices: [199,260,340], features: ['One-page professional website', 'Free E&L web address', 'WhatsApp, call and map buttons', 'Hosting, SSL and backups', 'Growth Community access'], trial: true },
+ { name: 'Build', label: 'A stronger business presence', prices: [349,450,600], features: ['Up to 3 custom-branded pages', 'Connect your own domain', '1 business mailbox', 'Google Business Profile setup', 'Contact form and WhatsApp', 'Member Directory listing'], featured: true, trial: true },
+ { name: 'Starter', label: 'Room to tell your story', prices: [500,650,850], features: ['Up to 5 custom-designed pages', 'Contact form and social links', 'Basic on-page SEO setup', '30 minutes of changes monthly', 'Hosting, SSL and backups', 'Growth Community access'], trial: true },
+ { name: 'Business', label: 'Built for your next stage', prices: [1200,1550,2050], features: ['Up to 10 pages', 'Content management and blog', 'Enquiry, quote and booking forms', 'Analytics and SEO', '1 professional mailbox', '2 hours of monthly updates', 'Growth Community Plus'] },
+ { name: 'Professional', label: 'For established companies', prices: [2200,2850,3750], features: ['Up to 20 bespoke pages', 'Optional client login area', 'Multi-language and advanced SEO', 'Newsletter and CRM integrations', '5 mailboxes and monthly report', '5 hours of monthly updates', 'Priority community spotlight'] },
+]
+
+export const engagements = [
+ { company: 'MultiChoice', year: '2019', work: 'Systems analysis' },
+ { company: 'DVT', year: '2021–2025', work: 'Business development & consultation' },
+ { company: 'Anglo American', year: '2021–2025', work: 'Systems migration' },
+ { company: 'WesBank', year: '2022–July 2026', work: 'RT46 Fleet application support' },
+ { company: 'Harambee', year: '2025', work: 'Technical business analysis' },
+]
+
+export function pageHead(title: string, description: string) {
+ return { meta: [{ title: `${title} | E and L Holdings` }, { name: 'description', content: description }, { property: 'og:title', content: `${title} | E and L Holdings` }, { property: 'og:description', content: description }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }
+}
