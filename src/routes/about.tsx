@@ -1,11 +1,150 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Download, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SiteLayout, ContactCTA } from '@/components/site-layout'
-import { engagements, pageHead } from '@/lib/site-content'
-import profile from '@/assets/el-company-profile.pdf.asset.json'
+import { createFileRoute } from "@tanstack/react-router";
+import { Download, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SiteLayout, ContactCTA } from "@/components/site-layout";
+import { engagements, pageHead } from "@/lib/site-content";
+import profile from "@/assets/el-company-profile.pdf.asset.json";
 
-export const Route = createFileRoute('/about')({ head: () => pageHead('About our company', 'Meet E and L Holdings, a South African technology and investment solutions company delivering practical expertise and long-term business value.'), component: About })
+export const Route = createFileRoute("/about")({
+  head: () =>
+    pageHead(
+      "About our company",
+      "Meet E and L Holdings, a South African technology and investment solutions company delivering practical expertise and long-term business value.",
+    ),
+  component: About,
+});
 function About() {
- return <SiteLayout><div className="inner-page"><div className="site-width inner-intro"><div className="eyebrow">Innovate. Integrate. Elevate.</div><h1>E and L Holdings.<br /><span className="text-accent-foreground">Practical solutions. Lasting value.</span></h1><p>A trusted South African partner for organisations navigating technology, infrastructure and growth. We combine deep industry experience with practical, results-driven delivery.</p><Button asChild variant="brand" className="pill-button mt-5"><a href={profile.url} target="_blank" rel="noreferrer">Download company profile <Download /></a></Button><div className="stat-grid"><div><strong>500<span className="text-accent-foreground text-4xl">+</span></strong><span>Laptops supplied</span></div><div><strong>6</strong><span>Connected capabilities</span></div><div><strong>2019–26</strong><span>Selected engagements</span></div></div></div><section className="section"><div className="site-width detail-grid"><div className="detail-block"><div className="eyebrow">Our purpose</div><h2 className="editorial-title">Growth, with direction.</h2><p>Our mission is to deliver tailored IT and investment services that enable sustainable growth and long-term value.</p><p>Our vision is to be a leading partner for businesses seeking innovation, reliability and measurable impact.</p></div><div className="detail-block"><h2>Why partner with us?</h2><ul className="detail-list">{['Trusted manufacturer and specialist delivery partnerships','Hands-on enterprise systems, product and support experience','End-to-end ownership: discovery, design, deployment and care','Solutions shaped around reliability, growth and operational impact'].map(t => <li key={t}><Check size={17} />{t}</li>)}</ul></div></div></section><section className="section mint-band" id="experience"><div className="site-width"><div className="section-heading"><div><div className="eyebrow">Delivery across complex organisations</div><h2>Experience that goes<br /><span>beyond the brief.</span></h2></div><p className="section-intro">Selected analysis, migration, application support and business development engagements from our 2026 company profile.</p></div><div className="service-grid">{engagements.map(e => <article className="service-card" key={e.company}><div className="eyebrow">{e.year}</div><h3 className="mt-8">{e.company}</h3><p>{e.work}</p></article>)}</div><p className="small-note mt-5">Project experience reflects information supplied by E and L Holdings.</p></div></section><section className="section"><div className="site-width"><div className="section-heading"><div><div className="eyebrow">Long-term technical care</div><h2>The platforms we<br /><span>continue to look after.</span></h2></div></div><div className="growth-list">{['COS Business Solutions','NFS Insure Consultants','NFS Health Platform','NFS Fleet Command','Braam Health Centre','Jaylee Group Accounting','Dr ND Gumata Booking System','Liyoli Guesthouse'].map(n => <div className="growth-feature" key={n}><Check size={18} /><strong>{n}</strong></div>)}</div></div></section></div><ContactCTA /></SiteLayout>
+  return (
+    <SiteLayout>
+      <div className="inner-page">
+        <div className="site-width inner-intro">
+          <div className="eyebrow">Innovate. Integrate. Elevate.</div>
+          <h1>
+            E and L Holdings.
+            <br />
+            <span className="text-accent-foreground">Practical solutions. Lasting value.</span>
+          </h1>
+          <p>
+            A trusted South African partner for organisations navigating technology, infrastructure
+            and growth. We combine deep industry experience with practical, results-driven delivery.
+          </p>
+          <Button asChild variant="brand" className="pill-button mt-5">
+            <a href={profile.url} target="_blank" rel="noreferrer">
+              Download company profile <Download />
+            </a>
+          </Button>
+          <div className="stat-grid">
+            <div>
+              <strong>
+                500<span className="text-accent-foreground text-4xl">+</span>
+              </strong>
+              <span>Laptops supplied</span>
+            </div>
+            <div>
+              <strong>6</strong>
+              <span>Connected capabilities</span>
+            </div>
+            <div>
+              <strong>2019–26</strong>
+              <span>Selected engagements</span>
+            </div>
+          </div>
+        </div>
+        <section className="section">
+          <div className="site-width detail-grid">
+            <div className="detail-block">
+              <div className="eyebrow">Our purpose</div>
+              <h2 className="editorial-title">Growth, with direction.</h2>
+              <p>
+                Our mission is to deliver tailored IT and investment services that enable
+                sustainable growth and long-term value.
+              </p>
+              <p>
+                Our vision is to be a leading partner for businesses seeking innovation, reliability
+                and measurable impact.
+              </p>
+            </div>
+            <div className="detail-block">
+              <h2>Why partner with us?</h2>
+              <ul className="detail-list">
+                {[
+                  "Trusted manufacturer and specialist delivery partnerships",
+                  "Hands-on enterprise systems, product and support experience",
+                  "End-to-end ownership: discovery, design, deployment and care",
+                  "Solutions shaped around reliability, growth and operational impact",
+                ].map((t) => (
+                  <li key={t}>
+                    <Check size={17} />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+        <section className="section mint-band" id="experience">
+          <div className="site-width">
+            <div className="section-heading">
+              <div>
+                <div className="eyebrow">Delivery across complex organisations</div>
+                <h2>
+                  Experience that goes
+                  <br />
+                  <span>beyond the brief.</span>
+                </h2>
+              </div>
+              <p className="section-intro">
+                Selected analysis, migration, application support and business development
+                engagements from our 2026 company profile.
+              </p>
+            </div>
+            <div className="service-grid">
+              {engagements.map((e) => (
+                <article className="service-card" key={e.company}>
+                  <div className="eyebrow">{e.year}</div>
+                  <h3 className="mt-8">{e.company}</h3>
+                  <p>{e.work}</p>
+                </article>
+              ))}
+            </div>
+            <p className="small-note mt-5">
+              Project experience reflects information supplied by E and L Holdings.
+            </p>
+          </div>
+        </section>
+        <section className="section">
+          <div className="site-width">
+            <div className="section-heading">
+              <div>
+                <div className="eyebrow">Long-term technical care</div>
+                <h2>
+                  The platforms we
+                  <br />
+                  <span>continue to look after.</span>
+                </h2>
+              </div>
+            </div>
+            <div className="growth-list">
+              {[
+                "COS Business Solutions",
+                "NFS Insure Consultants",
+                "NFS Health Platform",
+                "NFS Fleet Command",
+                "Braam Health Centre",
+                "Jaylee Group Accounting",
+                "Dr ND Gumata Booking System",
+                "Liyoli Guesthouse",
+              ].map((n) => (
+                <div className="growth-feature" key={n}>
+                  <Check size={18} />
+                  <strong>{n}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+      <ContactCTA />
+    </SiteLayout>
+  );
 }

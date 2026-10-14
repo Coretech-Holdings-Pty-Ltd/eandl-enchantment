@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as ClientPortalRouteImport } from './routes/client-portal'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as LearningHubRouteImport } from './routes/learning-hub'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 
@@ -36,6 +37,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LearningHubRoute = LearningHubRouteImport.update({
+  id: '/learning-hub',
+  path: '/learning-hub',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PackagesRoute = PackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/client-portal': typeof ClientPortalRoute
   '/contact': typeof ContactRoute
+  '/learning-hub': typeof LearningHubRoute
   '/packages': typeof PackagesRoute
   '/solutions': typeof SolutionsRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/client-portal': typeof ClientPortalRoute
   '/contact': typeof ContactRoute
+  '/learning-hub': typeof LearningHubRoute
   '/packages': typeof PackagesRoute
   '/solutions': typeof SolutionsRoute
 }
@@ -69,22 +77,36 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/client-portal': typeof ClientPortalRoute
   '/contact': typeof ContactRoute
+  '/learning-hub': typeof LearningHubRoute
   '/packages': typeof PackagesRoute
   '/solutions': typeof SolutionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/about' | '/client-portal' | '/contact' | '/packages' | '/solutions'
+    | '/'
+    | '/about'
+    | '/client-portal'
+    | '/contact'
+    | '/learning-hub'
+    | '/packages'
+    | '/solutions'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/about' | '/client-portal' | '/contact' | '/packages' | '/solutions'
+    | '/'
+    | '/about'
+    | '/client-portal'
+    | '/contact'
+    | '/learning-hub'
+    | '/packages'
+    | '/solutions'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/client-portal'
     | '/contact'
+    | '/learning-hub'
     | '/packages'
     | '/solutions'
   fileRoutesById: FileRoutesById
@@ -94,6 +116,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ClientPortalRoute: typeof ClientPortalRoute
   ContactRoute: typeof ContactRoute
+  LearningHubRoute: typeof LearningHubRoute
   PackagesRoute: typeof PackagesRoute
   SolutionsRoute: typeof SolutionsRoute
 }
@@ -128,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/learning-hub': {
+      id: '/learning-hub'
+      path: '/learning-hub'
+      fullPath: '/learning-hub'
+      preLoaderRoute: typeof LearningHubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/packages': {
       id: '/packages'
       path: '/packages'
@@ -150,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ClientPortalRoute: ClientPortalRoute,
   ContactRoute: ContactRoute,
+  LearningHubRoute: LearningHubRoute,
   PackagesRoute: PackagesRoute,
   SolutionsRoute: SolutionsRoute,
 }

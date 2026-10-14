@@ -1,21 +1,248 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState, type FormEvent } from 'react'
-import { ArrowUpRight, Mail, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SiteLayout } from '@/components/site-layout'
-import { services, pageHead } from '@/lib/site-content'
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { ArrowUpRight, Mail, Check, Phone, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SiteLayout } from "@/components/site-layout";
+import { services, companyContact, pageHead } from "@/lib/site-content";
 
-export const Route = createFileRoute('/contact')({ validateSearch: (s: Record<string,unknown>): { service?: string } => (typeof s['service'] === 'string' ? { service: s['service'] } : {}), head: () => pageHead('Let’s talk', 'Speak to E and L Holdings about technology, infrastructure, investment and Grow Online website packages. Contact our South African team.'), component: Contact })
+export const Route = createFileRoute("/contact")({
+  validateSearch: (s: Record<string, unknown>): { service?: string } =>
+    typeof s["service"] === "string" ? { service: s["service"] } : {},
+  head: () =>
+    pageHead(
+      "Let’s talk",
+      "Speak to E and L Holdings about technology, infrastructure, investment, Learning Hub AI courses, and Grow Online packages. Contact our South African team.",
+    ),
+  component: Contact,
+});
+
 function Contact() {
- const { service } = Route.useSearch()
- const [prepared,setPrepared] = useState(false)
- function submit(e: FormEvent<HTMLFormElement>) {
-  e.preventDefault()
-  const data = new FormData(e.currentTarget)
-  const subject = `Website enquiry: ${data.get('service')}`
-  const body = `Name: ${data.get('name')}\nEmail: ${data.get('email')}\nCompany: ${data.get('company')}\nPhone: ${data.get('phone')}\nInterest: ${data.get('service')}\n\n${data.get('message')}`
-  window.location.href = `mailto:info@eandl.digital?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  setPrepared(true)
- }
- return <SiteLayout><div className="inner-page"><div className="site-width inner-intro"><div className="eyebrow">Great things start with a conversation</div><h1>Tell us what’s next.<br /><span className="text-accent-foreground">Let’s make it happen.</span></h1><p>Whether you’re starting a business, transforming your systems or exploring your next investment, we’d love to hear from you.</p></div><section className="section"><div className="site-width detail-grid"><div><h2 className="editorial-title mb-8">Start the conversation.</h2><form className="contact-form" onSubmit={submit}><div className="form-row"><div className="field"><label htmlFor="name">Your name</label><input id="name" name="name" required autoComplete="name" placeholder="Full name" /></div><div className="field"><label htmlFor="email">Email address</label><input id="email" name="email" type="email" required autoComplete="email" placeholder="you@company.co.za" /></div></div><div className="form-row"><div className="field"><label htmlFor="company">Company</label><input id="company" name="company" autoComplete="organization" placeholder="Your business name" /></div><div className="field"><label htmlFor="phone">Phone number</label><input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="Your contact number" /></div></div><div className="field"><label htmlFor="service">What are you interested in?</label><select id="service" name="service" key={service} defaultValue={service || ''} required><option value="" disabled>Select a solution</option>{service && <option value={service}>{service}</option>}{services.filter(s => s.title !== service).map(s => <option key={s.id}>{s.title}</option>)}{['Grow Online packages','Client portal access','Custom package','General enquiry'].filter(t => t !== service).map(t => <option key={t}>{t}</option>)}</select></div><div className="field"><label htmlFor="message">A little about your plans</label><textarea id="message" name="message" rows={5} required placeholder="What would you like to achieve?" /></div><p className="small-note">Your details will be included in an email enquiry to E and L. Please avoid sharing sensitive information.</p><Button type="submit" variant="brand" className="pill-button-large justify-self-start">Prepare email enquiry <ArrowUpRight /></Button>{prepared && <div role="status" className="text-sm text-accent-foreground flex gap-2 items-start"><Check size={18} /><span>Your enquiry is prepared. Send it from your email app, or email info@eandl.digital directly.</span></div>}</form></div><div className="detail-block"><div className="eyebrow">One team. Here for you.</div><h2 className="editorial-title">Let’s connect.</h2><div className="contact-method"><h3>General enquiries</h3><a href="mailto:info@eandl.digital">info@eandl.digital</a></div><div className="contact-method"><h3>Group Strategy CEO</h3><a href="mailto:ezile@eandl.digital">ezile@eandl.digital</a><br /><a href="tel:+27790284802">079 028 4802</a></div><div className="contact-method"><h3>Chief Operating Officer</h3><a href="mailto:yonela@eandl.digital">yonela@eandl.digital</a><br /><a href="tel:+27834325339">083 432 5339</a></div><div className="contact-method"><h3>Find us</h3><p>4958 Jan Frederick Avenue<br />Randpark Ridge, Randburg, 2154<br />South Africa</p></div><div className="contact-method"><h3>Subscription support hours</h3><p>Monday–Friday, 08:00–17:00 SAST<br />Excluding public holidays</p></div><Button asChild variant="glass" className="pill-button mt-6"><a href="mailto:info@eandl.digital"><Mail />Email us directly</a></Button></div></div></section></div></SiteLayout>
+  const { service } = Route.useSearch();
+  const [prepared, setPrepared] = useState(false);
+
+  function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const subject = `Website enquiry: ${data.get("service")}`;
+    const body = `Name: ${data.get("name")}\nEmail: ${data.get("email")}\nCompany: ${data.get("company")}\nPhone: ${data.get("phone")}\nInterest: ${data.get("service")}\n\n${data.get("message")}`;
+    window.location.href = `mailto:${companyContact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setPrepared(true);
+  }
+
+  return (
+    <SiteLayout>
+      <div className="inner-page">
+        <div className="site-width inner-intro">
+          <div className="eyebrow">Great things start with a conversation</div>
+          <h1>
+            Tell us what’s next.
+            <br />
+            <span className="text-accent-foreground">Let’s make it happen.</span>
+          </h1>
+          <p>
+            Whether you’re starting a business, exploring AI training at our Learning Hub,
+            transforming your systems, or seeking growth infrastructure, we’d love to hear from you.
+          </p>
+        </div>
+        <section className="section">
+          <div className="site-width detail-grid">
+            <div>
+              <h2 className="editorial-title mb-8">Start the conversation.</h2>
+              <form className="contact-form" onSubmit={submit}>
+                <div className="form-row">
+                  <div className="field">
+                    <label htmlFor="name">Your name</label>
+                    <input
+                      id="name"
+                      name="name"
+                      required
+                      autoComplete="name"
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="email">Email address</label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      placeholder="you@company.co.za"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="field">
+                    <label htmlFor="company">Company</label>
+                    <input
+                      id="company"
+                      name="company"
+                      autoComplete="organization"
+                      placeholder="Your business name"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="phone">Phone number</label>
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      placeholder="Your contact number"
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label htmlFor="service">What are you interested in?</label>
+                  <select
+                    id="service"
+                    name="service"
+                    key={service}
+                    defaultValue={service || ""}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select an option
+                    </option>
+                    {service && <option value={service}>{service}</option>}
+                    {services
+                      .filter((s) => s.title !== service)
+                      .map((s) => (
+                        <option key={s.id}>{s.title}</option>
+                      ))}
+                    {[
+                      "Learning Hub · AI Courses & Masterclasses",
+                      "Learning Hub · Free AI Kickstart",
+                      "Grow Online packages",
+                      "Client portal access",
+                      "Custom package",
+                      "General enquiry",
+                    ]
+                      .filter((t) => t !== service)
+                      .map((t) => (
+                        <option key={t}>{t}</option>
+                      ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="message">A little about your plans</label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={5}
+                    required
+                    placeholder="What would you like to achieve?"
+                  />
+                </div>
+                <p className="small-note">
+                  Your details will be included in an email enquiry to E and L. Please avoid sharing
+                  sensitive information.
+                </p>
+                <Button
+                  type="submit"
+                  variant="brand"
+                  className="pill-button-large justify-self-start"
+                >
+                  Prepare email enquiry <ArrowUpRight />
+                </Button>
+                {prepared && (
+                  <div
+                    role="status"
+                    className="text-sm text-accent-foreground flex gap-2 items-start"
+                  >
+                    <Check size={18} />
+                    <span>
+                      Your enquiry is prepared. Send it from your email app, or email{" "}
+                      {companyContact.email} directly.
+                    </span>
+                  </div>
+                )}
+              </form>
+            </div>
+            <div className="detail-block">
+              <div className="eyebrow">One team. Here for you.</div>
+              <h2 className="editorial-title">Let’s connect.</h2>
+
+              <div className="contact-method">
+                <h3>General enquiries & Landline</h3>
+                <a href={`mailto:${companyContact.email}`}>{companyContact.email}</a>
+                <br />
+                <a
+                  href={`tel:${companyContact.landlineTel}`}
+                  className="inline-flex items-center gap-1.5 font-semibold text-foreground mt-1"
+                >
+                  <Phone size={14} className="text-accent-foreground" />
+                  {companyContact.landline} (Landline)
+                </a>
+              </div>
+
+              <div className="contact-method">
+                <h3>WhatsApp Support & Learning Community</h3>
+                <a
+                  href={`${companyContact.whatsappLink}?text=Hi%20E%26L%20Holdings,%20I%20would%20like%20to%20connect.`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 font-semibold text-accent-foreground"
+                >
+                  <MessageSquare size={14} />
+                  {companyContact.whatsapp} (Direct WhatsApp)
+                </a>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Chat with our team or join our AI Learning Hub WhatsApp community.
+                </p>
+              </div>
+
+              <div className="contact-method">
+                <h3>Group Strategy CEO</h3>
+                <a href="mailto:ezile@eandl.digital">ezile@eandl.digital</a>
+              </div>
+
+              <div className="contact-method">
+                <h3>Chief Operating Officer</h3>
+                <a href="mailto:yonela@eandl.digital">yonela@eandl.digital</a>
+                <br />
+                <a href={`tel:+27834325339`}>083 432 5339</a>
+              </div>
+
+              <div className="contact-method">
+                <h3>Find us</h3>
+                <p>
+                  {companyContact.address.line1}
+                  <br />
+                  {companyContact.address.area}
+                  <br />
+                  {companyContact.address.country}
+                </p>
+              </div>
+
+              <div className="contact-method">
+                <h3>Subscription support hours</h3>
+                <p>{companyContact.supportHours}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-3 mt-6">
+                <Button asChild variant="glass" className="pill-button">
+                  <a href={`mailto:${companyContact.email}`}>
+                    <Mail />
+                    Email us directly
+                  </a>
+                </Button>
+                <Button asChild variant="brand" className="pill-button">
+                  <a
+                    href={`${companyContact.whatsappLink}?text=Hi%20E%26L%20Holdings,%20I%20would%20like%20to%20chat`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <MessageSquare size={14} />
+                    WhatsApp Us
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </SiteLayout>
+  );
 }
