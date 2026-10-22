@@ -1,0 +1,208 @@
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                    🏁 E&L DIGITAL CLIENT PLATFORM                             ║
+# ║                    Production Deployment (Manual Trigger)                     ║
+# ╠═══════════════════════════════════════════════════════════════════════════════╣
+# ║  ⚠️  MANUAL TRIGGER ONLY - Promotes developer → main                          ║
+# ║  🔒 This is a PROTECTED workflow for production deployments                   ║
+# ║  Target Host: eandl.digital & eandl.digital/portal                            ║
+# ║                                                                                ║
+# ║  Update Types:                                                                 ║
+# ║    • feature  → MAJOR release (2.0.0)                                         ║
+# ║    • bugfix   → PATCH release (1.0.1)                                         ║
+# ║    • security → PATCH release (1.0.1)                                         ║
+# ║    • system   → MINOR release (1.1.0)                                         ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+name: 🏁 E&L Client Portal Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deployment:
+        description: '⚠️ Type "DEPLOY" to confirm production deployment to eandl.digital'
+        required: true
+        type: string
+      update_type:
+        description: "📋 Select Update Type"
+        required: true
+        type: choice
+        options:
+          - feature
+          - bugfix
+          - security
+          - system
+        default: bugfix
+      release_title:
+        description: "📢 Release Title"
+        required: true
+        type: string
+        default: "E&L Client Portal & Web Platform Update"
+      release_description:
+        description: "📝 Release Description/Changelog"
+        required: false
+        type: string
+        default: ""
+      deployment_notes:
+        description: "📝 Internal Deployment Notes"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "20"
+  DEVELOPER_BRANCH: "developer"
+  MAIN_BRANCH: "main"
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 🔐 VALIDATION
+  # ═══════════════════════════════════════════════════════════════════════════════
+  validate:
+    name: 🔐 Validate Deployment Request
+    runs-on: ubuntu-latest
+    outputs:
+      is_valid: ${{ steps.check.outputs.valid }}
+      is_feature: ${{ steps.check.outputs.is_feature }}
+      version_type: ${{ steps.check.outputs.version_type }}
+    steps:
+      - name: 🔐 Verify Confirmation
+        id: check
+        run: |
+          echo "╔══════════════════════════════════════════════════════════════╗"
+          echo "║  🔐 E&L CLIENT PORTAL PRODUCTION DEPLOYMENT VALIDATION       ║"
+          echo "╠══════════════════════════════════════════════════════════════╣"
+          echo "║  Target: https://eandl.digital                               ║"
+          echo "╚══════════════════════════════════════════════════════════════╝"
+
+          if [ "${{ github.event.inputs.confirm_deployment }}" != "DEPLOY" ]; then
+            echo "❌ ERROR: Invalid confirmation phrase"
+            echo "You entered: '${{ github.event.inputs.confirm_deployment }}'"
+            echo "You must enter exactly 'DEPLOY'"
+            exit 1
+          fi
+
+          echo "valid=true" >> $GITHUB_OUTPUT
+          UPDATE_TYPE="${{ github.event.inputs.update_type }}"
+          if [ "$UPDATE_TYPE" == "feature" ]; then
+            echo "is_feature=true" >> $GITHUB_OUTPUT
+            echo "version_type=major" >> $GITHUB_OUTPUT
+          elif [ "$UPDATE_TYPE" == "system" ]; then
+            echo "is_feature=false" >> $GITHUB_OUTPUT
+            echo "version_type=minor" >> $GITHUB_OUTPUT
+          else
+            echo "is_feature=false" >> $GITHUB_OUTPUT
+            echo "version_type=patch" >> $GITHUB_OUTPUT
+          fi
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 🧪 PRE-DEPLOYMENT TESTS
+  # ═══════════════════════════════════════════════════════════════════════════════
+  pre-deployment-tests:
+    name: 🧪 Pre-Deployment Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: 📥 Checkout Developer Branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEVELOPER_BRANCH }}
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🏗️ Production Build Check
+        run: |
+          echo "Testing production build for eandl.digital..."
+          npm run build
+        env:
+          CI: true
+
+      - name: 🧪 Run Vitest Test Suite
+        run: |
+          echo "Running Vitest test suite..."
+          npm test
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 🏁 DEPLOY TO PRODUCTION (MAIN BRANCH)
+  # ═══════════════════════════════════════════════════════════════════════════════
+  deploy-to-production:
+    name: 🏁 Deploy to Main
+    runs-on: ubuntu-latest
+    needs: [validate, pre-deployment-tests]
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 🏷️ Calculate Production Version
+        id: version
+        run: |
+          git checkout ${{ env.MAIN_BRANCH }} || git checkout -b ${{ env.MAIN_BRANCH }} origin/${{ env.MAIN_BRANCH }}
+          CURRENT_VERSION=$(node -p "require('./package.json').version || '1.0.0'")
+          VERSION_TYPE="${{ needs.validate.outputs.version_type }}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          if [ "$VERSION_TYPE" == "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$VERSION_TYPE" == "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: 🏁 Merge Developer to Main with Version
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          git checkout ${{ env.MAIN_BRANCH }}
+          git merge origin/${{ env.DEVELOPER_BRANCH }} -m "🏁 Production Release v$NEW_VERSION"
+
+          npm version "$NEW_VERSION" --no-git-tag-version
+          git add package.json package-lock.json 2>/dev/null || git add package.json
+          git commit -m "🏷️ Bump version to v$NEW_VERSION for production" || echo "Version already committed"
+
+          git push origin ${{ env.MAIN_BRANCH }}
+
+      - name: 🏷️ Create Production Release Tag
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          git tag -a "v$NEW_VERSION" -m "E&L Client Portal Production Release v$NEW_VERSION: ${{ github.event.inputs.release_title }}"
+          git push origin "v$NEW_VERSION"
+
+      - name: 📊 Deployment Summary
+        run: |
+          echo "## 🏁 E&L Client Portal Production Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | \`eandl.digital\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`v${{ steps.version.outputs.new_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Title | ${{ github.event.inputs.release_title }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | 🚀 Deployed to Main |" >> $GITHUB_STEP_SUMMARY

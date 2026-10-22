@@ -14,8 +14,19 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as ClientPortalRouteImport } from './routes/client-portal'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as LearningHubRouteImport } from './routes/learning-hub'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PackagesRouteImport } from './routes/packages'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as PortalAcademyRouteImport } from './routes/portal/academy'
+import { Route as PortalChangeRequestsRouteImport } from './routes/portal/change-requests'
+import { Route as PortalDashboardRouteImport } from './routes/portal/dashboard'
+import { Route as PortalLoginRouteImport } from './routes/portal/login'
+import { Route as PortalMyLearningRouteImport } from './routes/portal/my-learning'
+import { Route as PortalOnboardingRouteImport } from './routes/portal/onboarding'
+import { Route as PortalProjectRouteImport } from './routes/portal/project'
+import { Route as PortalSettingsRouteImport } from './routes/portal/settings'
+import { Route as PortalSupportRouteImport } from './routes/portal/support'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -42,15 +53,70 @@ const LearningHubRoute = LearningHubRouteImport.update({
   path: '/learning-hub',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PackagesRoute = PackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SolutionsRoute = SolutionsRouteImport.update({
   id: '/solutions',
   path: '/solutions',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PortalAcademyRoute = PortalAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalChangeRequestsRoute = PortalChangeRequestsRouteImport.update({
+  id: '/change-requests',
+  path: '/change-requests',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalDashboardRoute = PortalDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalLoginRoute = PortalLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalMyLearningRoute = PortalMyLearningRouteImport.update({
+  id: '/my-learning',
+  path: '/my-learning',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalOnboardingRoute = PortalOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalProjectRoute = PortalProjectRouteImport.update({
+  id: '/project',
+  path: '/project',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSettingsRoute = PortalSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSupportRoute = PortalSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => PortalRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -59,8 +125,19 @@ export interface FileRoutesByFullPath {
   '/client-portal': typeof ClientPortalRoute
   '/contact': typeof ContactRoute
   '/learning-hub': typeof LearningHubRoute
+  '/onboarding': typeof OnboardingRoute
   '/packages': typeof PackagesRoute
+  '/portal': typeof PortalRouteWithChildren
   '/solutions': typeof SolutionsRoute
+  '/portal/academy': typeof PortalAcademyRoute
+  '/portal/change-requests': typeof PortalChangeRequestsRoute
+  '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/login': typeof PortalLoginRoute
+  '/portal/my-learning': typeof PortalMyLearningRoute
+  '/portal/onboarding': typeof PortalOnboardingRoute
+  '/portal/project': typeof PortalProjectRoute
+  '/portal/settings': typeof PortalSettingsRoute
+  '/portal/support': typeof PortalSupportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -68,8 +145,19 @@ export interface FileRoutesByTo {
   '/client-portal': typeof ClientPortalRoute
   '/contact': typeof ContactRoute
   '/learning-hub': typeof LearningHubRoute
+  '/onboarding': typeof OnboardingRoute
   '/packages': typeof PackagesRoute
+  '/portal': typeof PortalRouteWithChildren
   '/solutions': typeof SolutionsRoute
+  '/portal/academy': typeof PortalAcademyRoute
+  '/portal/change-requests': typeof PortalChangeRequestsRoute
+  '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/login': typeof PortalLoginRoute
+  '/portal/my-learning': typeof PortalMyLearningRoute
+  '/portal/onboarding': typeof PortalOnboardingRoute
+  '/portal/project': typeof PortalProjectRoute
+  '/portal/settings': typeof PortalSettingsRoute
+  '/portal/support': typeof PortalSupportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -78,8 +166,19 @@ export interface FileRoutesById {
   '/client-portal': typeof ClientPortalRoute
   '/contact': typeof ContactRoute
   '/learning-hub': typeof LearningHubRoute
+  '/onboarding': typeof OnboardingRoute
   '/packages': typeof PackagesRoute
+  '/portal': typeof PortalRouteWithChildren
   '/solutions': typeof SolutionsRoute
+  '/portal/academy': typeof PortalAcademyRoute
+  '/portal/change-requests': typeof PortalChangeRequestsRoute
+  '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/login': typeof PortalLoginRoute
+  '/portal/my-learning': typeof PortalMyLearningRoute
+  '/portal/onboarding': typeof PortalOnboardingRoute
+  '/portal/project': typeof PortalProjectRoute
+  '/portal/settings': typeof PortalSettingsRoute
+  '/portal/support': typeof PortalSupportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -89,8 +188,19 @@ export interface FileRouteTypes {
     | '/client-portal'
     | '/contact'
     | '/learning-hub'
+    | '/onboarding'
     | '/packages'
+    | '/portal'
     | '/solutions'
+    | '/portal/academy'
+    | '/portal/change-requests'
+    | '/portal/dashboard'
+    | '/portal/login'
+    | '/portal/my-learning'
+    | '/portal/onboarding'
+    | '/portal/project'
+    | '/portal/settings'
+    | '/portal/support'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,8 +208,19 @@ export interface FileRouteTypes {
     | '/client-portal'
     | '/contact'
     | '/learning-hub'
+    | '/onboarding'
     | '/packages'
+    | '/portal'
     | '/solutions'
+    | '/portal/academy'
+    | '/portal/change-requests'
+    | '/portal/dashboard'
+    | '/portal/login'
+    | '/portal/my-learning'
+    | '/portal/onboarding'
+    | '/portal/project'
+    | '/portal/settings'
+    | '/portal/support'
   id:
     | '__root__'
     | '/'
@@ -107,8 +228,19 @@ export interface FileRouteTypes {
     | '/client-portal'
     | '/contact'
     | '/learning-hub'
+    | '/onboarding'
     | '/packages'
+    | '/portal'
     | '/solutions'
+    | '/portal/academy'
+    | '/portal/change-requests'
+    | '/portal/dashboard'
+    | '/portal/login'
+    | '/portal/my-learning'
+    | '/portal/onboarding'
+    | '/portal/project'
+    | '/portal/settings'
+    | '/portal/support'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,7 +249,9 @@ export interface RootRouteChildren {
   ClientPortalRoute: typeof ClientPortalRoute
   ContactRoute: typeof ContactRoute
   LearningHubRoute: typeof LearningHubRoute
+  OnboardingRoute: typeof OnboardingRoute
   PackagesRoute: typeof PackagesRoute
+  PortalRoute: typeof PortalRouteWithChildren
   SolutionsRoute: typeof SolutionsRoute
 }
 
@@ -158,11 +292,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearningHubRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/packages': {
       id: '/packages'
       path: '/packages'
       fullPath: '/packages'
       preLoaderRoute: typeof PackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solutions': {
@@ -172,8 +320,98 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal/academy': {
+      id: '/portal/academy'
+      path: '/academy'
+      fullPath: '/portal/academy'
+      preLoaderRoute: typeof PortalAcademyRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/change-requests': {
+      id: '/portal/change-requests'
+      path: '/change-requests'
+      fullPath: '/portal/change-requests'
+      preLoaderRoute: typeof PortalChangeRequestsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/dashboard': {
+      id: '/portal/dashboard'
+      path: '/dashboard'
+      fullPath: '/portal/dashboard'
+      preLoaderRoute: typeof PortalDashboardRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/login': {
+      id: '/portal/login'
+      path: '/login'
+      fullPath: '/portal/login'
+      preLoaderRoute: typeof PortalLoginRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/my-learning': {
+      id: '/portal/my-learning'
+      path: '/my-learning'
+      fullPath: '/portal/my-learning'
+      preLoaderRoute: typeof PortalMyLearningRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/onboarding': {
+      id: '/portal/onboarding'
+      path: '/onboarding'
+      fullPath: '/portal/onboarding'
+      preLoaderRoute: typeof PortalOnboardingRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/project': {
+      id: '/portal/project'
+      path: '/project'
+      fullPath: '/portal/project'
+      preLoaderRoute: typeof PortalProjectRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/settings': {
+      id: '/portal/settings'
+      path: '/settings'
+      fullPath: '/portal/settings'
+      preLoaderRoute: typeof PortalSettingsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/support': {
+      id: '/portal/support'
+      path: '/support'
+      fullPath: '/portal/support'
+      preLoaderRoute: typeof PortalSupportRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
+
+interface PortalRouteChildren {
+  PortalAcademyRoute: typeof PortalAcademyRoute
+  PortalChangeRequestsRoute: typeof PortalChangeRequestsRoute
+  PortalDashboardRoute: typeof PortalDashboardRoute
+  PortalLoginRoute: typeof PortalLoginRoute
+  PortalMyLearningRoute: typeof PortalMyLearningRoute
+  PortalOnboardingRoute: typeof PortalOnboardingRoute
+  PortalProjectRoute: typeof PortalProjectRoute
+  PortalSettingsRoute: typeof PortalSettingsRoute
+  PortalSupportRoute: typeof PortalSupportRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalAcademyRoute: PortalAcademyRoute,
+  PortalChangeRequestsRoute: PortalChangeRequestsRoute,
+  PortalDashboardRoute: PortalDashboardRoute,
+  PortalLoginRoute: PortalLoginRoute,
+  PortalMyLearningRoute: PortalMyLearningRoute,
+  PortalOnboardingRoute: PortalOnboardingRoute,
+  PortalProjectRoute: PortalProjectRoute,
+  PortalSettingsRoute: PortalSettingsRoute,
+  PortalSupportRoute: PortalSupportRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -181,7 +419,9 @@ const rootRouteChildren: RootRouteChildren = {
   ClientPortalRoute: ClientPortalRoute,
   ContactRoute: ContactRoute,
   LearningHubRoute: LearningHubRoute,
+  OnboardingRoute: OnboardingRoute,
   PackagesRoute: PackagesRoute,
+  PortalRoute: PortalRouteWithChildren,
   SolutionsRoute: SolutionsRoute,
 }
 export const routeTree = rootRouteImport
