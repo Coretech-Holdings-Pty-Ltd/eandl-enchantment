@@ -2277,7 +2277,26 @@
 }
 .portal-input:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.12); }
 .portal-input::placeholder { color: #475569; }
-.portal-select { appearance: none; cursor: pointer; }
+.portal-select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  padding-right: 2.5rem;
+}
+.portal-select option,
+select.portal-input option {
+  background-color: #0f172a;
+  color: #f8fafc;
+  padding: 0.6rem 0.875rem;
+}
+.portal-select option:checked,
+select.portal-input option:checked {
+  background-color: #0d9488;
+  color: #ffffff;
+}
 .portal-textarea { resize: vertical; min-height: 100px; }
 .portal-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 @media (max-width: 640px) { .portal-form-row { grid-template-columns: 1fr; } }

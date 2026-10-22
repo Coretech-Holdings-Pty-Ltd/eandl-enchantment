@@ -241,6 +241,12 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     fullName: string,
     extraData?: Record<string, any>
   ) => {
+    const origin =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : (import.meta.env.VITE_PORTAL_URL || "https://eandl.digital");
+    const emailRedirectTo = `${origin}/portal/login`;
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -250,6 +256,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           brand_id: BRAND_ID,
           ...(extraData || {}),
         },
+        emailRedirectTo,
       },
     });
     if (error) return { error: error.message };
