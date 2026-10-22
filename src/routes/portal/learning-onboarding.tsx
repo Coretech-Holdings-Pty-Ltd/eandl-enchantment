@@ -681,7 +681,7 @@ function LearningOnboardingPage() {
                         placeholder="e.g. Sipho Mthembu"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-secondary border border-border text-foreground placeholder-slate-500 font-semibold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-3 focus:ring-amber-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-amber-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
@@ -697,7 +697,7 @@ function LearningOnboardingPage() {
                         placeholder="e.g. Apex Digital Care"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-secondary border border-border text-foreground placeholder-slate-500 font-semibold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-3 focus:ring-amber-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-amber-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
@@ -714,7 +714,7 @@ function LearningOnboardingPage() {
                         placeholder="you@company.co.za"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-secondary border border-border text-foreground placeholder-slate-500 font-semibold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-3 focus:ring-amber-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-amber-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
@@ -732,7 +732,7 @@ function LearningOnboardingPage() {
                         placeholder="••••••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-secondary border border-border text-foreground placeholder-slate-500 font-semibold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-3 focus:ring-amber-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-amber-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>

@@ -125,7 +125,7 @@ function PortalLoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center text-slate-300 font-sans">
+      <div className="min-h-screen w-full bg-background flex flex-col items-center justify-center text-foreground font-sans transition-colors">
         <div className="w-10 h-10 border-4 border-teal-500/20 border-t-teal-500 rounded-full animate-spin mb-3" />
         <span className="text-xs font-mono tracking-wider uppercase text-slate-400">
           Loading Client Portal...
@@ -220,7 +220,7 @@ function PortalLoginPage() {
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                 Your Unified Digital{" "}
-                <span className="bg-gradient-to-r from-teal-400 via-emerald-300 to-amber-300 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-800 dark:from-teal-400 dark:via-emerald-300 dark:to-amber-300 bg-clip-text text-transparent">
                   Command Center
                 </span>
               </h1>
@@ -242,7 +242,7 @@ function PortalLoginPage() {
                     </div>
                     <span className="text-xs font-bold text-foreground">Project Workspaces</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-100/80 text-teal-800 border border-teal-300 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30 font-bold">
                     SPRINT 4
                   </span>
                 </div>
@@ -271,7 +271,7 @@ function PortalLoginPage() {
                     </div>
                     <span className="text-xs font-bold text-foreground">DebiCheck Retainers</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 font-bold">
                     PROTECTED
                   </span>
                 </div>
@@ -300,7 +300,7 @@ function PortalLoginPage() {
                     </div>
                     <span className="text-xs font-bold text-foreground">Learning Academy</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800 border border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30 font-bold">
                     ACCREDITED
                   </span>
                 </div>
@@ -323,7 +323,7 @@ function PortalLoginPage() {
                     </div>
                     <span className="text-xs font-bold text-foreground">Gemini AI Intake</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-100/80 text-purple-800 border border-purple-300 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30 font-bold">
                     SMART AGENT
                   </span>
                 </div>
@@ -383,19 +383,19 @@ function PortalLoginPage() {
               </div>
 
               {/* Learning Hub Student Quick Link */}
-              <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-teal-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/30 flex items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
                     <GraduationCap size={16} />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-amber-200">Learning Hub Student?</div>
-                    <div className="text-[11px] text-slate-400">Complete AI onboarding, pick your plan, and start learning.</div>
+                    <div className="text-xs font-bold text-amber-900 dark:text-amber-200">Learning Hub Student?</div>
+                    <div className="text-[11px] text-slate-600 dark:text-slate-400">Complete AI onboarding, choose your tier & plan.</div>
                   </div>
                 </div>
                 <Link
                   to="/portal/learning-onboarding"
-                  className="px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-[11px] shrink-0 flex items-center gap-1 shadow-md transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-[11px] shrink-0 flex items-center gap-1 shadow-sm transition-all cursor-pointer"
                 >
                   <span>Student Plans</span>
                   <ArrowRight size={12} />
@@ -403,7 +403,7 @@ function PortalLoginPage() {
               </div>
 
               {/* Mode Selector Tabs */}
-              <div className="grid grid-cols-2 gap-1 p-1 bg-secondary rounded-2xl text-xs font-bold text-muted-foreground border border-border">
+              <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-950/80 rounded-2xl text-xs font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => { setTab("login"); setError(""); setSuccess(""); }}
@@ -459,14 +459,14 @@ function PortalLoginPage() {
                         placeholder="you@company.co.za"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500 font-semibold focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-teal-600 focus:bg-white focus:ring-3 focus:ring-teal-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="font-bold text-slate-300">Password *</label>
+                      <label className="font-bold text-foreground font-bold">Password *</label>
                       <button
                         type="button"
                         onClick={() => setShowPass(!showPass)}
@@ -484,7 +484,7 @@ function PortalLoginPage() {
                         placeholder="••••••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500 font-semibold focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-teal-600 focus:bg-white focus:ring-3 focus:ring-teal-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
@@ -495,7 +495,7 @@ function PortalLoginPage() {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="rounded border-slate-700 text-teal-600 focus:ring-teal-500/20"
+                        className="rounded border-border text-teal-600 focus:ring-teal-500/20 rounded"
                       />
                       <span className="text-[11px]">Remember this session</span>
                     </label>
@@ -529,7 +529,7 @@ function PortalLoginPage() {
                         placeholder="e.g. Sipho Mthembu"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500 font-semibold focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-teal-600 focus:bg-white focus:ring-3 focus:ring-teal-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
@@ -543,7 +543,7 @@ function PortalLoginPage() {
                         placeholder="e.g. Apex Health Holdings"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500 font-semibold focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-teal-600 focus:bg-white focus:ring-3 focus:ring-teal-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
@@ -558,14 +558,14 @@ function PortalLoginPage() {
                         placeholder="contact@business.co.za"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500 font-semibold focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-teal-600 focus:bg-white focus:ring-3 focus:ring-teal-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="font-bold text-slate-300">Password (Min. 8 characters) *</label>
+                      <label className="font-bold text-foreground font-bold">Password (Min. 8 characters) *</label>
                       <button
                         type="button"
                         onClick={() => setShowPass(!showPass)}
@@ -584,7 +584,7 @@ function PortalLoginPage() {
                         placeholder="••••••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500 font-semibold focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-teal-600 focus:bg-white focus:ring-3 focus:ring-teal-500/15 dark:bg-slate-950/80 dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:bg-slate-900 transition-all text-xs"
                       />
                     </div>
                   </div>
@@ -606,13 +606,13 @@ function PortalLoginPage() {
                   Included with your verified client access
                 </div>
                 <div className="flex flex-wrap gap-1.5 justify-center">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-teal-950/60 border border-teal-500/30 text-teal-300">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-teal-50 border border-teal-200 text-teal-800 dark:bg-teal-950/60 dark:border-teal-500/30 dark:text-teal-300">
                     <FolderKanban size={11} /> Project Tracking
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-950/60 border border-amber-500/30 text-amber-300">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 border border-amber-200 text-amber-800 dark:bg-amber-950/60 dark:border-amber-500/30 dark:text-amber-300">
                     <GraduationCap size={11} /> Academy Access
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-950/60 border border-emerald-500/30 text-emerald-300">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/60 dark:border-emerald-500/30 dark:text-emerald-300">
                     <ShieldCheck size={11} /> DebiCheck Portal
                   </span>
                 </div>
@@ -646,7 +646,7 @@ function PortalLoginPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-900 bg-slate-950/90 py-5 text-center text-xs text-muted-foreground shrink-0">
+      <footer className="relative z-10 border-t border-border bg-card/80 dark:bg-slate-950/90 py-5 text-center text-xs text-muted-foreground shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-400">E&L Digital Holdings (Pty) Ltd</span>
