@@ -58,17 +58,26 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 cursor-pointer"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
           >
             Go home
           </a>
         </div>
+
+        {error && (
+          <details className="mt-6 text-left text-xs bg-card p-4 rounded-xl border border-border text-muted-foreground">
+            <summary className="cursor-pointer font-bold font-mono text-foreground">Diagnostic Details</summary>
+            <pre className="mt-2 text-[11px] font-mono text-destructive whitespace-pre-wrap word-break-all overflow-x-auto">
+              {error instanceof Error ? error.stack || error.message : String(error)}
+            </pre>
+          </details>
+        )}
       </div>
     </div>
   );
