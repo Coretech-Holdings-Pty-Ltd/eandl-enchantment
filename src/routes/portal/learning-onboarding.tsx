@@ -26,6 +26,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { usePortalAuth } from "@/lib/portal-auth";
+import logo from "@/assets/logo.png";
 import { ThemeToggle } from "@/lib/theme";
 import { supabase, partnerSchema } from "@/lib/supabase";
 
@@ -312,22 +313,18 @@ function LearningOnboardingPage() {
       {/* Top Header */}
       <header className="relative z-20 border-b border-border bg-card/85 backdrop-blur-xl shrink-0 transition-colors">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-teal-500 p-0.5 shadow-md shadow-amber-500/20 flex items-center justify-center">
-              <div className="w-full h-full bg-card rounded-[10px] flex items-center justify-center">
-                <GraduationCap size={20} className="text-amber-400" />
-              </div>
-            </div>
+          <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img src={logo} alt="E and L Holdings logo" className="w-11 h-11 object-contain rounded-xl shadow-xs" />
             <div className="flex flex-col">
               <span className="text-base font-black tracking-tight text-foreground flex items-center gap-2">
-                E&L Digital Academy
-                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  Onboarding
+                E and L Holdings
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                  Academy Onboarding
                 </span>
               </span>
               <span className="text-[11px] font-mono text-muted-foreground">eandl.digital/learning-hub</span>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-3">
             <ThemeToggle className="h-9 w-9 rounded-full border border-border bg-secondary/80 hover:bg-secondary" />

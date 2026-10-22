@@ -28,6 +28,7 @@ import {
   CreditCard
 } from "lucide-react";
 import { usePortalAuth } from "@/lib/portal-auth";
+import logo from "@/assets/logo.png";
 import { ThemeToggle } from "@/lib/theme";
 import { Link } from "@tanstack/react-router";
 
@@ -156,22 +157,18 @@ function PortalLoginPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Brand Identity */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 via-teal-600 to-amber-500 p-0.5 shadow-md shadow-teal-500/20 flex items-center justify-center">
-              <div className="w-full h-full bg-card rounded-[10px] flex items-center justify-center transition-colors">
-                <Zap size={20} className="text-teal-400" />
-              </div>
-            </div>
+          <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img src={logo} alt="E and L Holdings logo" className="w-11 h-11 object-contain rounded-xl shadow-xs" />
             <div className="flex flex-col">
               <span className="text-base font-black tracking-tight text-foreground flex items-center gap-2">
-                E&L Digital
-                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30">
-                  Client Hub
+                E and L Holdings
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                  Client Portal
                 </span>
               </span>
-              <span className="text-[11px] font-mono text-slate-400">eandl.digital/portal</span>
+              <span className="text-[11px] font-mono text-muted-foreground">eandl.digital/portal</span>
             </div>
-          </div>
+          </Link>
 
           {/* Quick Actions */}
           <div className="flex items-center gap-3">
@@ -193,15 +190,7 @@ function PortalLoginPage() {
               <ExternalLink size={12} className="text-teal-400" />
             </a>
 
-            <a
-              href="https://admin.eandl.digital"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-teal-950/40 hover:bg-teal-900/50 text-teal-300 border border-teal-500/30 transition-all shadow-xs"
-            >
-              <span>Admin Desk</span>
-              <ExternalLink size={12} />
-            </a>
+
           </div>
         </div>
       </header>
@@ -500,12 +489,12 @@ function PortalLoginPage() {
                       <span className="text-[11px]">Remember this session</span>
                     </label>
 
-                    <a
-                      href="mailto:hello@eandl.digital?subject=Password%20Reset%20Request"
-                      className="text-[11px] text-teal-400 hover:underline"
+                    <Link
+                      to="/portal/forgot-password"
+                      className="text-[11px] text-teal-600 dark:text-teal-400 hover:underline font-semibold"
                     >
-                      Need help signing in?
-                    </a>
+                      Forgot Password?
+                    </Link>
                   </div>
 
                   <button

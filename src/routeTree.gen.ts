@@ -21,11 +21,13 @@ import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as PortalAcademyRouteImport } from './routes/portal/academy'
 import { Route as PortalChangeRequestsRouteImport } from './routes/portal/change-requests'
 import { Route as PortalDashboardRouteImport } from './routes/portal/dashboard'
+import { Route as PortalForgotPasswordRouteImport } from './routes/portal/forgot-password'
 import { Route as PortalLearningOnboardingRouteImport } from './routes/portal/learning-onboarding'
 import { Route as PortalLoginRouteImport } from './routes/portal/login'
 import { Route as PortalMyLearningRouteImport } from './routes/portal/my-learning'
 import { Route as PortalOnboardingRouteImport } from './routes/portal/onboarding'
 import { Route as PortalProjectRouteImport } from './routes/portal/project'
+import { Route as PortalResetPasswordRouteImport } from './routes/portal/reset-password'
 import { Route as PortalSettingsRouteImport } from './routes/portal/settings'
 import { Route as PortalSupportRouteImport } from './routes/portal/support'
 
@@ -89,6 +91,11 @@ const PortalDashboardRoute = PortalDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalForgotPasswordRoute = PortalForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalLearningOnboardingRoute =
   PortalLearningOnboardingRouteImport.update({
     id: '/learning-onboarding',
@@ -115,6 +122,11 @@ const PortalProjectRoute = PortalProjectRouteImport.update({
   path: '/project',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalResetPasswordRoute = PortalResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalSettingsRoute = PortalSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -139,11 +151,13 @@ export interface FileRoutesByFullPath {
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/forgot-password': typeof PortalForgotPasswordRoute
   '/portal/learning-onboarding': typeof PortalLearningOnboardingRoute
   '/portal/login': typeof PortalLoginRoute
   '/portal/my-learning': typeof PortalMyLearningRoute
   '/portal/onboarding': typeof PortalOnboardingRoute
   '/portal/project': typeof PortalProjectRoute
+  '/portal/reset-password': typeof PortalResetPasswordRoute
   '/portal/settings': typeof PortalSettingsRoute
   '/portal/support': typeof PortalSupportRoute
 }
@@ -160,11 +174,13 @@ export interface FileRoutesByTo {
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/forgot-password': typeof PortalForgotPasswordRoute
   '/portal/learning-onboarding': typeof PortalLearningOnboardingRoute
   '/portal/login': typeof PortalLoginRoute
   '/portal/my-learning': typeof PortalMyLearningRoute
   '/portal/onboarding': typeof PortalOnboardingRoute
   '/portal/project': typeof PortalProjectRoute
+  '/portal/reset-password': typeof PortalResetPasswordRoute
   '/portal/settings': typeof PortalSettingsRoute
   '/portal/support': typeof PortalSupportRoute
 }
@@ -182,11 +198,13 @@ export interface FileRoutesById {
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/forgot-password': typeof PortalForgotPasswordRoute
   '/portal/learning-onboarding': typeof PortalLearningOnboardingRoute
   '/portal/login': typeof PortalLoginRoute
   '/portal/my-learning': typeof PortalMyLearningRoute
   '/portal/onboarding': typeof PortalOnboardingRoute
   '/portal/project': typeof PortalProjectRoute
+  '/portal/reset-password': typeof PortalResetPasswordRoute
   '/portal/settings': typeof PortalSettingsRoute
   '/portal/support': typeof PortalSupportRoute
 }
@@ -205,11 +223,13 @@ export interface FileRouteTypes {
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
+    | '/portal/forgot-password'
     | '/portal/learning-onboarding'
     | '/portal/login'
     | '/portal/my-learning'
     | '/portal/onboarding'
     | '/portal/project'
+    | '/portal/reset-password'
     | '/portal/settings'
     | '/portal/support'
   fileRoutesByTo: FileRoutesByTo
@@ -226,11 +246,13 @@ export interface FileRouteTypes {
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
+    | '/portal/forgot-password'
     | '/portal/learning-onboarding'
     | '/portal/login'
     | '/portal/my-learning'
     | '/portal/onboarding'
     | '/portal/project'
+    | '/portal/reset-password'
     | '/portal/settings'
     | '/portal/support'
   id:
@@ -247,11 +269,13 @@ export interface FileRouteTypes {
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
+    | '/portal/forgot-password'
     | '/portal/learning-onboarding'
     | '/portal/login'
     | '/portal/my-learning'
     | '/portal/onboarding'
     | '/portal/project'
+    | '/portal/reset-password'
     | '/portal/settings'
     | '/portal/support'
   fileRoutesById: FileRoutesById
@@ -354,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalDashboardRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/forgot-password': {
+      id: '/portal/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/portal/forgot-password'
+      preLoaderRoute: typeof PortalForgotPasswordRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/learning-onboarding': {
       id: '/portal/learning-onboarding'
       path: '/learning-onboarding'
@@ -389,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalProjectRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/reset-password': {
+      id: '/portal/reset-password'
+      path: '/reset-password'
+      fullPath: '/portal/reset-password'
+      preLoaderRoute: typeof PortalResetPasswordRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/settings': {
       id: '/portal/settings'
       path: '/settings'
@@ -410,11 +448,13 @@ interface PortalRouteChildren {
   PortalAcademyRoute: typeof PortalAcademyRoute
   PortalChangeRequestsRoute: typeof PortalChangeRequestsRoute
   PortalDashboardRoute: typeof PortalDashboardRoute
+  PortalForgotPasswordRoute: typeof PortalForgotPasswordRoute
   PortalLearningOnboardingRoute: typeof PortalLearningOnboardingRoute
   PortalLoginRoute: typeof PortalLoginRoute
   PortalMyLearningRoute: typeof PortalMyLearningRoute
   PortalOnboardingRoute: typeof PortalOnboardingRoute
   PortalProjectRoute: typeof PortalProjectRoute
+  PortalResetPasswordRoute: typeof PortalResetPasswordRoute
   PortalSettingsRoute: typeof PortalSettingsRoute
   PortalSupportRoute: typeof PortalSupportRoute
 }
@@ -423,11 +463,13 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalAcademyRoute: PortalAcademyRoute,
   PortalChangeRequestsRoute: PortalChangeRequestsRoute,
   PortalDashboardRoute: PortalDashboardRoute,
+  PortalForgotPasswordRoute: PortalForgotPasswordRoute,
   PortalLearningOnboardingRoute: PortalLearningOnboardingRoute,
   PortalLoginRoute: PortalLoginRoute,
   PortalMyLearningRoute: PortalMyLearningRoute,
   PortalOnboardingRoute: PortalOnboardingRoute,
   PortalProjectRoute: PortalProjectRoute,
+  PortalResetPasswordRoute: PortalResetPasswordRoute,
   PortalSettingsRoute: PortalSettingsRoute,
   PortalSupportRoute: PortalSupportRoute,
 }
