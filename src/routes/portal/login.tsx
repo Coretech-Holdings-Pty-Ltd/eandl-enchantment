@@ -28,6 +28,8 @@ import {
   CreditCard
 } from "lucide-react";
 import { usePortalAuth } from "@/lib/portal-auth";
+import { ThemeToggle } from "@/lib/theme";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/portal/login")({
   component: PortalLoginPage,
@@ -133,7 +135,7 @@ function PortalLoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-slate-100 font-sans selection:bg-teal-500 selection:text-white flex flex-col justify-between relative overflow-x-hidden">
+    <div className="min-h-screen w-full bg-background text-foreground font-sans selection:bg-teal-500 selection:text-white flex flex-col justify-between relative overflow-x-hidden transition-colors duration-200">
       
       {/* Background Ambient Glows & Grid */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -150,18 +152,18 @@ function PortalLoginPage() {
       </div>
 
       {/* Top Navigation Bar */}
-      <header className="relative z-20 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl shrink-0">
+      <header className="relative z-20 border-b border-border bg-card/85 backdrop-blur-xl shrink-0 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Brand Identity */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 via-teal-600 to-amber-500 p-0.5 shadow-md shadow-teal-500/20 flex items-center justify-center">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+              <div className="w-full h-full bg-card rounded-[10px] flex items-center justify-center transition-colors">
                 <Zap size={20} className="text-teal-400" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-black tracking-tight text-white flex items-center gap-2">
+              <span className="text-base font-black tracking-tight text-foreground flex items-center gap-2">
                 E&L Digital
                 <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30">
                   Client Hub
@@ -173,17 +175,19 @@ function PortalLoginPage() {
 
           {/* Quick Actions */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium bg-slate-900 border border-slate-800 text-slate-300">
+            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium bg-secondary/70 border border-border text-muted-foreground">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>CoreTech Engine:</span>
-              <span className="font-mono text-xs font-semibold text-slate-200">Online</span>
+              <span className="font-mono text-xs font-semibold text-foreground">Online</span>
             </div>
+
+            <ThemeToggle className="h-9 w-9 rounded-full border border-border bg-secondary/80 hover:bg-secondary" />
 
             <a
               href="https://eandl.digital"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700/80 transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-secondary hover:bg-secondary/80 text-foreground border border-border transition-all shadow-xs"
             >
               <span>Main Site</span>
               <ExternalLink size={12} className="text-teal-400" />
@@ -214,14 +218,14 @@ function PortalLoginPage() {
                 <span>Client & Partner Workspace • 2026</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                 Your Unified Digital{" "}
                 <span className="bg-gradient-to-r from-teal-400 via-emerald-300 to-amber-300 bg-clip-text text-transparent">
                   Command Center
                 </span>
               </h1>
 
-              <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Direct client visibility into live development sprints, DebiCheck billing retainers, Gemini-powered AI onboarding, and accredited learning academies.
               </p>
             </div>
@@ -230,13 +234,13 @@ function PortalLoginPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
               
               {/* Card 1: Live Project Velocity */}
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md space-y-2.5 hover:border-teal-500/30 transition-all">
+              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-teal-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400">
                       <FolderKanban size={16} />
                     </div>
-                    <span className="text-xs font-bold text-white">Project Workspaces</span>
+                    <span className="text-xs font-bold text-foreground">Project Workspaces</span>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold">
                     SPRINT 4
@@ -244,28 +248,28 @@ function PortalLoginPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-400 font-medium">
+                  <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
                     <span>Deliverable Progress</span>
                     <span className="text-teal-400 font-bold">85% Complete</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-teal-500 to-emerald-400 rounded-full w-[85%]" />
                   </div>
                 </div>
 
-                <p className="text-[11px] text-slate-400 leading-snug">
+                <p className="text-[11px] text-muted-foreground leading-snug">
                   Track staging releases, review milestone approvals, and submit change requests seamlessly.
                 </p>
               </div>
 
               {/* Card 2: DebiCheck & Care Retainers */}
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md space-y-2.5 hover:border-amber-500/30 transition-all">
+              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-amber-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
                       <CreditCard size={16} />
                     </div>
-                    <span className="text-xs font-bold text-white">DebiCheck Retainers</span>
+                    <span className="text-xs font-bold text-foreground">DebiCheck Retainers</span>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
                     PROTECTED
@@ -273,69 +277,69 @@ function PortalLoginPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-400 font-medium">
+                  <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
                     <span>Monthly Quota Active</span>
                     <span className="text-amber-400 font-bold">18h Remaining</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full w-[70%]" />
                   </div>
                 </div>
 
-                <p className="text-[11px] text-slate-400 leading-snug">
+                <p className="text-[11px] text-muted-foreground leading-snug">
                   Automated debit order status, quota hours, and zero friction invoicing.
                 </p>
               </div>
 
               {/* Card 3: E&L Digital Academy */}
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md space-y-2.5 hover:border-blue-500/30 transition-all">
+              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-blue-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
                       <GraduationCap size={16} />
                     </div>
-                    <span className="text-xs font-bold text-white">Learning Academy</span>
+                    <span className="text-xs font-bold text-foreground">Learning Academy</span>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">
                     ACCREDITED
                   </span>
                 </div>
 
-                <p className="text-[11px] text-slate-300 font-semibold line-clamp-1">
+                <p className="text-[11px] text-foreground font-semibold line-clamp-1">
                   Applied Generative AI &amp; Autonomous Agents
                 </p>
 
-                <p className="text-[11px] text-slate-400 leading-snug">
+                <p className="text-[11px] text-muted-foreground leading-snug">
                   Hands-on digital curriculum, video lessons, and verifiable completion certificates.
                 </p>
               </div>
 
               {/* Card 4: Gemini AI Intake Engine */}
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md space-y-2.5 hover:border-purple-500/30 transition-all">
+              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-purple-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
                       <Sparkles size={16} />
                     </div>
-                    <span className="text-xs font-bold text-white">Gemini AI Intake</span>
+                    <span className="text-xs font-bold text-foreground">Gemini AI Intake</span>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">
                     SMART AGENT
                   </span>
                 </div>
 
-                <p className="text-[11px] text-slate-300 font-semibold line-clamp-1">
+                <p className="text-[11px] text-foreground font-semibold line-clamp-1">
                   Dynamic Project Questionnaires
                 </p>
 
-                <p className="text-[11px] text-slate-400 leading-snug">
+                <p className="text-[11px] text-muted-foreground leading-snug">
                   Conversational scoping that aligns business goals and technical stacks in minutes.
                 </p>
               </div>
             </div>
 
             {/* Enterprise Trust Strip */}
-            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-8 border-t border-slate-800/80 text-slate-400 text-xs">
+            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-8 border-t border-border text-muted-foreground text-xs">
               <div className="flex items-center gap-1.5 text-[11px]">
                 <ShieldCheck size={14} className="text-teal-400" />
                 <span>Supabase Row-Level Security</span>
@@ -353,7 +357,7 @@ function PortalLoginPage() {
 
           {/* Right Column: High-End Authentication Card */}
           <div className="lg:col-span-5 w-full">
-            <div className="relative bg-slate-900/90 backdrop-blur-2xl text-slate-100 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-700/80 space-y-5">
+            <div className="relative bg-card backdrop-blur-2xl text-foreground rounded-3xl p-6 sm:p-8 shadow-2xl border border-border space-y-5">
               
               {/* Header */}
               <div className="space-y-1.5">
@@ -362,31 +366,51 @@ function PortalLoginPage() {
                     <ShieldCheck size={14} />
                     Verified Client Access
                   </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary text-muted-foreground border border-border font-mono">
                     SECURED
                   </span>
                 </div>
 
-                <h2 className="text-2xl font-black tracking-tight text-white">
+                <h2 className="text-2xl font-black tracking-tight text-foreground">
                   {tab === "login" ? "Welcome to Your Portal" : "Create Client Account"}
                 </h2>
 
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {tab === "login"
                     ? "Sign in with your verified credentials to track projects, manage care quotas, and access courses."
                     : "Register your business profile to access your dedicated project workspace and learning academy."}
                 </p>
               </div>
 
+              {/* Learning Hub Student Quick Link */}
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-teal-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
+                    <GraduationCap size={16} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-amber-200">Learning Hub Student?</div>
+                    <div className="text-[11px] text-slate-400">Complete AI onboarding, pick your plan, and start learning.</div>
+                  </div>
+                </div>
+                <Link
+                  to="/portal/learning-onboarding"
+                  className="px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-[11px] shrink-0 flex items-center gap-1 shadow-md transition-all cursor-pointer"
+                >
+                  <span>Student Plans</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
+
               {/* Mode Selector Tabs */}
-              <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950/80 rounded-2xl text-xs font-bold text-slate-400 border border-slate-800">
+              <div className="grid grid-cols-2 gap-1 p-1 bg-secondary rounded-2xl text-xs font-bold text-muted-foreground border border-border">
                 <button
                   type="button"
                   onClick={() => { setTab("login"); setError(""); setSuccess(""); }}
                   className={`py-2 rounded-xl transition-all cursor-pointer ${
                     tab === "login"
                       ? "bg-teal-600 text-white shadow-md shadow-teal-950/50"
-                      : "hover:text-slate-200"
+                      : "hover:text-foreground"
                   }`}
                 >
                   Sign In to Portal
@@ -397,7 +421,7 @@ function PortalLoginPage() {
                   className={`py-2 rounded-xl transition-all cursor-pointer ${
                     tab === "register"
                       ? "bg-teal-600 text-white shadow-md shadow-teal-950/50"
-                      : "hover:text-slate-200"
+                      : "hover:text-foreground"
                   }`}
                 >
                   Create Account
@@ -424,11 +448,11 @@ function PortalLoginPage() {
               {tab === "login" ? (
                 <form onSubmit={handleLogin} className="space-y-3.5 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-300 mb-1">
+                    <label className="block font-bold text-foreground mb-1">
                       Business or Contact Email *
                     </label>
                     <div className="relative">
-                      <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="email"
                         required
@@ -453,7 +477,7 @@ function PortalLoginPage() {
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type={showPass ? "text" : "password"}
                         required
@@ -496,9 +520,9 @@ function PortalLoginPage() {
               ) : (
                 <form onSubmit={handleRegister} className="space-y-3.5 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-300 mb-1">Full Name *</label>
+                    <label className="block font-bold text-foreground mb-1">Full Name *</label>
                     <div className="relative">
-                      <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="text"
                         required
@@ -511,9 +535,9 @@ function PortalLoginPage() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-300 mb-1">Company / Business Name</label>
+                    <label className="block font-bold text-foreground mb-1">Company / Business Name</label>
                     <div className="relative">
-                      <Building2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Building2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="text"
                         placeholder="e.g. Apex Health Holdings"
@@ -525,9 +549,9 @@ function PortalLoginPage() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-300 mb-1">Business Email Address *</label>
+                    <label className="block font-bold text-foreground mb-1">Business Email Address *</label>
                     <div className="relative">
-                      <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="email"
                         required
@@ -552,7 +576,7 @@ function PortalLoginPage() {
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type={showPass ? "text" : "password"}
                         required
@@ -577,8 +601,8 @@ function PortalLoginPage() {
               )}
 
               {/* Portal Features Inclusion Strip */}
-              <div className="pt-2 border-t border-slate-800 space-y-2">
-                <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400 text-center">
+              <div className="pt-2 border-t border-border space-y-2">
+                <div className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground text-center">
                   Included with your verified client access
                 </div>
                 <div className="flex flex-wrap gap-1.5 justify-center">
@@ -595,7 +619,7 @@ function PortalLoginPage() {
               </div>
 
               {/* Direct Support & Escalation */}
-              <div className="pt-1 text-center text-xs text-slate-400 space-y-1">
+              <div className="pt-1 text-center text-xs text-muted-foreground space-y-1">
                 <div className="text-[11px]">
                   Need priority assistance or onboarding help?
                 </div>
@@ -622,7 +646,7 @@ function PortalLoginPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-900 bg-slate-950/90 py-5 text-center text-xs text-slate-500 shrink-0">
+      <footer className="relative z-10 border-t border-slate-900 bg-slate-950/90 py-5 text-center text-xs text-muted-foreground shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-400">E&L Digital Holdings (Pty) Ltd</span>

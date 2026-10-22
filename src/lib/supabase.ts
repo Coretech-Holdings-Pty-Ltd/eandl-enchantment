@@ -61,19 +61,24 @@ export function getPortalAccess(client: any): {
     ["active", "trialing", "paused"].includes(s.status)
   );
 
-  const hasProjects = activeSubs.some((s: any) => {
-    const cat = s.packages?.category || s.package_category || "";
-    return ["website", "ecommerce", "app", "system", "custom"].includes(cat);
-  });
+  const hasProjects =
+    client.portal_access_projects === true ||
+    activeSubs.some((s: any) => {
+      const cat = s.packages?.category || s.package_category || "";
+      return ["website", "ecommerce", "app", "system", "custom"].includes(cat);
+    });
 
-  const hasLearning = activeSubs.some((s: any) => {
-    const cat = s.packages?.category || s.package_category || "";
-    return cat === "growth_community" || s.learning_access === true;
-  });
+  const hasLearning =
+    client.portal_access_learning === true ||
+    client.learning_access === true ||
+    activeSubs.some((s: any) => {
+      const cat = s.packages?.category || s.package_category || "";
+      return cat === "growth_community" || s.learning_access === true;
+    });
 
   return {
     projects: hasProjects,
     learning: hasLearning,
-    accountStatus: client.account_status || "trialing",
+    accountStatus: client.account_status || (hasLearning || hasProjects ? "active" : "trialing"),
   };
 }

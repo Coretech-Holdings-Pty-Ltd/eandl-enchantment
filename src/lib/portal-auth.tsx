@@ -36,14 +36,13 @@ export interface OnboardingRecord {
   currentStep: number;
   totalSteps: number;
   isCompleted: boolean;
-  mode: "ai" | "manual" | "admin_bypassed";
-  status: string;
+  mode: "manual" | "ai";
+  status: "in_progress" | "completed" | "skipped";
   businessName?: string;
   industry?: string;
   aiReadinessScore?: number;
   aiRecommendation?: string;
-  chatHistory?: string;
-  // manual form fields
+  chatHistory?: Array<{ role: "user" | "assistant"; text: string }>;
   contactPerson?: string;
   phone?: string;
   address?: string;
@@ -66,7 +65,12 @@ interface PortalAuthContextType {
   access: PortalAccess;
   onboarding: OnboardingRecord | null;
   login: (email: string, password: string) => Promise<{ error?: string }>;
-  register: (email: string, password: string, fullName: string) => Promise<{ error?: string }>;
+  register: (
+    email: string,
+    password: string,
+    fullName: string,
+    extraData?: Record<string, any>
+  ) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   refreshClient: () => Promise<void>;
   updateOnboarding: (updates: Partial<OnboardingRecord>) => Promise<void>;
@@ -88,7 +92,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
 
   const hydrateFromSession = useCallback(async (sessionUser: User) => {
     try {
-      // Load profile
+      // 1. Load user profile
       const { data: prof } = await coreSchema()
         .from("profiles")
         .select("*")
@@ -96,12 +100,35 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         .maybeSingle();
 
       if (prof) {
-        setProfile({ id: prof.id, email: prof.email, fullName: prof.full_name, avatarUrl: prof.avatar_url, phone: prof.phone });
+        setProfile({
+          id: prof.id,
+          email: prof.email,
+          fullName: prof.full_name,
+          avatarUrl: prof.avatar_url,
+          phone: prof.phone,
+        });
       } else {
-        setProfile({ id: sessionUser.id, email: sessionUser.email || "", fullName: sessionUser.user_metadata?.full_name });
+        setProfile({
+          id: sessionUser.id,
+          email: sessionUser.email || "",
+          fullName: sessionUser.user_metadata?.full_name,
+        });
       }
 
-      // Load client + subscriptions
+      // 2. Check for learning course enrollments or metadata
+      const { data: enrollments } = await partnerSchema()
+        .from("course_enrollments")
+        .select("id")
+        .eq("user_id", sessionUser.id)
+        .limit(1);
+
+      const hasEnrollments = Array.isArray(enrollments) && enrollments.length > 0;
+      const isLearningUser =
+        hasEnrollments ||
+        sessionUser.user_metadata?.track === "learning" ||
+        sessionUser.user_metadata?.portal_access_learning === true;
+
+      // 3. Load client + subscriptions
       const { data: clientData } = await partnerSchema()
         .from("clients")
         .select("*, subscriptions(id, status, package_id, package_code, monthly_fee_cents, packages(name, category))")
@@ -110,6 +137,12 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         .maybeSingle();
 
       if (clientData) {
+        const computedAccess = getPortalAccess(clientData);
+        if (isLearningUser) {
+          computedAccess.learning = true;
+          if (computedAccess.accountStatus === "none") computedAccess.accountStatus = "active";
+        }
+
         setClient({
           id: clientData.id,
           name: clientData.name,
@@ -120,13 +153,17 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           companyId: clientData.company_id,
           userId: clientData.user_id,
         });
-        setAccess(getPortalAccess(clientData));
+        setAccess(computedAccess);
       } else {
         setClient(null);
-        setAccess({ projects: false, learning: false, accountStatus: "none" });
+        setAccess({
+          projects: false,
+          learning: isLearningUser,
+          accountStatus: isLearningUser ? "active" : "none",
+        });
       }
 
-      // Load onboarding
+      // 4. Load onboarding
       const { data: ob } = await partnerSchema()
         .from("onboardings")
         .select("*")
@@ -198,11 +235,22 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     return {};
   };
 
-  const register = async (email: string, password: string, fullName: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    fullName: string,
+    extraData?: Record<string, any>
+  ) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, brand_id: BRAND_ID } },
+      options: {
+        data: {
+          full_name: fullName,
+          brand_id: BRAND_ID,
+          ...(extraData || {}),
+        },
+      },
     });
     if (error) return { error: error.message };
     return {};

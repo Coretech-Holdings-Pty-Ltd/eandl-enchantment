@@ -116,12 +116,23 @@ function LearningHubPage() {
           </p>
 
           <div className="flex flex-wrap gap-3 sm:gap-4 mt-8 items-center">
-            <Button asChild variant="brand" className="pill-button-large">
-              <a href="#free-course">
-                Try Free AI Starter Course <ArrowRight size={16} />
-              </a>
+            <Button asChild variant="brand" className="pill-button-large shadow-lg shadow-teal-500/20">
+              <Link to="/portal/learning-onboarding">
+                Enroll & Choose Plan <ArrowRight size={16} />
+              </Link>
             </Button>
             <Button asChild variant="glass" className="pill-button-large">
+              <a href="#free-course">
+                Try Free AI Starter Course <Sparkles size={16} className="text-amber-400" />
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="pill-button">
+              <Link to="/portal/my-learning">
+                <GraduationCap size={15} className="text-teal-400" />
+                Student Portal ↗
+              </Link>
+            </Button>
+            <Button asChild variant="glass" className="pill-button">
               <a
                 href={`${companyContact.whatsappLink}?text=${encodeURIComponent(
                   "Hi E & L Holdings! I'm interested in joining the Learning Hub AI WhatsApp community and masterclasses.",
@@ -129,8 +140,8 @@ function LearningHubPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <MessageSquare size={16} className="text-emerald-500" />
-                Join WhatsApp Group
+                <MessageSquare size={15} className="text-emerald-500" />
+                WhatsApp Group
               </a>
             </Button>
             <Button
@@ -140,7 +151,7 @@ function LearningHubPage() {
               onClick={() => setFlyerOpen(!flyerOpen)}
             >
               <Share2 size={14} />
-              {flyerOpen ? "Close WhatsApp Flyer" : "View WhatsApp Flyer"}
+              {flyerOpen ? "Close Flyer" : "Official Flyer"}
             </Button>
           </div>
 
@@ -479,21 +490,43 @@ function LearningHubPage() {
                     </p>
                   </div>
                 </div>
-                <Button
-                  asChild
-                  variant="brand"
-                  className="pill-button self-start sm:self-auto shrink-0"
-                >
-                  <a
-                    href={`${companyContact.whatsappLink}?text=${encodeURIComponent(
-                      `Hi E & L! I would like to enrol or find out more about ${activeLevel.title}.`,
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
+                <div className="flex flex-wrap gap-2 items-center self-start sm:self-auto shrink-0">
+                  <Button
+                    asChild
+                    variant="brand"
+                    className="pill-button"
                   >
-                    Enquire on WhatsApp <ArrowUpRight size={13} />
-                  </a>
-                </Button>
+                    <Link
+                      to="/portal/learning-onboarding"
+                      search={{
+                        track:
+                          selectedLevel === 0
+                            ? "ai-driven-business-automation"
+                            : selectedLevel === 1
+                            ? "applied-generative-ai-agent-workflows"
+                            : "enterprise-rag-vector-databases",
+                        plan: selectedLevel === 0 ? "starter" : selectedLevel === 1 ? "monthly" : "executive"
+                      }}
+                    >
+                      Enroll in Level {activeLevel.number} <ArrowRight size={13} />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="glass"
+                    className="pill-button"
+                  >
+                    <a
+                      href={`${companyContact.whatsappLink}?text=${encodeURIComponent(
+                        `Hi E & L! I would like to enrol or find out more about ${activeLevel.title}.`,
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      WhatsApp <ArrowUpRight size={13} />
+                    </a>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -1101,6 +1134,22 @@ function LearningHubPage() {
                           >
                             <Download size={14} /> Download Certificate (PDF)
                           </Button>
+                          <Button
+                            asChild
+                            variant="glass"
+                            className="pill-button"
+                          >
+                            <Link
+                              to="/portal/learning-onboarding"
+                              search={{
+                                plan: "starter",
+                                track: "ai-driven-business-automation"
+                              }}
+                            >
+                              <GraduationCap size={14} className="text-amber-400" />
+                              Save to Client Portal Account →
+                            </Link>
+                          </Button>
                           <a
                             href={`${companyContact.whatsappLink}?text=${encodeURIComponent(
                               `Hi E & L! I just completed the Free AI Kickstart Course. I'd like to find out more about enrolling in the full Learning Hub.`,
@@ -1225,15 +1274,19 @@ function LearningHubPage() {
                     variant={tier.featured ? "brand" : "glass"}
                     className="pill-button w-full mt-auto"
                   >
-                    {tier.ctaType === "free" ? (
-                      <a href="#free-course">
-                        {tier.ctaText} <ArrowRight size={14} />
-                      </a>
-                    ) : (
-                      <Link to="/contact" search={{ service: `Learning Hub · ${tier.name}` }}>
-                        {tier.ctaText} <ArrowUpRight size={14} />
-                      </Link>
-                    )}
+                    <Link
+                      to="/portal/learning-onboarding"
+                      search={{
+                        plan:
+                          tier.ctaType === "free"
+                            ? "starter"
+                            : tier.name.toLowerCase().includes("pro") || tier.name.toLowerCase().includes("builder")
+                            ? "executive"
+                            : "monthly",
+                      }}
+                    >
+                      {tier.ctaText} <ArrowRight size={14} />
+                    </Link>
                   </Button>
                 </article>
               ))}

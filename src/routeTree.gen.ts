@@ -21,6 +21,7 @@ import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as PortalAcademyRouteImport } from './routes/portal/academy'
 import { Route as PortalChangeRequestsRouteImport } from './routes/portal/change-requests'
 import { Route as PortalDashboardRouteImport } from './routes/portal/dashboard'
+import { Route as PortalLearningOnboardingRouteImport } from './routes/portal/learning-onboarding'
 import { Route as PortalLoginRouteImport } from './routes/portal/login'
 import { Route as PortalMyLearningRouteImport } from './routes/portal/my-learning'
 import { Route as PortalOnboardingRouteImport } from './routes/portal/onboarding'
@@ -88,6 +89,12 @@ const PortalDashboardRoute = PortalDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalLearningOnboardingRoute =
+  PortalLearningOnboardingRouteImport.update({
+    id: '/learning-onboarding',
+    path: '/learning-onboarding',
+    getParentRoute: () => PortalRoute,
+  } as any)
 const PortalLoginRoute = PortalLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -132,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/learning-onboarding': typeof PortalLearningOnboardingRoute
   '/portal/login': typeof PortalLoginRoute
   '/portal/my-learning': typeof PortalMyLearningRoute
   '/portal/onboarding': typeof PortalOnboardingRoute
@@ -152,6 +160,7 @@ export interface FileRoutesByTo {
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/learning-onboarding': typeof PortalLearningOnboardingRoute
   '/portal/login': typeof PortalLoginRoute
   '/portal/my-learning': typeof PortalMyLearningRoute
   '/portal/onboarding': typeof PortalOnboardingRoute
@@ -173,6 +182,7 @@ export interface FileRoutesById {
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/learning-onboarding': typeof PortalLearningOnboardingRoute
   '/portal/login': typeof PortalLoginRoute
   '/portal/my-learning': typeof PortalMyLearningRoute
   '/portal/onboarding': typeof PortalOnboardingRoute
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
+    | '/portal/learning-onboarding'
     | '/portal/login'
     | '/portal/my-learning'
     | '/portal/onboarding'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
+    | '/portal/learning-onboarding'
     | '/portal/login'
     | '/portal/my-learning'
     | '/portal/onboarding'
@@ -235,6 +247,7 @@ export interface FileRouteTypes {
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
+    | '/portal/learning-onboarding'
     | '/portal/login'
     | '/portal/my-learning'
     | '/portal/onboarding'
@@ -341,6 +354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalDashboardRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/learning-onboarding': {
+      id: '/portal/learning-onboarding'
+      path: '/learning-onboarding'
+      fullPath: '/portal/learning-onboarding'
+      preLoaderRoute: typeof PortalLearningOnboardingRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/login': {
       id: '/portal/login'
       path: '/login'
@@ -390,6 +410,7 @@ interface PortalRouteChildren {
   PortalAcademyRoute: typeof PortalAcademyRoute
   PortalChangeRequestsRoute: typeof PortalChangeRequestsRoute
   PortalDashboardRoute: typeof PortalDashboardRoute
+  PortalLearningOnboardingRoute: typeof PortalLearningOnboardingRoute
   PortalLoginRoute: typeof PortalLoginRoute
   PortalMyLearningRoute: typeof PortalMyLearningRoute
   PortalOnboardingRoute: typeof PortalOnboardingRoute
@@ -402,6 +423,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalAcademyRoute: PortalAcademyRoute,
   PortalChangeRequestsRoute: PortalChangeRequestsRoute,
   PortalDashboardRoute: PortalDashboardRoute,
+  PortalLearningOnboardingRoute: PortalLearningOnboardingRoute,
   PortalLoginRoute: PortalLoginRoute,
   PortalMyLearningRoute: PortalMyLearningRoute,
   PortalOnboardingRoute: PortalOnboardingRoute,

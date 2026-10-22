@@ -54,16 +54,44 @@ function PortalDashboard() {
             <div style={{ flex: 1 }}>
               <div className="portal-card-title" style={{ marginBottom: "0.25rem" }}>No active plan linked yet</div>
               <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, margin: 0 }}>
-                Your account exists but isn't linked to an active E&L subscription yet. Complete onboarding or contact us to get your project or academy access activated.
+                Your account exists but isn't linked to an active E&L subscription yet. Complete project onboarding or start your AI journey in the Learning Hub.
               </p>
               <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", flexWrap: "wrap" }}>
                 <Link to="/portal/onboarding" className="portal-btn portal-btn--primary portal-btn--sm">
-                  <Zap size={14} /> Start onboarding
+                  <Zap size={14} /> Project onboarding
+                </Link>
+                <Link to="/portal/learning-onboarding" className="portal-btn portal-btn--amber portal-btn--sm">
+                  <GraduationCap size={14} /> Learning Hub Onboarding
                 </Link>
                 <a href="https://eandl.digital/contact" target="_blank" rel="noreferrer" className="portal-btn portal-btn--ghost portal-btn--sm">
                   <ExternalLink size={14} /> Contact us
                 </a>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Learning Hub Student Welcome Banner */}
+      {access.learning && !access.projects && (
+        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(245,158,11,0.25)", background: "rgba(245,158,11,0.04)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+            <GraduationCap size={24} color="#f59e0b" />
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#fef3c7" }}>
+                Welcome to your E&L AI Learning Academy
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: "0.25rem 0 0 0" }}>
+                Your learning path is active! Access course lessons, watch video walkthroughs, and download accredited certificates.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <Link to="/portal/my-learning" className="portal-btn portal-btn--amber portal-btn--sm">
+                <BookOpen size={14} /> My Learning
+              </Link>
+              <Link to="/portal/academy" className="portal-btn portal-btn--ghost portal-btn--sm">
+                Course Catalog <ArrowRight size={14} />
+              </Link>
             </div>
           </div>
         </div>
