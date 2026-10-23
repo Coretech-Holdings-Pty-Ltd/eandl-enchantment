@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/lib/theme";
 import { companyContact } from "@/lib/site-content";
 import logo from "@/assets/logo.png";
-import profile from "@/assets/el-company-profile.pdf.asset.json";
 import guide from "@/assets/el-package-guide.pdf.asset.json";
 
 export function Brand({ onClick }: { onClick?: () => void } = {}) {
@@ -294,9 +293,6 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             <div>
               <h4>Resources</h4>
               <div className="footer-links">
-                <a href={profile.url} target="_blank" rel="noreferrer">
-                  Company profile ↗
-                </a>
                 <a href={guide.url} target="_blank" rel="noreferrer">
                   Package guide ↗
                 </a>
@@ -356,11 +352,6 @@ export function ContactCTA() {
           <Link to="/contact">
             Let’s build something <ArrowUpRight />
           </Link>
-        </Button>
-        <Button asChild variant="glass" className="pill-button-large">
-          <a href={profile.url} target="_blank" rel="noreferrer">
-            Our company profile <ArrowUpRight />
-          </a>
         </Button>
       </div>
     </section>

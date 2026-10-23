@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteLayout, ContactCTA } from "@/components/site-layout";
 import { engagements, pageHead } from "@/lib/site-content";
-import profile from "@/assets/el-company-profile.pdf.asset.json";
 
 export const Route = createFileRoute("/about")({
   head: () =>
@@ -28,11 +27,6 @@ function About() {
             A trusted South African partner for organisations navigating technology, infrastructure
             and growth. We combine deep industry experience with practical, results-driven delivery.
           </p>
-          <Button asChild variant="brand" className="pill-button mt-5">
-            <a href={profile.url} target="_blank" rel="noreferrer">
-              Download company profile <Download />
-            </a>
-          </Button>
           <div className="stat-grid">
             <div>
               <strong>
@@ -95,7 +89,7 @@ function About() {
               </div>
               <p className="section-intro">
                 Selected analysis, migration, application support and business development
-                engagements from our 2026 company profile.
+                engagements across South African organisations.
               </p>
             </div>
             <div className="service-grid">

@@ -100,7 +100,6 @@ function Index() {
           <span className="trust-name">MultiChoice</span>
           <span className="trust-name">DVT</span>
           <span className="trust-name">Anglo American</span>
-          <span className="trust-name">WesBank</span>
           <span className="trust-name">harambee</span>
         </div>
       </section>

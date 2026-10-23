@@ -217,7 +217,6 @@ export const engagements = [
   { company: "MultiChoice", year: "2019", work: "Systems analysis" },
   { company: "DVT", year: "2021–2025", work: "Business development & consultation" },
   { company: "Anglo American", year: "2021–2025", work: "Systems migration" },
-  { company: "WesBank", year: "2022–July 2026", work: "RT46 Fleet application support" },
   { company: "Harambee", year: "2025", work: "Technical business analysis" },
 ];
 

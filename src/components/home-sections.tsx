@@ -296,20 +296,6 @@ export function ProjectSection() {
         </div>
         <div className="project-grid">
           <article className="project-card">
-            <div className="project-visual dark">
-              <span className="project-category">Enterprise systems</span>
-              <span className="project-monogram">
-                WesBank<span className="text-accent">.</span>
-              </span>
-            </div>
-            <div className="project-detail">
-              <h3>Supporting systems that move business</h3>
-              <p>
-                RT46 Fleet application support. An enterprise engagement spanning 2022 to July 2026.
-              </p>
-            </div>
-          </article>
-          <article className="project-card">
             <div className="project-visual">
               <span className="project-category">Health technology · In development</span>
               <span className="project-monogram text-accent-foreground">
@@ -321,20 +307,6 @@ export function ProjectSection() {
               <p>
                 A subscription medical member portal, designed around accessible, dependable service
                 delivery.
-              </p>
-            </div>
-          </article>
-          <article className="project-card">
-            <div className="project-visual dark">
-              <span className="project-category">AI product · In development</span>
-              <span className="project-monogram">
-                Lihle<span className="text-accent">Speaks</span>
-              </span>
-            </div>
-            <div className="project-detail">
-              <h3>Intelligent conversations. Human impact.</h3>
-              <p>
-                An AI-enabled agentic chatbot focused on scalable, responsive digital engagement.
               </p>
             </div>
           </article>

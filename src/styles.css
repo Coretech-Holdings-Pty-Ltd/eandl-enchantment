@@ -877,6 +877,9 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
+.project-grid:has(> :only-child) {
+  grid-template-columns: minmax(auto, 540px);
+}
 .project-card {
   border: 1px solid var(--border);
   border-radius: 20px;

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Email Change — CoreTech &amp; E&amp;L Platform</title>
+  <style>
+    body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #0b0f17; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    table { border-spacing: 0; }
+    td { padding: 0; }
+    img { border: 0; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #0b0f17; padding: 36px 12px 48px; }
+    .main { background-color: #111827; margin: 0 auto; width: 100%; max-width: 580px; border-spacing: 0; color: #f8fafc; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); }
+    .button { background: linear-gradient(135deg, #0d9488 0%, #059669 100%); color: #ffffff !important; text-decoration: none; padding: 15px 36px; border-radius: 999px; font-weight: 700; font-size: 14px; display: inline-block; letter-spacing: 0.5px; box-shadow: 0 4px 18px rgba(13, 148, 136, 0.35); }
+    @media screen and (max-width: 600px) {
+      .content-padding { padding: 28px 20px !important; }
+      .header-padding { padding: 24px 20px !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <!-- Preheader Tagline -->
+      <tr>
+        <td align="center" style="padding-bottom: 14px;">
+          <span style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #64748b; font-family: monospace;">
+            CORETECH ENGINE · UNIFIED AUTHENTICATION DESK
+          </span>
+        </td>
+      </tr>
+
+      <tr>
+        <td align="center">
+          <table role="presentation" class="main" width="580" cellpadding="0" cellspacing="0">
+            <!-- Header Block -->
+            <tr>
+              <td class="header-padding" style="background: linear-gradient(180deg, #132426 0%, #111827 100%); padding: 36px 40px 28px; border-bottom: 1px solid rgba(13, 148, 136, 0.25);">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td valign="middle">
+                      <div style="display: inline-block; padding: 4px 10px; border-radius: 6px; background: rgba(13, 148, 136, 0.15); border: 1px solid rgba(13, 148, 136, 0.3); color: #2dd4bf; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;">
+                        ACCOUNT SECURITY DESK
+                      </div>
+                      <h1 style="margin: 0; color: #ffffff; font-size: 21px; font-weight: 800; letter-spacing: -0.5px;">
+                        CoreTech &amp; Partner Network
+                      </h1>
+                      <div style="color: #94a3b8; font-size: 12px; font-weight: 500; margin-top: 3px;">
+                        Email Address Update Verification
+                      </div>
+                    </td>
+                    <td align="right" valign="top">
+                      <span style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; padding: 5px 12px; border-radius: 999px; font-size: 10px; font-weight: 800; font-family: monospace; letter-spacing: 0.5px;">
+                        EMAIL UPDATE
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Body Content -->
+            <tr>
+              <td class="content-padding" style="padding: 38px 40px 32px;">
+                <h2 style="margin: 0 0 14px 0; color: #ffffff; font-size: 20px; font-weight: 700; letter-spacing: -0.3px;">
+                  Confirm Your New Email Address
+                </h2>
+
+                <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 24px; color: #cbd5e1;">
+                  A request was submitted to change the primary email address on your <strong>CoreTech &amp; E&amp;L Platform Gateway</strong> account.
+                </p>
+
+                <p style="margin: 0 0 26px 0; font-size: 14px; line-height: 24px; color: #cbd5e1;">
+                  Please verify this new email address by clicking the authorization button below.
+                </p>
+
+                <!-- Call to action button -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                  <tr>
+                    <td align="center">
+                      <a href="{{ .ConfirmationURL }}" class="button" target="_blank">
+                        Confirm Email Update &rarr;
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Security Note -->
+                <div style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; margin: 24px 0 0;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td width="20" valign="top" style="padding-right: 10px;">
+                        <span style="font-size: 14px;">🔒</span>
+                      </td>
+                      <td style="font-size: 12px; line-height: 18px; color: #94a3b8;">
+                        If you did not authorize this change, please contact your security operations administrator immediately.
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- Fallback URL -->
+                <div style="background-color: #0c121e; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 14px; margin-top: 20px;">
+                  <div style="font-size: 10px; font-weight: 700; color: #64748b; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">
+                    Direct URL Fallback
+                  </div>
+                  <div style="font-size: 11px; color: #2dd4bf; word-break: break-all; font-family: monospace; line-height: 16px;">
+                    {{ .ConfirmationURL }}
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer Block -->
+            <tr>
+              <td style="background-color: #0c121e; border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 26px 40px; text-align: center;">
+                <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">
+                  CoreTech Holdings &amp; E&amp;L Digital Platform Ecosystem
+                </p>
+                <p style="margin: 0; font-size: 11px; line-height: 16px; color: #64748b;">
+                  South Africa · Unified Identity Infrastructure · 256-bit TLS Encryption<br>
+                  Protected under South African POPIA regulations. Automated security dispatch.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
