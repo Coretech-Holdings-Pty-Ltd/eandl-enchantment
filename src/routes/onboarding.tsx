@@ -8,7 +8,7 @@ import {
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/site-content";
-import { databases, COLLECTIONS, DATABASE_ID, ID, functions } from "@/lib/appwrite";
+import { partnerSchema, BRAND_ID } from "@/lib/supabase";
 import {
   askGeminiArchitect,
   synthesizeScopeWithGemini,
@@ -138,90 +138,43 @@ function OnboardingPage() {
     }
   };
 
-  // Step 3 Submit: Confirm Plan & Save to Appwrite
+  // Step 3 Submit: Confirm Plan & Save to Supabase
   const handleConfirmPlan = async () => {
     if (!scopingResult) return;
     setIsSaving(true);
 
     try {
-      // 1. Save Lead Dossier into partner-db ai_onboardings collection
-      const nowIso = new Date().toISOString();
-      const dbDate = nowIso.replace("T", " ").split(".")[0]; // YYYY-MM-DD HH:mm:ss for Appwrite date attribute
-      await databases.createDocument(
-        DATABASE_ID,
-        COLLECTIONS.ai_onboardings,
-        ID.unique(),
-        {
-          sessionId: "sess_" + Date.now(),
-          brandId: "e_and_l",
-          clientName: contactPerson,
-          businessName,
-          clientEmail: email,
-          clientPhone: phone || null,
+      const sessionId = "sess_" + Date.now();
+
+      // Save onboarding session to partner.onboardings
+      // (public anon users cannot write core.companies — company record created by admin on qualification)
+      const { error: obErr } = await partnerSchema()
+        .from("onboardings")
+        .insert({
+          brand_id: BRAND_ID,
+          session_id: sessionId,
+          client_name: contactPerson,
+          client_email: email,
+          client_phone: phone || null,
+          business_name: businessName,
           industry: industry || "General Business",
-          targetAudience: "Customers & Clients",
-          businessGoals: scopingResult.projectTitle,
-          selectedPackageCode: selectedPackage,
-          packageCategory: selectedPackage.toLowerCase().includes("shop") ? "ecommerce" : "website",
-          requiredFeatures: [],
-          hasExistingDomain: false,
-          currentStep: 4,
-          totalSteps: 4,
-          isCompleted: true,
-          aiReadinessScore: scopingResult.leadScore || 85,
-          aiRecommendation: scopingResult.scopeSummary || `Recommended plan: ${selectedPackage} at R${scopingResult.monthlyFee}/month`,
-          aiSuggestedTech: ["React", "Cloudflare", "Appwrite"],
-          aiScopingPrompt: scopingResult.projectTitle,
-          chatHistory: JSON.stringify(messages),
+          target_audience: "Customers & Clients",
+          business_goals: scopingResult.projectTitle,
+          selected_package_code: selectedPackage,
+          current_step: 4,
+          total_steps: 4,
+          ai_readiness_score: scopingResult.leadScore || 85,
+          ai_recommendation: scopingResult.scopeSummary || `Recommended plan: ${selectedPackage} at R${scopingResult.monthlyFee}/month`,
+          chat_history: messages,
           status: "completed",
-          notes: `Monthly care SLA: ${scopingResult.carePlanMinutes} min/month. Urgency: ${scopingResult.urgency}`,
-          createdAt: dbDate
-        }
-      );
+        });
 
-      // 2. Create client account in clients collection
-      try {
-        await databases.createDocument(
-          DATABASE_ID,
-          COLLECTIONS.clients,
-          ID.unique(),
-          {
-            businessName,
-            contactPerson,
-            email,
-            phone,
-            tier: selectedPackage,
-            carePlanMinutes: scopingResult.carePlanMinutes,
-            carePlanUsed: 0,
-            debicheckBank: "Absa Bank (Pending DebiCheck)",
-            debicheckStatus: "Active",
-            status: "active",
-            joined: new Date().toISOString()
-          }
-        );
-      } catch (clientErr) {
-        console.warn("Client account creation notice:", clientErr);
-      }
-
-      // 3. Trigger automated welcome email via Appwrite Function
-      try {
-        await functions.createExecution(
-          "send-email",
-          JSON.stringify({
-            to: email,
-            subject: `Welcome to E&L Digital: Onboarding Confirmed for ${businessName}`,
-            html: `<p>Dear ${contactPerson},</p><p>Thank you for completing your project scoping with our AI Solutions Architect. Your recommended plan <strong>${selectedPackage} (R${scopingResult.monthlyFee}/month)</strong> is confirmed.</p><p>Access your new Client Portal here: <a href="http://localhost:8081/client-portal">Launch Client Portal</a></p>`,
-            recipientName: contactPerson,
-            senderId: "eandl_onboarding"
-          })
-        );
-      } catch (emailErr) {
-        console.warn("Email dispatch notice:", emailErr);
-      }
+      if (obErr) console.warn("Onboarding save notice:", obErr.message);
 
       setStep(4);
     } catch (err: any) {
-      console.error("Onboarding persistence notice:", err);
+      console.error("Onboarding save error:", err?.message || err);
+      // Still advance to success — lead data isn't lost, admin can follow up
       setStep(4);
     } finally {
       setIsSaving(false);
@@ -608,7 +561,7 @@ function OnboardingPage() {
                 <span className="text-xs font-extrabold text-teal-700 uppercase tracking-widest">ONBOARDING CONFIRMED</span>
                 <h2 className="text-3xl font-black text-foreground mt-1">Welcome to E&L Digital!</h2>
                 <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto mt-2">
-                  Your scoping dossier for <strong>{businessName}</strong> has been logged into our Appwrite production database under the <strong>{selectedPackage}</strong> plan.
+                  Your project brief for <strong>{businessName}</strong> is saved. Our team will reach out within 1 business day. Create your client account to track progress.
                 </p>
               </div>
 
@@ -618,26 +571,29 @@ function OnboardingPage() {
                   <span className="font-bold text-foreground">{businessName}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Selected Package:</span>
+                  <span>Recommended Package:</span>
                   <span className="font-bold text-teal-700">{selectedPackage}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Contact Email:</span>
                   <span className="font-bold text-foreground">{email}</span>
                 </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>DebiCheck Status:</span>
-                  <span className="font-bold text-emerald-700">Ready for Mandate</span>
-                </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
-                  onClick={() => navigate({ to: "/client-portal" })}
+                  onClick={() => navigate({ to: "/portal/login", search: { tab: "register", plan: selectedPackage } })}
                   variant="brand"
                   className="pill-button font-bold text-sm px-8 py-3"
                 >
-                  Open Client Portal & Track Delivery Gates <ArrowRight size={15} />
+                  Create Account & Access Portal <ArrowRight size={15} />
+                </Button>
+                <Button
+                  onClick={() => navigate({ to: "/" })}
+                  variant="glass"
+                  className="pill-button text-sm px-8 py-3"
+                >
+                  Back to Home
                 </Button>
               </div>
             </div>

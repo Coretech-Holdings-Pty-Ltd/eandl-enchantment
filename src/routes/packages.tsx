@@ -84,10 +84,10 @@ function Packages() {
                   </ul>
                   <Button asChild variant={p.featured ? "brand" : "glass"} className="pill-button">
                     <Link
-                      to="/contact"
-                      search={{ service: `${p.name} package · ${[36, 24, 12][term]} months` }}
+                      to="/portal/login"
+                      search={{ tab: "register", plan: p.name, term: String([36, 24, 12][term]) }}
                     >
-                      Enquire about {p.name} <ArrowUpRight />
+                      Get started with {p.name} <ArrowUpRight />
                     </Link>
                   </Button>
                   {p.trial && (
@@ -111,7 +111,7 @@ function Packages() {
                   Indicative 36-month starting fees. Scope and pricing confirmed in a written quote.
                 </p>
                 <Button asChild variant="brand" className="pill-button mt-auto">
-                  <Link to="/contact" search={{ service: "Custom package" }}>
+                  <Link to="/contact" search={{ service: "Custom package · tailored quote" }}>
                     Let’s find your fit <ArrowUpRight />
                   </Link>
                 </Button>

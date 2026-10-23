@@ -33,6 +33,11 @@ import { ThemeToggle } from "@/lib/theme";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/portal/login")({
+  validateSearch: (s: Record<string, unknown>): { tab?: string; plan?: string; term?: string } => ({
+    tab: typeof s["tab"] === "string" ? s["tab"] : undefined,
+    plan: typeof s["plan"] === "string" ? s["plan"] : undefined,
+    term: typeof s["term"] === "string" ? s["term"] : undefined,
+  }),
   component: PortalLoginPage,
 });
 
@@ -41,7 +46,10 @@ type Tab = "login" | "register";
 function PortalLoginPage() {
   const navigate = useNavigate();
   const { login, register, user, loading } = usePortalAuth();
-  const [tab, setTab] = useState<Tab>("login");
+  const { tab: tabParam, plan: planParam, term: termParam } = Route.useSearch();
+  const [tab, setTab] = useState<Tab>((tabParam === "register" ? "register" : "login") as Tab);
+  const [selectedPlan] = useState<string | undefined>(planParam);
+  const [selectedTerm] = useState<string | undefined>(termParam);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -51,6 +59,11 @@ function PortalLoginPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Sync tab when URL param changes (e.g. back navigation)
+  useEffect(() => {
+    if (tabParam === "register") setTab("register");
+  }, [tabParam]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -106,7 +119,10 @@ function PortalLoginPage() {
         ? `${fullName} (${companyName.trim()})`
         : fullName;
 
-      const { error: err } = await register(email, password, displayName);
+      const { error: err } = await register(email, password, displayName, {
+        selected_plan: selectedPlan || undefined,
+        selected_term: selectedTerm || undefined,
+      });
       if (err) {
         setError(
           err.includes("already registered")
@@ -114,7 +130,7 @@ function PortalLoginPage() {
             : err
         );
       } else {
-        setSuccess("Partner client account created! Please check your email to confirm, then sign in.");
+        setSuccess("Account created! ✅ Check your email to verify, then sign in to complete your onboarding.");
         setTab("login");
       }
     } catch {
@@ -508,6 +524,17 @@ function PortalLoginPage() {
                 </form>
               ) : (
                 <form onSubmit={handleRegister} className="space-y-3.5 text-xs">
+                  {selectedPlan && (
+                    <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/25 mb-1">
+                      <Sparkles size={13} className="text-teal-500 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-teal-700 dark:text-teal-300 text-[11px] truncate">
+                          Selected: {selectedPlan}{selectedTerm ? ` · ${selectedTerm}-month term` : ""}
+                        </div>
+                        <div className="text-[10px] text-teal-600/70 dark:text-teal-400/70">Create your account to get started</div>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className="block font-bold text-foreground mb-1">Full Name *</label>
                     <div className="relative">

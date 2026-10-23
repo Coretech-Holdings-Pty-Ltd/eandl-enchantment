@@ -1105,7 +1105,8 @@ function LearningHubPage() {
                             <div className="cert-footer-row">
                               <div className="cert-sig-block">
                                 <div className="cert-sig-line" />
-                                <div className="cert-sig-label">Director · E and L Holdings</div>
+                                <div className="cert-sig-name font-bold text-slate-900 text-xs mt-1">Mr Ezile Evander Gcasamba</div>
+                                <div className="cert-sig-label text-[10px] text-slate-500">Founder &amp; Executive Director · E and L Holdings</div>
                               </div>
                               <div className="cert-meta-block">
                                 <div className="cert-code">
