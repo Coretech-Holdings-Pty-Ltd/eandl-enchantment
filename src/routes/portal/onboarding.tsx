@@ -77,7 +77,11 @@ function PortalOnboarding() {
       if (onboarding.targetAudience) setTargetAudience(onboarding.targetAudience);
       if (onboarding.businessGoals) setBusinessGoals(onboarding.businessGoals);
       if (onboarding.chatHistory) {
-        try { setMessages(JSON.parse(onboarding.chatHistory)); } catch (_) {}
+        if (Array.isArray(onboarding.chatHistory)) {
+          setMessages(onboarding.chatHistory as ChatMessage[]);
+        } else if (typeof (onboarding.chatHistory as unknown) === "string") {
+          try { setMessages(JSON.parse(onboarding.chatHistory as unknown as string)); } catch (_) {}
+        }
       }
     }
   }, [onboarding]);
@@ -257,7 +261,7 @@ function PortalOnboarding() {
           currentStep: 5,
           aiRecommendation: result.scopeSummary,
           aiReadinessScore: result.leadScore,
-          chatHistory: JSON.stringify(messages),
+          chatHistory: messages,
           selectedPackageCode: result.recommendedPackage,
           businessGoals: result.projectTitle
         });
@@ -350,7 +354,7 @@ function PortalOnboarding() {
             <SkipForward size={14} /> Switch to manual form
           </button>
           <button className="portal-btn portal-btn--ghost" style={{ marginLeft: "auto" }} onClick={() => {
-            updateOnboarding({ chatHistory: JSON.stringify(messages), mode: "ai" });
+            updateOnboarding({ chatHistory: messages, mode: "ai" });
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
           }}>

@@ -23,7 +23,8 @@ import {
   Award,
   Check,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  AlertCircle
 } from "lucide-react";
 import { usePortalAuth } from "@/lib/portal-auth";
 import logo from "@/assets/logo.png";
@@ -31,9 +32,9 @@ import { ThemeToggle } from "@/lib/theme";
 import { supabase, partnerSchema } from "@/lib/supabase";
 
 export const Route = createFileRoute("/portal/learning-onboarding")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    plan: (search.plan as string) || "starter",
-    track: (search.track as string) || "",
+  validateSearch: (search: Record<string, unknown>): { plan?: string; track?: string } => ({
+    plan: typeof search["plan"] === "string" ? search["plan"] : "starter",
+    track: typeof search["track"] === "string" ? search["track"] : "",
   }),
   component: LearningOnboardingPage,
 });
@@ -629,7 +630,7 @@ function LearningOnboardingPage() {
                 Launch Your Learning Portal
               </h1>
               <p className="text-xs text-muted-foreground">
-                Enrolling in: <strong className="text-foreground">{selectedCourse.title}</strong> ({selectedPlan.name})
+                Enrolling in: <strong className="text-foreground">{selectedCourse?.title || "AI Course"}</strong> ({selectedPlan?.name || "Standard"})
               </p>
             </div>
 
@@ -642,7 +643,7 @@ function LearningOnboardingPage() {
                 <div>
                   <h3 className="text-base font-bold text-foreground">Signed in as {user.email}</h3>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Your account will be instantly enrolled into <strong className="text-foreground">{selectedCourse.title}</strong> with full Academy privileges.
+                    Your account will be instantly enrolled into <strong className="text-foreground">{selectedCourse?.title || "the selected course"}</strong> with full Academy privileges.
                   </p>
                 </div>
 

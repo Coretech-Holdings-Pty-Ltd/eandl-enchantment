@@ -5,6 +5,37 @@
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 
+// Fallback model chain — most reliable first
+const GEMINI_MODELS = [
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash",
+  "gemini-1.5-flash-8b",
+];
+
+async function callGemini(body: object): Promise<Response | null> {
+  for (const model of GEMINI_MODELS) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      if (res.status === 503 || res.status === 429) {
+        console.warn(`Model ${model} unavailable (${res.status}), trying next...`);
+        continue;
+      }
+      if (res.ok) return res;
+    } catch (err) {
+      console.warn(`Model ${model} failed:`, err);
+    }
+  }
+  return null;
+}
+
 export interface ChatMessage {
   role: "user" | "model" | "system";
   text: string;
@@ -55,16 +86,8 @@ Engage conversationally and naturally.`;
         { role: "user", parts: [{ text: newMessage }] }
       ];
 
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents })
-        }
-      );
-
-      if (res.ok) {
+      const res = await callGemini({ contents });
+      if (res) {
         const data = await res.json();
         const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (reply) return reply.trim();
@@ -123,18 +146,8 @@ Return ONLY a valid JSON object with:
   "urgency": string
 }`;
 
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        }
-      );
-
-      if (res.ok) {
+      const res = await callGemini({ contents: [{ parts: [{ text: prompt }] }] });
+      if (res) {
         const data = await res.json();
         const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (raw) {

@@ -70,7 +70,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           </a>
         </div>
 
-        {error && (
+        {Boolean(error) && (
           <details className="mt-6 text-left text-xs bg-card p-4 rounded-xl border border-border text-muted-foreground">
             <summary className="cursor-pointer font-bold font-mono text-foreground">Diagnostic Details</summary>
             <pre className="mt-2 text-[11px] font-mono text-destructive whitespace-pre-wrap word-break-all overflow-x-auto">

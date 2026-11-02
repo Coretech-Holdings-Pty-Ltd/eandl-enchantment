@@ -36,13 +36,13 @@ export interface OnboardingRecord {
   currentStep: number;
   totalSteps: number;
   isCompleted: boolean;
-  mode: "manual" | "ai";
+  mode: "manual" | "ai" | "admin_bypassed";
   status: "in_progress" | "completed" | "skipped";
   businessName?: string;
   industry?: string;
   aiReadinessScore?: number;
   aiRecommendation?: string;
-  chatHistory?: Array<{ role: "user" | "assistant"; text: string }>;
+  chatHistory?: Array<{ role: "user" | "assistant" | "system" | "model"; text: string }>;
   contactPerson?: string;
   phone?: string;
   address?: string;

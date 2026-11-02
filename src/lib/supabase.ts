@@ -1,12 +1,12 @@
 /**
  * CoreTech Engine Supabase Client - E&L Client Portal
- * Shared project: fosrckzcblogctrgmyef
+ * Shared project: xhowrpswxqthslzwikkl
  */
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL =
   (import.meta.env.VITE_SUPABASE_URL as string) ||
-  "https://fosrckzcblogctrgmyef.supabase.co";
+  "https://xhowrpswxqthslzwikkl.supabase.co";
 
 const SUPABASE_ANON_KEY =
   (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ||

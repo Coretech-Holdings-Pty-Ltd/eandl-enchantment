@@ -33,10 +33,11 @@ import { ThemeToggle } from "@/lib/theme";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/portal/login")({
-  validateSearch: (s: Record<string, unknown>): { tab?: string; plan?: string; term?: string } => ({
+  validateSearch: (s: Record<string, unknown>): { tab?: string; plan?: string; term?: string; track?: string } => ({
     tab: typeof s["tab"] === "string" ? s["tab"] : undefined,
     plan: typeof s["plan"] === "string" ? s["plan"] : undefined,
     term: typeof s["term"] === "string" ? s["term"] : undefined,
+    track: typeof s["track"] === "string" ? s["track"] : undefined,
   }),
   component: PortalLoginPage,
 });
