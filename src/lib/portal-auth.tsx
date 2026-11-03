@@ -163,8 +163,8 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         });
       }
 
-      // 4. Load onboarding
-      const { data: ob } = await partnerSchema()
+      // 4. Load or initialize onboarding
+      let { data: ob } = await partnerSchema()
         .from("onboardings")
         .select("*")
         .eq("brand_id", BRAND_ID)
@@ -173,12 +173,52 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         .limit(1)
         .maybeSingle();
 
+      // If existing onboarding was created without user_id, bind it to this user
+      if (ob && !ob.user_id) {
+        try {
+          await partnerSchema()
+            .from("onboardings")
+            .update({ user_id: sessionUser.id })
+            .eq("id", ob.id);
+          ob.user_id = sessionUser.id;
+        } catch (_) {}
+      }
+
+      // If user has no onboarding record, create an initial draft so they can seamlessly continue
+      if (!ob) {
+        const defaultPlan = sessionUser.user_metadata?.selected_plan || "";
+        const defaultName = sessionUser.user_metadata?.full_name || sessionUser.email?.split("@")[0] || "Client";
+        const newOb = {
+          brand_id: BRAND_ID,
+          session_id: "ob_" + sessionUser.id.slice(0, 8) + "_" + Date.now(),
+          user_id: sessionUser.id,
+          client_name: defaultName,
+          client_email: sessionUser.email || "",
+          business_name: sessionUser.user_metadata?.company_name || "",
+          selected_package_code: defaultPlan || null,
+          current_step: defaultPlan ? 2 : 1,
+          total_steps: 4,
+          status: "in_progress",
+          mode: "ai",
+        };
+        try {
+          const { data: createdOb } = await partnerSchema()
+            .from("onboardings")
+            .insert(newOb)
+            .select()
+            .maybeSingle();
+          if (createdOb) ob = createdOb;
+        } catch (e) {
+          console.warn("[PortalAuth] auto-create onboarding note:", e);
+        }
+      }
+
       if (ob) {
         setOnboarding({
           id: ob.id,
           currentStep: ob.current_step || 1,
-          totalSteps: ob.total_steps || 5,
-          isCompleted: ob.is_completed || false,
+          totalSteps: ob.total_steps || 4,
+          isCompleted: ob.is_completed || ob.status === "completed" || false,
           mode: ob.mode || "ai",
           status: ob.status || "in_progress",
           businessName: ob.business_name,
@@ -247,19 +287,84 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         : (import.meta.env.VITE_PORTAL_URL || "https://eandl.digital");
     const emailRedirectTo = `${origin}/portal/login`;
 
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
           brand_id: BRAND_ID,
+          brand_name: "E&L Digital",
+          portal_url: `${origin}/portal`,
           ...(extraData || {}),
         },
         emailRedirectTo,
       },
     });
     if (error) return { error: error.message };
+
+    const selectedPlan = extraData?.selected_plan || "";
+    const createdUserId = authData?.user?.id || null;
+
+    // Immediately record onboarding session in database so client progress connects immediately
+    try {
+      const sessionId = "ob_" + (createdUserId ? createdUserId.slice(0, 8) : Date.now().toString().slice(-8)) + "_" + Date.now();
+      await partnerSchema()
+        .from("onboardings")
+        .upsert({
+          brand_id: BRAND_ID,
+          session_id: sessionId,
+          user_id: createdUserId,
+          client_name: fullName,
+          client_email: email,
+          selected_package_code: selectedPlan || null,
+          current_step: selectedPlan ? 2 : 1,
+          total_steps: 4,
+          status: "in_progress",
+          mode: "ai",
+        }, { onConflict: "session_id" });
+    } catch (dbErr) {
+      console.warn("[PortalAuth] register onboarding link notice:", dbErr);
+    }
+
+    // Dispatch branded E&L Digital welcome & confirmation email
+    try {
+      const planNotice = selectedPlan ? `for your selected <strong>${selectedPlan}</strong> plan` : "to start your project onboarding";
+      await supabase.functions.invoke("send-email", {
+        body: {
+          to: email,
+          subject: "Welcome to E&L Digital — Confirm Your Client Account",
+          html: `
+            <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#111827;color:#ffffff;padding:32px;border-radius:16px;border:1px solid #1f2937;">
+              <div style="text-align:center;margin-bottom:24px;">
+                <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);color:#2dd4bf;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+                  E&L Digital · Client Gateway
+                </div>
+                <h2 style="font-size:22px;font-weight:900;color:#ffffff;margin:12px 0 0 0;">Welcome, ${fullName}!</h2>
+                <p style="color:#94a3b8;font-size:13px;margin:6px 0 0 0;">Your client account has been created ${planNotice}.</p>
+              </div>
+              <div style="background:#0c121e;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:20px;margin-bottom:24px;font-size:13px;line-height:1.6;color:#cbd5e1;">
+                <p style="margin:0 0 12px 0;">Sign in to your client hub to complete your project onboarding, upload your brand assets (logo, profile), or consult with our Gemini AI Solutions Architect:</p>
+                <div style="text-align:center;margin:20px 0;">
+                  <a href="${origin}/portal/login" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#0d9488,#059669);color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:14px;">
+                    Enter Client Portal &rarr;
+                  </a>
+                </div>
+              </div>
+              <p style="color:#64748b;font-size:11px;text-align:center;margin:0;">
+                E&L Digital (Pty) Ltd · hello@eandl.digital · <a href="https://eandl.digital" style="color:#2dd4bf;text-decoration:none;">https://eandl.digital</a>
+              </p>
+            </div>
+          `,
+          fromName: "E&L Digital",
+          fromEmail: "noreply@eandl.digital",
+          brand_id: "e_and_l",
+        }
+      });
+    } catch (mailErr) {
+      console.warn("[PortalAuth] register email dispatch notice:", mailErr);
+    }
+
     return {};
   };
 

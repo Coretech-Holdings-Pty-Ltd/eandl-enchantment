@@ -20,7 +20,7 @@ interface NavItem {
 }
 
 export function PortalLayout({ children }: { children: React.ReactNode }) {
-  const { profile, client, access, logout, user } = usePortalAuth();
+  const { profile, client, access, logout, user, onboarding } = usePortalAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const routerState = useRouterState();
@@ -28,9 +28,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
 
   const navItems: NavItem[] = [
     { label: "Dashboard", to: "/portal/dashboard", icon: <LayoutDashboard size={18} /> },
+    {
+      label: "Onboarding",
+      to: "/portal/onboarding",
+      icon: <Zap size={18} />,
+      badge: onboarding?.isCompleted ? undefined : "Setup",
+    },
     ...(access.projects ? [
       { label: "My Project", to: "/portal/project", icon: <FolderKanban size={18} />, portalKey: "projects" as const },
-      { label: "Onboarding", to: "/portal/onboarding", icon: <Zap size={18} />, portalKey: "projects" as const },
       { label: "Change Requests", to: "/portal/change-requests", icon: <Briefcase size={18} />, portalKey: "projects" as const },
     ] : []),
     ...(access.learning ? [

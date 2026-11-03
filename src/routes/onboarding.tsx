@@ -1,19 +1,23 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import {
   Sparkles, Check, ArrowRight, ArrowLeft, Send, ShieldCheck,
   Building, User, Mail, Phone, Rocket, MessageSquare, CheckCircle2,
-  Clock, DollarSign, ExternalLink, HelpCircle, Layers, Zap
+  Clock, DollarSign, ExternalLink, HelpCircle, Layers, Zap,
+  UploadCloud, File, Image as ImageIcon, X, Lock, Eye, EyeOff
 } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/site-content";
 import { partnerSchema, BRAND_ID } from "@/lib/supabase";
+import { usePortalAuth } from "@/lib/portal-auth";
 import {
   askGeminiArchitect,
   synthesizeScopeWithGemini,
+  evaluateScopingProgress,
   type ChatMessage,
-  type ScopingResult
+  type ScopingResult,
+  type ScopingProgress
 } from "@/lib/gemini";
 
 export const Route = createFileRoute("/onboarding")({
@@ -25,10 +29,28 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
+interface UploadedAsset {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
+const AVAILABLE_PLANS = [
+  { name: "Spark", fee: 199, desc: "1-Page Presence & Domain" },
+  { name: "Build", fee: 349, desc: "3 Pages, Mailbox & Google Profile", featured: true },
+  { name: "Starter", fee: 500, desc: "5 Pages, SEO & 30m Updates" },
+  { name: "Business", fee: 1200, desc: "10 Pages, CMS & 120m Updates" },
+  { name: "Professional", fee: 2200, desc: "20 Pages, Portal & 300m Updates" },
+  { name: "Shop Start", fee: 799, desc: "eCommerce with Paystack (100 items)" },
+  { name: "Shop Growth", fee: 1299, desc: "eCommerce Store (1,000 items)" },
+];
+
 function OnboardingPage() {
   const navigate = useNavigate();
+  const { user, profile, register } = usePortalAuth();
 
-  // Wizard Steps: 1 = Account, 2 = AI Chat, 3 = Recommendation & Plan Confirm, 4 = Success
+  // Wizard Steps: 1 = Account, 2 = AI Chat, 3 = Recommendation & Plan Confirm, 4 = Account Creation / Success
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Step 1: Account Info
@@ -38,35 +60,85 @@ function OnboardingPage() {
   const [phone, setPhone] = useState("");
   const [industry, setIndustry] = useState("Healthcare / Medical Practice");
 
-  // Step 2: AI Chat
+  // Step 2: AI Chat & Uploads
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step 3: Scope Analysis & Recommendation
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [scopingResult, setScopingResult] = useState<ScopingResult | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<string>("");
+  const [selectedPackage, setSelectedPackage] = useState<string>("Build");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Step 4: Account creation state for guests
+  const [accountPassword, setAccountPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [accountCreated, setAccountCreated] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+
+  // Pre-fill if logged in
+  useEffect(() => {
+    if (user) {
+      if (user.email && !email) setEmail(user.email);
+      if (profile?.fullName && !contactPerson) setContactPerson(profile.fullName);
+    }
+  }, [user, profile]);
+
+  // Dynamic scoping progress
+  const scopingProgress: ScopingProgress = evaluateScopingProgress(messages, uploadedAssets.length);
 
   // Auto-scroll chat
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isAiTyping]);
 
-  // Step 1 Submit: Create Account & Start AI Scoping
+  // Asset Upload Handler
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach(file => {
+      if (file.size > 15 * 1024 * 1024) {
+        alert(`File ${file.name} exceeds 15MB.`);
+        return;
+      }
+      const asset: UploadedAsset = {
+        id: "asset_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      };
+      setUploadedAssets(prev => [...prev, asset]);
+      setMessages(prev => [
+        ...prev,
+        { role: "user", text: `[Uploaded Brand Asset: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)]` }
+      ]);
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeAsset = (id: string) => {
+    setUploadedAssets(prev => prev.filter(a => a.id !== id));
+  };
+
+  // Step 1 Submit: Create Initial Session & Start AI Scoping
   const handleStartAiScoping = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessName || !contactPerson || !email) return;
 
-    // Initialize AI chat greeting
-    const greeting: ChatMessage = {
-      role: "model",
-      text: `Hello ${contactPerson}! Welcome to E&L Digital. I am your dedicated AI Solutions Architect. I will help scope the perfect digital build and care plan for "${businessName}". Tell me: what is the main goal of your project, and what specific features (like online booking, ecommerce, or quote requests) do you envision?`
-    };
-
-    setMessages([greeting]);
+    if (messages.length === 0) {
+      const greeting: ChatMessage = {
+        role: "model",
+        text: `Hello ${contactPerson}! Welcome to E&L Digital. I am your dedicated AI Solutions Architect. I will help scope the perfect digital build and care plan for "${businessName}". Tell me: what is the main goal of your project, and what specific features (like online booking, ecommerce, or quote requests) do you envision?`
+      };
+      setMessages([greeting]);
+    }
     setStep(2);
   };
 
@@ -85,7 +157,8 @@ function OnboardingPage() {
       const replyText = await askGeminiArchitect(
         updatedHistory,
         text.trim(),
-        { businessName, contactPerson, industry }
+        { businessName, contactPerson, industry },
+        uploadedAssets.map(a => `${a.name} (${a.type})`)
       );
 
       setMessages([...updatedHistory, { role: "model", text: replyText }]);
@@ -95,7 +168,7 @@ function OnboardingPage() {
         ...updatedHistory,
         {
           role: "model",
-          text: `Thank you for sharing that, ${contactPerson}. We specialize in high-converting South African digital builds with automated DebiCheck care plans. How soon are you looking to launch?`
+          text: `Thank you for sharing that, ${contactPerson}. We specialize in high-converting South African digital builds with automated DebiCheck care plans. Please make sure to upload your logo or company profile in the upload panel below so our team has your visual assets. How soon are you looking to launch?`
         }
       ]);
     } finally {
@@ -114,21 +187,21 @@ function OnboardingPage() {
     } catch (err) {
       console.warn("Synthesis fallback:", err);
       const fallback: ScopingResult = {
-        recommendedPackage: "Grow Online Business",
-        monthlyFee: 899,
-        leadScore: 95,
-        projectTitle: `${businessName} Corporate Portal & Patient Hub`,
-        scopeSummary: "Comprehensive corporate presence with online scheduling, Google SEO, responsive mobile design, and 120 minutes of monthly care updates.",
+        recommendedPackage: "Build",
+        monthlyFee: 349,
+        leadScore: 92,
+        projectTitle: `${businessName} Professional Digital Build`,
+        scopeSummary: "Comprehensive business presence with domain, business mailbox, Google SEO, responsive mobile design, and 30 minutes of monthly updates.",
         keyFeatures: [
-          "Up to 20 Custom Responsive Pages",
-          "Real-Time Booking / Lead Capture",
-          "120 Minutes Monthly Website Updates",
-          "DebiCheck Automated Retainer",
-          "Fast SSD Hosting with SSL"
+          "Up to 3 Custom Responsive Pages",
+          "Connect Your Own Domain & SSL",
+          "1 Professional Business Mailbox",
+          "Google Business Profile Setup",
+          "Growth Community Access"
         ],
-        carePlanMinutes: 120,
-        timeline: "2 to 3 Weeks",
-        urgency: "High Priority"
+        carePlanMinutes: 30,
+        timeline: "1 to 2 Weeks",
+        urgency: "Standard Priority"
       };
       setScopingResult(fallback);
       setSelectedPackage(fallback.recommendedPackage);
@@ -144,15 +217,14 @@ function OnboardingPage() {
     setIsSaving(true);
 
     try {
-      const sessionId = "sess_" + Date.now();
+      const sessionId = "ob_web_" + Date.now();
 
-      // Save onboarding session to partner.onboardings
-      // (public anon users cannot write core.companies — company record created by admin on qualification)
-      const { error: obErr } = await partnerSchema()
+      await partnerSchema()
         .from("onboardings")
-        .insert({
+        .upsert({
           brand_id: BRAND_ID,
           session_id: sessionId,
+          user_id: user?.id || null,
           client_name: contactPerson,
           client_email: email,
           client_phone: phone || null,
@@ -163,21 +235,51 @@ function OnboardingPage() {
           selected_package_code: selectedPackage,
           current_step: 4,
           total_steps: 4,
-          ai_readiness_score: scopingResult.leadScore || 85,
+          ai_readiness_score: scopingResult.leadScore || 90,
           ai_recommendation: scopingResult.scopeSummary || `Recommended plan: ${selectedPackage} at R${scopingResult.monthlyFee}/month`,
           chat_history: messages,
-          status: "completed",
-        });
-
-      if (obErr) console.warn("Onboarding save notice:", obErr.message);
+          status: user ? "completed" : "in_progress",
+        }, { onConflict: "session_id" });
 
       setStep(4);
     } catch (err: any) {
       console.error("Onboarding save error:", err?.message || err);
-      // Still advance to success — lead data isn't lost, admin can follow up
       setStep(4);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Step 4: Register Account for Unauthenticated Guest
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    if (!accountPassword || accountPassword.length < 8) {
+      setAuthError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    setIsCreatingAccount(true);
+    try {
+      const displayName = businessName.trim()
+        ? `${contactPerson} (${businessName.trim()})`
+        : contactPerson;
+
+      const { error: regErr } = await register(email, accountPassword, displayName, {
+        selected_plan: selectedPackage,
+        company_name: businessName,
+        phone,
+      });
+
+      if (regErr) {
+        setAuthError(regErr);
+      } else {
+        setAccountCreated(true);
+      }
+    } catch {
+      setAuthError("Failed to initialize client account. Please try again.");
+    } finally {
+      setIsCreatingAccount(false);
     }
   };
 
@@ -188,40 +290,47 @@ function OnboardingPage() {
           
           {/* Header Progress Stepper */}
           <div className="space-y-4 text-center">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
               <Sparkles size={13} />
-              <span>GEMINI AI SOLUTIONS ARCHITECT</span>
+              <span>GEMINI 3.5 AI SOLUTIONS ARCHITECT</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              Customer Onboarding & Project Scoping
+              Customer Onboarding &amp; Project Scoping
             </h1>
 
             <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto">
-              Set up your account, collaborate directly with our AI Solutions Architect to scope your build, and unlock your tailored Grow Online package.
+              Set up your profile, scope your requirements with our Gemini AI Solutions Architect, upload brand assets, and activate your Grow Online plan.
             </p>
 
             {/* Stepper Bar */}
             <div className="flex items-center justify-center gap-3 pt-4 text-xs font-bold">
-              <div className={`flex items-center gap-2 ${step >= 1 ? "text-teal-700" : "text-muted-foreground"}`}>
+              <div className={`flex items-center gap-2 ${step >= 1 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
                 <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 1 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
                   1
                 </span>
-                <span>Account Setup</span>
+                <span>Profile</span>
               </div>
               <div className={`w-10 h-0.5 ${step >= 2 ? "bg-teal-600" : "bg-border"}`} />
-              <div className={`flex items-center gap-2 ${step >= 2 ? "text-teal-700" : "text-muted-foreground"}`}>
+              <div className={`flex items-center gap-2 ${step >= 2 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
                 <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
                   2
                 </span>
-                <span>AI Scoping Dialogue</span>
+                <span>AI Scoping</span>
               </div>
               <div className={`w-10 h-0.5 ${step >= 3 ? "bg-teal-600" : "bg-border"}`} />
-              <div className={`flex items-center gap-2 ${step >= 3 ? "text-teal-700" : "text-muted-foreground"}`}>
+              <div className={`flex items-center gap-2 ${step >= 3 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
                 <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
                   3
                 </span>
-                <span>Plan & Scope</span>
+                <span>Plan</span>
+              </div>
+              <div className={`w-10 h-0.5 ${step >= 4 ? "bg-teal-600" : "bg-border"}`} />
+              <div className={`flex items-center gap-2 ${step >= 4 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
+                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 4 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+                  4
+                </span>
+                <span>Ready</span>
               </div>
             </div>
           </div>
@@ -232,9 +341,9 @@ function OnboardingPage() {
           {step === 1 && (
             <div className="rounded-3xl border border-glass-border bg-card p-6 sm:p-10 shadow-xl space-y-6 animate-in fade-in duration-200">
               <div className="border-b border-border/60 pb-4">
-                <h2 className="text-xl font-bold text-foreground">Step 1: Account Profile</h2>
+                <h2 className="text-xl font-bold text-foreground">Step 1: Business Profile</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Enter your business contact details to initialize your E&L client workspace.
+                  Enter your business contact details to initialize your E&amp;L client workspace.
                 </p>
               </div>
 
@@ -311,18 +420,28 @@ function OnboardingPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     <option value="Healthcare / Medical Practice">Healthcare / Medical Practice / Dental</option>
-                    <option value="Legal & Professional Advisory">Legal & Professional Advisory</option>
-                    <option value="eCommerce & Retail Products">eCommerce & Retail Products</option>
-                    <option value="Logistics & Transport">Logistics & Transport</option>
-                    <option value="Construction & Engineering">Construction & Engineering</option>
-                    <option value="Hospitality & Tourism">Hospitality & Tourism</option>
-                    <option value="Technology & SaaS">Technology & SaaS</option>
+                    <option value="Legal & Professional Advisory">Legal &amp; Professional Advisory</option>
+                    <option value="eCommerce & Retail Products">eCommerce &amp; Retail Products</option>
+                    <option value="Logistics & Transport">Logistics &amp; Transport</option>
+                    <option value="Construction & Engineering">Construction &amp; Engineering</option>
+                    <option value="Hospitality & Tourism">Hospitality &amp; Tourism</option>
+                    <option value="Technology & SaaS">Technology &amp; SaaS</option>
+                    <option value="General Business">General Business</option>
                   </select>
                 </div>
 
-                <div className="pt-4 flex justify-end">
+                <div className="pt-4 flex justify-between items-center">
+                  {user ? (
+                    <span className="text-xs text-teal-700 dark:text-teal-400 font-semibold flex items-center gap-1.5">
+                      <CheckCircle2 size={14} /> Signed in as {user.email}
+                    </span>
+                  ) : (
+                    <Link to="/portal/login" className="text-xs text-muted-foreground hover:text-foreground">
+                      Already have an account? Sign In &rarr;
+                    </Link>
+                  )}
                   <Button type="submit" variant="brand" className="pill-button font-bold text-sm px-6">
-                    Create Account & Start AI Scoping <ArrowRight size={15} />
+                    Start AI Scoping <ArrowRight size={15} />
                   </Button>
                 </div>
               </form>
@@ -330,12 +449,12 @@ function OnboardingPage() {
           )}
 
           {/* ════════════════════════════════════════════════════════════════════
-             STEP 2: INTERACTIVE AI SCOPING CHAT (GEMINI)
+             STEP 2: INTERACTIVE AI SCOPING CHAT & ASSET UPLOAD
              ════════════════════════════════════════════════════════════════════ */}
           {step === 2 && (
             <div className="rounded-3xl border border-glass-border bg-card p-6 shadow-xl space-y-4 animate-in fade-in duration-200">
               {/* Chat Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-border/60 gap-3">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-md shadow-teal-500/20">
@@ -344,19 +463,91 @@ function OnboardingPage() {
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute -bottom-0.5 -right-0.5 border-2 border-card" />
                   </div>
                   <div>
-                    <div className="font-extrabold text-sm text-foreground">E&L AI Solutions Architect</div>
-                    <div className="text-[11px] text-teal-700 font-semibold">Gemini 2.5 Intelligence &bull; Live Scoping</div>
+                    <div className="font-extrabold text-sm text-foreground">E&amp;L AI Solutions Architect</div>
+                    <div className="text-[11px] text-teal-700 dark:text-teal-400 font-semibold">Gemini 3.5 Intelligence &bull; Live Scoping</div>
                   </div>
                 </div>
 
-                <Button
-                  onClick={handleSynthesizeScope}
-                  disabled={isSynthesizing || messages.length < 2}
-                  variant="brand"
-                  className="pill-button text-xs font-bold"
-                >
-                  {isSynthesizing ? "Synthesizing..." : "Analyze Scope & Recommend Plan"} <ArrowRight size={13} />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleSynthesizeScope}
+                    disabled={isSynthesizing || messages.length < 2}
+                    variant={scopingProgress.isReadyToProceed ? "brand" : "glass"}
+                    className="pill-button text-xs font-bold"
+                  >
+                    {isSynthesizing ? "Synthesizing Scope..." : "Review Scope & Select Plan"} <ArrowRight size={13} />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="p-2.5 rounded-xl bg-secondary/50 border border-border/50 text-xs">
+                <div className="flex justify-between items-center mb-1.5 font-bold">
+                  <span className="text-foreground">Scoping Progress: {scopingProgress.summaryHint}</span>
+                  <span className="text-teal-700 dark:text-teal-400 font-mono">{scopingProgress.progressPct}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-background rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-300"
+                    style={{ width: `${scopingProgress.progressPct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Asset Upload Widget */}
+              <div
+                className={`p-3.5 rounded-2xl border transition-all text-xs ${
+                  scopingProgress.hasRequestedUploads
+                    ? "bg-teal-500/10 border-teal-500/30"
+                    : "bg-background border-border/60"
+                }`}
+              >
+                <div className="flex justify-between items-center flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <UploadCloud size={16} className="text-teal-600 shrink-0" />
+                    <div>
+                      <span className="font-bold text-foreground">Brand Assets &amp; Documents</span>
+                      <p className="text-[11px] text-muted-foreground">Upload your logo (PNG/SVG) or company profile (PDF)</p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="glass"
+                    className="pill-button text-xs py-1 px-3 h-auto"
+                  >
+                    <UploadCloud size={12} /> Select Files
+                  </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    multiple
+                    accept="image/*,application/pdf,.doc,.docx"
+                    className="hidden"
+                  />
+                </div>
+
+                {uploadedAssets.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mt-2.5 pt-2 border-t border-border/40">
+                    {uploadedAssets.map(asset => (
+                      <div
+                        key={asset.id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/15 border border-teal-500/30 text-[11px] font-semibold text-foreground"
+                      >
+                        {asset.type.includes("image") ? <ImageIcon size={12} className="text-teal-600" /> : <File size={12} className="text-teal-600" />}
+                        <span>{asset.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeAsset(asset.id)}
+                          className="hover:text-red-500 transition-colors ml-1"
+                        >
+                          <X size={11} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Chat Messages Log */}
@@ -396,14 +587,14 @@ function OnboardingPage() {
                   {[
                     "We need patient online booking with calendar sync",
                     "We want an eCommerce shop with Paystack checkout",
-                    "We need 10 custom pages with Google SEO and WhatsApp chat",
-                    "We require monthly maintenance and banner change requests"
+                    "We have uploaded our logo and company profile",
+                    "We need 5 custom pages with Google SEO and WhatsApp chat"
                   ].map((chip, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleSendMessage(chip)}
-                      className="px-3 py-1.5 rounded-full bg-secondary hover:bg-teal-50 hover:text-teal-800 hover:border-teal-300 text-muted-foreground border border-border/60 transition-all text-left"
+                      className="px-3 py-1.5 rounded-full bg-secondary hover:bg-teal-500/10 hover:text-teal-700 dark:hover:text-teal-300 border border-border/60 transition-all text-left"
                     >
                       + {chip}
                     </button>
@@ -440,11 +631,11 @@ function OnboardingPage() {
             <div className="rounded-3xl border border-glass-border bg-card p-6 sm:p-10 shadow-xl space-y-6 animate-in fade-in duration-200">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-baseline gap-3 pb-4 border-b border-border/60">
                 <div>
-                  <div className="text-xs font-bold text-teal-700 tracking-wider uppercase">AI SYNTHESIS COMPLETE</div>
+                  <div className="text-xs font-bold text-teal-700 dark:text-teal-400 tracking-wider uppercase">AI SYNTHESIS COMPLETE</div>
                   <h2 className="text-2xl font-extrabold text-foreground mt-0.5">{scopingResult.projectTitle}</h2>
                 </div>
-                <div className="px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-teal-50 text-teal-800 border border-teal-200">
-                  Lead Qualification Score: {scopingResult.leadScore}/100
+                <div className="px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                  Lead Score: {scopingResult.leadScore}/100
                 </div>
               </div>
 
@@ -467,62 +658,29 @@ function OnboardingPage() {
                 </div>
               </div>
 
-              {/* Primary Recommended Tier Card */}
-              <div className="p-6 rounded-3xl border-2 border-teal-500 bg-gradient-to-br from-teal-50/50 via-card to-card space-y-4 shadow-md">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-[11px] font-extrabold text-teal-700 uppercase tracking-wider">AI RECOMMENDED PACKAGE</span>
-                    <h3 className="text-2xl font-black text-foreground mt-0.5">{selectedPackage}</h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-black text-foreground font-mono">
-                      R{scopingResult.monthlyFee}
-                      <span className="text-xs font-normal text-muted-foreground">/mo</span>
-                    </div>
-                    <span className="text-[11px] text-emerald-700 font-bold">DebiCheck Debit Order</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border/60 text-xs">
-                  <div className="p-3 rounded-xl bg-background border border-border/40">
-                    <div className="text-muted-foreground text-[11px]">Monthly Care Updates</div>
-                    <div className="font-bold text-foreground mt-0.5">{scopingResult.carePlanMinutes} min/month</div>
-                  </div>
-                  <div className="p-3 rounded-xl bg-background border border-border/40">
-                    <div className="text-muted-foreground text-[11px]">Target Timeline</div>
-                    <div className="font-bold text-foreground mt-0.5">{scopingResult.timeline}</div>
-                  </div>
-                  <div className="p-3 rounded-xl bg-background border border-border/40">
-                    <div className="text-muted-foreground text-[11px]">Hosting & SSL</div>
-                    <div className="font-bold text-foreground mt-0.5">High-Speed Cloud</div>
-                  </div>
-                </div>
-              </div>
-
               {/* Plan Choice Selector */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-foreground">Select Package Preference:</label>
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-foreground">Select Your Preferred Grow Online Plan:</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                  {[
-                    { name: "Grow Online Starter", fee: 549, desc: "10 Pages & 60m Care" },
-                    { name: "Grow Online Business", fee: 899, desc: "20 Pages & 120m Care" },
-                    { name: "Shop Start", fee: 799, desc: "eCommerce & 60m Care" },
-                  ].map(plan => (
-                    <button
-                      key={plan.name}
-                      type="button"
-                      onClick={() => setSelectedPackage(plan.name)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all ${
-                        selectedPackage === plan.name
-                          ? "border-teal-500 bg-teal-50/60 ring-2 ring-teal-500/20"
-                          : "border-border bg-background hover:bg-secondary/40"
-                      }`}
-                    >
-                      <div className="font-bold text-foreground">{plan.name}</div>
-                      <div className="font-mono font-extrabold text-teal-700 mt-0.5">R{plan.fee}/mo</div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">{plan.desc}</div>
-                    </button>
-                  ))}
+                  {AVAILABLE_PLANS.map(plan => {
+                    const isSelected = selectedPackage.toLowerCase() === plan.name.toLowerCase();
+                    return (
+                      <button
+                        key={plan.name}
+                        type="button"
+                        onClick={() => setSelectedPackage(plan.name)}
+                        className={`p-3.5 rounded-2xl border text-left transition-all ${
+                          isSelected
+                            ? "border-teal-500 bg-teal-500/15 ring-2 ring-teal-500/20"
+                            : "border-border bg-background hover:bg-secondary/40"
+                        }`}
+                      >
+                        <div className="font-bold text-foreground">{plan.name}</div>
+                        <div className="font-mono font-extrabold text-teal-700 dark:text-teal-300 mt-0.5">R{plan.fee}/mo</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{plan.desc}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -542,26 +700,28 @@ function OnboardingPage() {
                   variant="brand"
                   className="pill-button text-sm font-bold px-8"
                 >
-                  {isSaving ? "Finalizing Account..." : "Confirm Plan & Enter Client Portal"} <ArrowRight size={15} />
+                  {isSaving ? "Saving Brief..." : "Confirm Plan & Continue"} <ArrowRight size={15} />
                 </Button>
               </div>
             </div>
           )}
 
           {/* ════════════════════════════════════════════════════════════════════
-             STEP 4: CONFIRMED & READY
+             STEP 4: CONFIRMED & ACCOUNT CONTINUITY
              ════════════════════════════════════════════════════════════════════ */}
           {step === 4 && (
-            <div className="rounded-3xl border border-glass-border bg-card p-8 sm:p-12 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="rounded-3xl border border-glass-border bg-card p-8 sm:p-12 shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
               <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
                 <CheckCircle2 size={36} />
               </div>
 
-              <div>
-                <span className="text-xs font-extrabold text-teal-700 uppercase tracking-widest">ONBOARDING CONFIRMED</span>
-                <h2 className="text-3xl font-black text-foreground mt-1">Welcome to E&L Digital!</h2>
+              <div className="text-center">
+                <span className="text-xs font-extrabold text-teal-700 dark:text-teal-400 uppercase tracking-widest">
+                  ONBOARDING BRIEF SAVED
+                </span>
+                <h2 className="text-3xl font-black text-foreground mt-1">Welcome to E&amp;L Digital!</h2>
                 <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto mt-2">
-                  Your project brief for <strong>{businessName}</strong> is saved. Our team will reach out within 1 business day. Create your client account to track progress.
+                  Your project scope for <strong>{businessName}</strong> under the <strong>{selectedPackage}</strong> plan has been received.
                 </p>
               </div>
 
@@ -571,8 +731,8 @@ function OnboardingPage() {
                   <span className="font-bold text-foreground">{businessName}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Recommended Package:</span>
-                  <span className="font-bold text-teal-700">{selectedPackage}</span>
+                  <span>Selected Package:</span>
+                  <span className="font-bold text-teal-700 dark:text-teal-300">{selectedPackage}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Contact Email:</span>
@@ -580,22 +740,93 @@ function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  onClick={() => navigate({ to: "/portal/login", search: { tab: "register", plan: selectedPackage } })}
-                  variant="brand"
-                  className="pill-button font-bold text-sm px-8 py-3"
-                >
-                  Create Account & Access Portal <ArrowRight size={15} />
-                </Button>
-                <Button
-                  onClick={() => navigate({ to: "/" })}
-                  variant="glass"
-                  className="pill-button text-sm px-8 py-3"
-                >
-                  Back to Home
-                </Button>
-              </div>
+              {/* If user is ALREADY logged in: instant link to portal */}
+              {user ? (
+                <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    onClick={() => navigate({ to: "/portal/dashboard" })}
+                    variant="brand"
+                    className="pill-button font-bold text-sm px-8 py-3"
+                  >
+                    Open Client Portal Dashboard <ArrowRight size={15} />
+                  </Button>
+                  <Button
+                    onClick={() => navigate({ to: "/portal/onboarding" })}
+                    variant="glass"
+                    className="pill-button text-sm px-8 py-3"
+                  >
+                    View Project Onboarding
+                  </Button>
+                </div>
+              ) : accountCreated ? (
+                /* Account created successfully message */
+                <div className="max-w-md mx-auto text-center space-y-4">
+                  <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                    ✅ Account created! Check your email to verify, then sign in to access your portal.
+                  </div>
+                  <Button
+                    onClick={() => navigate({ to: "/portal/login", search: { plan: selectedPackage } })}
+                    variant="brand"
+                    className="pill-button font-bold text-sm px-8 py-3"
+                  >
+                    Go to Portal Login <ArrowRight size={15} />
+                  </Button>
+                </div>
+              ) : (
+                /* Unauthenticated guest: Set password to complete account */
+                <form onSubmit={handleCreateAccount} className="max-w-md mx-auto space-y-4 text-left">
+                  <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-xs">
+                    <span className="font-bold text-foreground block mb-1">Set Your Portal Password:</span>
+                    <span className="text-muted-foreground">
+                      Create a password to secure your E&amp;L client account and track your project deliverables in real time.
+                    </span>
+                  </div>
+
+                  {authError && (
+                    <div className="p-3 rounded-xl bg-destructive/15 border border-destructive/30 text-destructive text-xs font-semibold">
+                      {authError}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-foreground mb-1">Password (min 8 characters) *</label>
+                    <div className="relative">
+                      <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        placeholder="Choose a strong password"
+                        value={accountPassword}
+                        onChange={e => setAccountPassword(e.target.value)}
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isCreatingAccount}
+                    variant="brand"
+                    className="pill-button w-full font-bold text-sm py-3"
+                  >
+                    {isCreatingAccount ? "Creating Account…" : "Create Account & Enter Portal"} <ArrowRight size={15} />
+                  </Button>
+
+                  <div className="text-center text-xs text-muted-foreground">
+                    Already have an account?{" "}
+                    <Link to="/portal/login" search={{ plan: selectedPackage }} className="text-teal-700 dark:text-teal-400 font-bold hover:underline">
+                      Sign in directly
+                    </Link>
+                  </div>
+                </form>
+              )}
             </div>
           )}
 

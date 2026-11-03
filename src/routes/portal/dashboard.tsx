@@ -44,75 +44,61 @@ function PortalDashboard() {
         </p>
       </div>
 
-      {/* No plan — prompt to contact */}
-      {!access.projects && !access.learning && (
+      {/* Active Onboarding Banner — always guides newly registered or in-progress clients */}
+      {(!onboarding || !onboarding.isCompleted) && (
+        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(13,148,136,0.35)", background: "linear-gradient(135deg, rgba(13,148,136,0.08), rgba(15,23,42,0.4))" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(13,148,136,0.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Zap size={22} color="#2dd4bf" />
+            </div>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc" }}>
+                  {onboarding?.selectedPackageCode
+                    ? `Complete your setup for ${onboarding.selectedPackageCode}`
+                    : "Complete Project Onboarding & Select Plan"}
+                </span>
+                <span className="portal-badge portal-badge--active" style={{ fontSize: "10px" }}>
+                  {onboardingPct > 0 ? `${onboardingPct}% Complete` : "Step 1 of 4"}
+                </span>
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: "0.25rem 0 0.5rem 0" }}>
+                {onboarding?.selectedPackageCode
+                  ? "Chat with our Gemini AI Solutions Architect, upload your brand assets, and activate your build."
+                  : "Scope your project, upload your brand assets (logo, profile), and choose your tailored Grow Online plan."}
+              </p>
+              <div className="portal-progress-track">
+                <div className="portal-progress-fill portal-progress-fill--teal" style={{ width: `${Math.max(onboardingPct, 15)}%` }} />
+              </div>
+            </div>
+            <Link to="/portal/onboarding" className="portal-btn portal-btn--primary" style={{ padding: "0.625rem 1.25rem" }}>
+              Continue Onboarding <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* No plan & completed onboarding — prompt to view packages or contact */}
+      {onboarding?.isCompleted && !access.projects && !access.learning && (
         <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(245,158,11,0.2)", background: "rgba(245,158,11,0.04)" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(245,158,11,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <AlertCircle size={22} color="#fbbf24" />
             </div>
             <div style={{ flex: 1 }}>
-              <div className="portal-card-title" style={{ marginBottom: "0.25rem" }}>No active plan linked yet</div>
+              <div className="portal-card-title" style={{ marginBottom: "0.25rem" }}>Onboarding Submitted — Awaiting Kickoff</div>
               <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, margin: 0 }}>
-                Your account exists but isn't linked to an active E&L subscription yet. Complete project onboarding or start your AI journey in the Learning Hub.
+                Your project brief has been received by the E&amp;L engineering team. Your dedicated Solutions Architect will reach out within 1 business day to confirm your DebiCheck setup and project timeline.
               </p>
               <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", flexWrap: "wrap" }}>
-                <Link to="/portal/onboarding" className="portal-btn portal-btn--primary portal-btn--sm">
-                  <Zap size={14} /> Project onboarding
-                </Link>
-                <Link to="/portal/learning-onboarding" className="portal-btn portal-btn--amber portal-btn--sm">
-                  <GraduationCap size={14} /> Learning Hub Onboarding
+                <Link to="/portal/onboarding" className="portal-btn portal-btn--ghost portal-btn--sm">
+                  View Brief Summary
                 </Link>
                 <a href="https://eandl.digital/contact" target="_blank" rel="noreferrer" className="portal-btn portal-btn--ghost portal-btn--sm">
-                  <ExternalLink size={14} /> Contact us
+                  <ExternalLink size={14} /> Contact Support
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Learning Hub Student Welcome Banner */}
-      {access.learning && !access.projects && (
-        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(245,158,11,0.25)", background: "rgba(245,158,11,0.04)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-            <GraduationCap size={24} color="#f59e0b" />
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#fef3c7" }}>
-                Welcome to your E&L AI Learning Academy
-              </div>
-              <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: "0.25rem 0 0 0" }}>
-                Your learning path is active! Access course lessons, watch video walkthroughs, and download accredited certificates.
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <Link to="/portal/my-learning" className="portal-btn portal-btn--amber portal-btn--sm">
-                <BookOpen size={14} /> My Learning
-              </Link>
-              <Link to="/portal/academy" className="portal-btn portal-btn--ghost portal-btn--sm">
-                Course Catalog <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Onboarding banner */}
-      {access.projects && onboarding && !onboarding.isCompleted && (
-        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(13,148,136,0.25)", background: "rgba(13,148,136,0.04)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-            <Zap size={20} color="#2dd4bf" />
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontSize: "0.875rem", fontWeight: 700, color: "#e2e8f0" }}>
-                Complete your project onboarding ({onboardingPct}%)
-              </div>
-              <div className="portal-progress-track" style={{ marginTop: "0.5rem" }}>
-                <div className="portal-progress-fill portal-progress-fill--teal" style={{ width: `${onboardingPct}%` }} />
-              </div>
-            </div>
-            <Link to="/portal/onboarding" className="portal-btn portal-btn--primary portal-btn--sm">
-              Continue <ArrowRight size={14} />
-            </Link>
           </div>
         </div>
       )}
