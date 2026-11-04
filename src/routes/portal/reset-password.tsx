@@ -35,11 +35,32 @@ function ResetPasswordPage() {
 
   // Check if session or recovery tokens are present
   useEffect(() => {
-    supabase.auth.onAuthStateChange(async (event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const tokenHash = searchParams.get("token_hash") || hashParams.get("token_hash");
+      const type = (searchParams.get("type") || hashParams.get("type") || "recovery") as any;
+
+      if (tokenHash) {
+        supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ error: verifyErr }) => {
+          if (verifyErr) {
+            console.warn("[ResetPassword] OTP verify notice:", verifyErr);
+          } else {
+            setError(null);
+          }
+        });
+      }
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setError(null);
       }
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

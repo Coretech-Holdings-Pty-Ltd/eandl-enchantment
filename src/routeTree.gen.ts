@@ -18,6 +18,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as AuthConfirmRouteImport } from './routes/auth.confirm'
 import { Route as PortalAcademyRouteImport } from './routes/portal/academy'
 import { Route as PortalChangeRequestsRouteImport } from './routes/portal/change-requests'
 import { Route as PortalDashboardRouteImport } from './routes/portal/dashboard'
@@ -74,6 +75,11 @@ const PortalRoute = PortalRouteImport.update({
 const SolutionsRoute = SolutionsRouteImport.update({
   id: '/solutions',
   path: '/solutions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthConfirmRoute = AuthConfirmRouteImport.update({
+  id: '/auth/confirm',
+  path: '/auth/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalAcademyRoute = PortalAcademyRouteImport.update({
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/packages': typeof PackagesRoute
   '/portal': typeof PortalRouteWithChildren
   '/solutions': typeof SolutionsRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/packages': typeof PackagesRoute
   '/portal': typeof PortalRouteWithChildren
   '/solutions': typeof SolutionsRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/packages': typeof PackagesRoute
   '/portal': typeof PortalRouteWithChildren
   '/solutions': typeof SolutionsRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/portal/academy': typeof PortalAcademyRoute
   '/portal/change-requests': typeof PortalChangeRequestsRoute
   '/portal/dashboard': typeof PortalDashboardRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/portal'
     | '/solutions'
+    | '/auth/confirm'
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/portal'
     | '/solutions'
+    | '/auth/confirm'
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/portal'
     | '/solutions'
+    | '/auth/confirm'
     | '/portal/academy'
     | '/portal/change-requests'
     | '/portal/dashboard'
@@ -290,6 +302,7 @@ export interface RootRouteChildren {
   PackagesRoute: typeof PackagesRoute
   PortalRoute: typeof PortalRouteWithChildren
   SolutionsRoute: typeof SolutionsRoute
+  AuthConfirmRoute: typeof AuthConfirmRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -355,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/solutions'
       fullPath: '/solutions'
       preLoaderRoute: typeof SolutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/confirm': {
+      id: '/auth/confirm'
+      path: '/auth/confirm'
+      fullPath: '/auth/confirm'
+      preLoaderRoute: typeof AuthConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal/academy': {
@@ -487,6 +507,7 @@ const rootRouteChildren: RootRouteChildren = {
   PackagesRoute: PackagesRoute,
   PortalRoute: PortalRouteWithChildren,
   SolutionsRoute: SolutionsRoute,
+  AuthConfirmRoute: AuthConfirmRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -63,7 +63,7 @@ const MANUAL_STEPS = [
 function PortalOnboarding() {
   const navigate = useNavigate();
   const { plan: queryPlan } = Route.useSearch();
-  const { user, loading, onboarding, updateOnboarding, client } = usePortalAuth();
+  const { user, loading, onboarding, updateOnboarding, client, refreshClient } = usePortalAuth();
 
   const [mode, setMode] = useState<Mode>("choose");
   const [manualStep, setManualStep] = useState<ManualStep>(1);
@@ -194,23 +194,65 @@ function PortalOnboarding() {
       <PortalLayout>
         <div className="portal-page-header">
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-            <h1 className="portal-page-title" style={{ marginBottom: 0 }}>Onboarding Complete ✅</h1>
-            <span className="portal-domain-pill" style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", borderColor: "rgba(16,185,129,0.3)" }}>
-              Ready for Build
+            <h1 className="portal-page-title" style={{ marginBottom: 0 }}>Onboarding Submitted</h1>
+            <span className="portal-badge portal-badge--pending" style={{ fontSize: "11px", fontWeight: 800 }}>
+              Awaiting Approval &amp; Mandate
             </span>
           </div>
           <p className="portal-page-sub">
-            Your project brief for <strong>{businessName || onboarding.businessName || "your business"}</strong> is finalized. Your E&amp;L engineering team has everything required to begin.
+            Your onboarding brief for <strong>{businessName || onboarding.businessName || "your business"}</strong> has been received. Your client profile is updated to <strong>Pending Approval &amp; DebiCheck Mandate</strong>.
           </p>
         </div>
 
+        {/* Profile Status & Three Mandatory Gates */}
+        <div className="portal-card" style={{ borderColor: "rgba(245,158,11,0.35)", background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(15,23,42,0.5))", marginBottom: "1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <Shield size={20} color="#fbbf24" />
+            <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc" }}>
+              Profile Updated: What Happens Before Your Build Starts
+            </span>
+          </div>
+          <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0 0 1rem 0" }}>
+            To activate your platform build and dedicated private staging server, please complete the three approval steps below:
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.75rem" }}>
+            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 800, color: "#fbbf24" }}>
+                <span>1. Engineering Approval</span>
+              </div>
+              <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0.35rem 0 0 0", lineHeight: 1.5 }}>
+                Your dedicated Solutions Architect will review your scoping brief and uploaded assets within 1 business day.
+              </p>
+            </div>
+
+            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 800, color: "#38bdf8" }}>
+                <span>2. Service Contract</span>
+              </div>
+              <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0.35rem 0 0 0", lineHeight: 1.5 }}>
+                You will receive your official Master Services Agreement &amp; SLA via email for secure digital sign-off.
+              </p>
+            </div>
+
+            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 800, color: "#34d399" }}>
+                <span>3. DebiCheck Mandate</span>
+              </div>
+              <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0.35rem 0 0 0", lineHeight: 1.5 }}>
+                An automated debit order mandate will be sent directly to your banking app/SMS for safe authorization.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="portal-card" style={{ borderColor: "rgba(16,185,129,0.25)", background: "rgba(16,185,129,0.04)" }}>
-          <div className="portal-card-title"><CheckCircle2 size={18} color="#34d399" /> What happens next</div>
+          <div className="portal-card-title"><CheckCircle2 size={18} color="#34d399" /> Roadmap to Go-Live</div>
           <div className="portal-timeline">
             {[
               { label: "Kickoff review & intake", sub: "Your Solutions Architect will review your uploaded assets and reach out within 1 business day", done: true },
+              { label: "Contract & DebiCheck mandate sign-off", sub: "Digital SLA agreement and bank debit order authorization", done: false },
               { label: "Design mockup created", sub: "We'll present your custom design within 3–5 business days", done: false },
-              { label: "DebiCheck mandate confirmation", sub: "Zero-chase monthly debit order activation", done: false },
               { label: "Development & Staging review", sub: "You test and approve every page on our private staging link", done: false },
               { label: "Live Launch! 🚀", sub: "Your site goes live on your custom domain with SSL and Google SEO", done: false },
             ].map((item, i) => (
@@ -712,6 +754,7 @@ function PortalOnboarding() {
         });
 
         // Also upsert client stub in partner.clients
+        // Upsert client record in partner.clients with pending_approval status
         try {
           await partnerSchema()
             .from("clients")
@@ -721,10 +764,12 @@ function PortalOnboarding() {
               name: contactPerson || businessName || user.email?.split("@")[0] || "Client",
               email: user.email || "",
               phone: phone || null,
-              account_status: "trialing",
+              account_status: "pending_approval",
+              business_type: industry || "sme_digital",
             }, { onConflict: "brand_id,email" });
         } catch (_) {}
 
+        await refreshClient();
         setMode("choose"); // triggers completed state view
       } catch (err) {
         console.warn("Finalize plan error:", err);
@@ -884,7 +929,7 @@ function PortalOnboarding() {
     await updateOnboarding({
       isCompleted: true,
       status: "completed",
-      currentStep: 5,
+      currentStep: 4,
       businessName,
       contactPerson,
       phone,
@@ -899,6 +944,22 @@ function PortalOnboarding() {
       mode: "manual",
       aiRecommendation: `Structured onboarding submitted for ${businessName}. Goals: ${businessGoals || "Web presence"}. Selected plan: ${chosenPlan}.`
     });
+
+    try {
+      await partnerSchema()
+        .from("clients")
+        .upsert({
+          brand_id: BRAND_ID,
+          user_id: user.id,
+          name: contactPerson || businessName || user.email?.split("@")[0] || "Client",
+          email: user.email || "",
+          phone: phone || null,
+          account_status: "pending_approval",
+          business_type: industry || "sme_digital",
+        }, { onConflict: "brand_id,email" });
+    } catch (_) {}
+
+    await refreshClient();
     setBusy(false);
   };
 

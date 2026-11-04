@@ -1,6 +1,6 @@
 /**
  * Portal Auth Context - E&L Client Portal
- * Manages auth state, portal access, and client session.
+ * Manages auth state, portal access, client session, and role boundaries.
  */
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { supabase, partnerSchema, coreSchema, BRAND_ID, getPortalAccess } from "./supabase";
@@ -23,6 +23,7 @@ export interface PortalProfile {
   fullName?: string;
   avatarUrl?: string;
   phone?: string;
+  homeBrandId?: string;
 }
 
 export interface PortalAccess {
@@ -37,7 +38,7 @@ export interface OnboardingRecord {
   totalSteps: number;
   isCompleted: boolean;
   mode: "manual" | "ai" | "admin_bypassed";
-  status: "in_progress" | "completed" | "skipped";
+  status: "started" | "in_progress" | "completed" | "converted" | "abandoned";
   businessName?: string;
   industry?: string;
   aiReadinessScore?: number;
@@ -64,6 +65,8 @@ interface PortalAuthContextType {
   client: PortalClient | null;
   access: PortalAccess;
   onboarding: OnboardingRecord | null;
+  isAdminUser: boolean;
+  adminRole: string | null;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   register: (
     email: string,
@@ -88,11 +91,34 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
   const [client, setClient] = useState<PortalClient | null>(null);
   const [access, setAccess] = useState<PortalAccess>({ projects: false, learning: false, accountStatus: "none" });
   const [onboarding, setOnboarding] = useState<OnboardingRecord | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [adminRole, setAdminRole] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const hydrateFromSession = useCallback(async (sessionUser: User) => {
     try {
-      // 1. Load user profile
+      // 1. Check administrative privileges (CoreTech staff or Brand Admin)
+      try {
+        const { data: myCtx } = await coreSchema().rpc("my_context");
+        if (myCtx) {
+          const staff = myCtx.staff_role;
+          const brandMembers = myCtx.brands || [];
+          const isStaff = staff === "super_admin" || staff === "admin" || staff === "operator";
+          const isBrandAdmin = brandMembers.some((b: any) => b.brand_id === BRAND_ID && (b.role === "brand_admin" || b.role === "brand_staff"));
+          if (isStaff || isBrandAdmin) {
+            setIsAdminUser(true);
+            setAdminRole(staff || "brand_admin");
+          } else {
+            setIsAdminUser(false);
+            setAdminRole(null);
+          }
+        }
+      } catch {
+        setIsAdminUser(false);
+        setAdminRole(null);
+      }
+
+      // 2. Load user profile
       const { data: prof } = await coreSchema()
         .from("profiles")
         .select("*")
@@ -106,16 +132,18 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           fullName: prof.full_name,
           avatarUrl: prof.avatar_url,
           phone: prof.phone,
+          homeBrandId: prof.home_brand_id,
         });
       } else {
         setProfile({
           id: sessionUser.id,
           email: sessionUser.email || "",
           fullName: sessionUser.user_metadata?.full_name,
+          homeBrandId: BRAND_ID,
         });
       }
 
-      // 2. Check for learning course enrollments or metadata
+      // 3. Check for learning course enrollments or metadata
       const { data: enrollments } = await partnerSchema()
         .from("course_enrollments")
         .select("id")
@@ -128,7 +156,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         sessionUser.user_metadata?.track === "learning" ||
         sessionUser.user_metadata?.portal_access_learning === true;
 
-      // 3. Load client + subscriptions
+      // 4. Load client + subscriptions
       const { data: clientData } = await partnerSchema()
         .from("clients")
         .select("*, subscriptions(id, status, package_id, package_code, monthly_fee_cents, packages(name, category))")
@@ -163,7 +191,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         });
       }
 
-      // 4. Load or initialize onboarding
+      // 5. Load or initialize onboarding
       let { data: ob } = await partnerSchema()
         .from("onboardings")
         .select("*")
@@ -184,13 +212,14 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         } catch (_) {}
       }
 
-      // If user has no onboarding record, create an initial draft so they can seamlessly continue
+      // If user has no onboarding record, create an initial draft
       if (!ob) {
         const defaultPlan = sessionUser.user_metadata?.selected_plan || "";
         const defaultName = sessionUser.user_metadata?.full_name || sessionUser.email?.split("@")[0] || "Client";
+        const newSessionId = "ob_" + sessionUser.id.slice(0, 8) + "_" + Date.now();
         const newOb = {
           brand_id: BRAND_ID,
-          session_id: "ob_" + sessionUser.id.slice(0, 8) + "_" + Date.now(),
+          session_id: newSessionId,
           user_id: sessionUser.id,
           client_name: defaultName,
           client_email: sessionUser.email || "",
@@ -199,8 +228,8 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           current_step: defaultPlan ? 2 : 1,
           total_steps: 4,
           status: "in_progress",
-          mode: "ai",
         };
+
         try {
           const { data: createdOb } = await partnerSchema()
             .from("onboardings")
@@ -211,15 +240,26 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         } catch (e) {
           console.warn("[PortalAuth] auto-create onboarding note:", e);
         }
+
+        // Guaranteed service-role sync fallback
+        if (!ob) {
+          try {
+            const { data: fnRes } = await supabase.functions.invoke("send-email", {
+              body: { action: "save_onboarding", brand_id: BRAND_ID, payload: newOb },
+            });
+            if (fnRes?.onboarding) ob = fnRes.onboarding;
+          } catch (_) {}
+        }
       }
 
       if (ob) {
+        const isDone = ob.status === "completed" || ob.status === "converted";
         setOnboarding({
           id: ob.id,
           currentStep: ob.current_step || 1,
           totalSteps: ob.total_steps || 4,
-          isCompleted: ob.is_completed || ob.status === "completed" || false,
-          mode: ob.mode || "ai",
+          isCompleted: isDone,
+          mode: "ai",
           status: ob.status || "in_progress",
           businessName: ob.business_name,
           industry: ob.industry,
@@ -228,14 +268,12 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           chatHistory: ob.chat_history,
           contactPerson: ob.client_name,
           phone: ob.client_phone,
-          address: ob.address,
           targetAudience: ob.target_audience,
           businessGoals: ob.business_goals,
-          existingDomain: ob.has_existing_domain ? "yes" : "no",
-          existingDomainName: ob.existing_domain_name,
-          designStyle: ob.design_style,
-          colorPreferences: ob.color_preferences,
-          competitorUrls: ob.competitor_urls,
+          existingDomain: ob.existing_domain ? "yes" : "no",
+          existingDomainName: ob.existing_domain,
+          designStyle: ob.brand_tone,
+          colorPreferences: ob.brand_colors,
           selectedPackageCode: ob.selected_package_code,
         });
       }
@@ -262,6 +300,8 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         setClient(null);
         setAccess({ projects: false, learning: false, accountStatus: "none" });
         setOnboarding(null);
+        setIsAdminUser(false);
+        setAdminRole(null);
       }
       if (event !== "INITIAL_SESSION") setLoading(false);
     });
@@ -285,7 +325,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       typeof window !== "undefined" && window.location.origin
         ? window.location.origin
         : (import.meta.env.VITE_PORTAL_URL || "https://eandl.digital");
-    const emailRedirectTo = `${origin}/portal/login`;
+    const emailRedirectTo = `${origin}/auth/confirm?next=/portal/dashboard`;
 
     const { data: authData, error } = await supabase.auth.signUp({
       email,
@@ -295,6 +335,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           full_name: fullName,
           brand_id: BRAND_ID,
           brand_name: "E&L Digital",
+          kind: "client",
           portal_url: `${origin}/portal`,
           ...(extraData || {}),
         },
@@ -305,35 +346,48 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
 
     const selectedPlan = extraData?.selected_plan || "";
     const createdUserId = authData?.user?.id || null;
+    const sessionId = "ob_" + (createdUserId ? createdUserId.slice(0, 8) : Date.now().toString().slice(-8)) + "_" + Date.now();
 
-    // Immediately record onboarding session in database so client progress connects immediately
+    const initialObPayload = {
+      brand_id: BRAND_ID,
+      session_id: sessionId,
+      user_id: createdUserId,
+      client_name: fullName,
+      client_email: email,
+      selected_package_code: selectedPlan || null,
+      current_step: selectedPlan ? 2 : 1,
+      total_steps: 4,
+      status: "in_progress",
+    };
+
+    // Immediately record onboarding session via both direct query and service-role edge function
     try {
-      const sessionId = "ob_" + (createdUserId ? createdUserId.slice(0, 8) : Date.now().toString().slice(-8)) + "_" + Date.now();
       await partnerSchema()
         .from("onboardings")
-        .upsert({
-          brand_id: BRAND_ID,
-          session_id: sessionId,
-          user_id: createdUserId,
-          client_name: fullName,
-          client_email: email,
-          selected_package_code: selectedPlan || null,
-          current_step: selectedPlan ? 2 : 1,
-          total_steps: 4,
-          status: "in_progress",
-          mode: "ai",
-        }, { onConflict: "session_id" });
+        .upsert(initialObPayload, { onConflict: "session_id" });
     } catch (dbErr) {
-      console.warn("[PortalAuth] register onboarding link notice:", dbErr);
+      console.warn("[PortalAuth] register onboarding direct notice:", dbErr);
     }
 
-    // Dispatch branded E&L Digital welcome & confirmation email
+    try {
+      await supabase.functions.invoke("send-email", {
+        body: {
+          action: "save_onboarding",
+          brand_id: BRAND_ID,
+          payload: initialObPayload,
+        },
+      });
+    } catch (fnErr) {
+      console.warn("[PortalAuth] register onboarding fn sync notice:", fnErr);
+    }
+
+    // Dispatch 100% white-labeled E&L Digital welcome & client account email via Edge Function
     try {
       const planNotice = selectedPlan ? `for your selected <strong>${selectedPlan}</strong> plan` : "to start your project onboarding";
       await supabase.functions.invoke("send-email", {
         body: {
           to: email,
-          subject: "Welcome to E&L Digital — Confirm Your Client Account",
+          subject: "Welcome to E&L Digital — Client Account Created",
           html: `
             <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#111827;color:#ffffff;padding:32px;border-radius:16px;border:1px solid #1f2937;">
               <div style="text-align:center;margin-bottom:24px;">
@@ -382,33 +436,57 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
 
     const dbPayload: Record<string, any> = {};
     if (updates.currentStep !== undefined) dbPayload.current_step = updates.currentStep;
-    if (updates.isCompleted !== undefined) dbPayload.is_completed = updates.isCompleted;
     if (updates.status !== undefined) dbPayload.status = updates.status;
+    if (updates.isCompleted) dbPayload.status = "completed";
     if (updates.businessName !== undefined) dbPayload.business_name = updates.businessName;
     if (updates.industry !== undefined) dbPayload.industry = updates.industry;
     if (updates.targetAudience !== undefined) dbPayload.target_audience = updates.targetAudience;
     if (updates.businessGoals !== undefined) dbPayload.business_goals = updates.businessGoals;
-    if (updates.designStyle !== undefined) dbPayload.design_style = updates.designStyle;
-    if (updates.colorPreferences !== undefined) dbPayload.color_preferences = updates.colorPreferences;
-    if (updates.competitorUrls !== undefined) dbPayload.competitor_urls = updates.competitorUrls;
+    if (updates.designStyle !== undefined) dbPayload.brand_tone = updates.designStyle;
+    if (updates.colorPreferences !== undefined) dbPayload.brand_colors = updates.colorPreferences;
+    if (updates.existingDomainName !== undefined || updates.existingDomain !== undefined) {
+      dbPayload.existing_domain = updates.existingDomainName || (updates.existingDomain === "yes" ? "Client owns domain" : null);
+    }
     if (updates.selectedPackageCode !== undefined) dbPayload.selected_package_code = updates.selectedPackageCode;
     if (updates.chatHistory !== undefined) dbPayload.chat_history = updates.chatHistory;
     if (updates.aiRecommendation !== undefined) dbPayload.ai_recommendation = updates.aiRecommendation;
     if (updates.aiReadinessScore !== undefined) dbPayload.ai_readiness_score = updates.aiReadinessScore;
 
+    // 1. Direct table update
     try {
       await partnerSchema()
         .from("onboardings")
         .update(dbPayload)
         .eq("id", onboarding.id);
     } catch (err) {
-      console.warn("[Onboarding] update error:", err);
+      console.warn("[Onboarding] direct update notice:", err);
+    }
+
+    // 2. Guaranteed service-role synchronization via send-email edge function
+    try {
+      await supabase.functions.invoke("send-email", {
+        body: {
+          action: "save_onboarding",
+          brand_id: BRAND_ID,
+          payload: {
+            ...dbPayload,
+            session_id: onboarding.id,
+            user_id: user?.id,
+            client_name: updates.contactPerson || onboarding.contactPerson || user?.email?.split("@")[0] || "Client",
+            client_email: user?.email || "",
+            phone: updates.phone || onboarding.phone,
+          },
+        },
+      });
+    } catch (fnErr) {
+      console.warn("[Onboarding] fn sync notice:", fnErr);
     }
   };
 
   return (
     <PortalAuthContext.Provider value={{
       loading, user, session, profile, client, access, onboarding,
+      isAdminUser, adminRole,
       login, register, logout, refreshClient, updateOnboarding, toast, setToast
     }}>
       {children}

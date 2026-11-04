@@ -53,14 +53,29 @@ function ForgotPasswordPage() {
 
       const redirectUrl = `${origin}/portal/reset-password`;
 
-      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(targetEmail, {
-        redirectTo: redirectUrl,
+      // Dispatch white-labeled password reset via brand edge function (never Supabase default CoreTech email)
+      const { data: fnData, error: fnErr } = await supabase.functions.invoke("send-email", {
+        body: {
+          action: "auth_recovery",
+          email: targetEmail,
+          redirectTo: redirectUrl,
+          brand_id: "e_and_l",
+        },
       });
 
-      if (resetErr) {
-        setError(resetErr.message || "Failed to send reset link. Please check the email entered.");
-      } else {
+      if (!fnErr && fnData?.success) {
         setSubmitted(true);
+      } else {
+        // Fallback to standard Supabase auth reset if edge function invocation encountered an issue
+        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(targetEmail, {
+          redirectTo: redirectUrl,
+        });
+
+        if (resetErr) {
+          setError(resetErr.message || "Failed to send reset link. Please check the email entered.");
+        } else {
+          setSubmitted(true);
+        }
       }
     } catch {
       setError("An unexpected network error occurred. Please verify your connection.");

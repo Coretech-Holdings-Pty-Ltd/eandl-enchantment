@@ -20,7 +20,7 @@ interface NavItem {
 }
 
 export function PortalLayout({ children }: { children: React.ReactNode }) {
-  const { profile, client, access, logout, user, onboarding } = usePortalAuth();
+  const { profile, client, access, logout, user, onboarding, isAdminUser, adminRole } = usePortalAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const routerState = useRouterState();
@@ -148,6 +148,23 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
 
       {/* ── Main Content ─────────────────────────────── */}
       <div className="portal-main">
+        {/* Administrator Quick Switch Bar */}
+        {isAdminUser && (
+          <div style={{ background: "rgba(245,158,11,0.12)", borderBottom: "1px solid rgba(245,158,11,0.25)", padding: "0.45rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.75rem", color: "#fbbf24" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontWeight: 700 }}>
+              <Shield size={13} /> Logged in with Administrator Privileges ({adminRole?.toUpperCase()})
+            </span>
+            <a
+              href="https://admin.eandl.digital"
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: "#ffffff", fontWeight: 700, textDecoration: "none", background: "rgba(245,158,11,0.3)", padding: "0.25rem 0.75rem", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            >
+              Open Operations Cockpit <ExternalLink size={11} />
+            </a>
+          </div>
+        )}
+
         {/* Topbar */}
         <header className="portal-topbar">
           <button className="portal-menu-btn" onClick={() => setSidebarOpen(true)}>

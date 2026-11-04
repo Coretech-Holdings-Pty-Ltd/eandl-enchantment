@@ -78,24 +78,42 @@ function PortalDashboard() {
         </div>
       )}
 
-      {/* No plan & completed onboarding — prompt to view packages or contact */}
-      {onboarding?.isCompleted && !access.projects && !access.learning && (
-        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(245,158,11,0.2)", background: "rgba(245,158,11,0.04)" }}>
+      {/* Completed Onboarding Banner — Informs client of approval, contract & payment mandate */}
+      {onboarding?.isCompleted && !access.projects && (
+        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(245,158,11,0.35)", background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(15,23,42,0.5))" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(245,158,11,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <AlertCircle size={22} color="#fbbf24" />
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(245,158,11,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Clock size={22} color="#fbbf24" />
             </div>
             <div style={{ flex: 1 }}>
-              <div className="portal-card-title" style={{ marginBottom: "0.25rem" }}>Onboarding Submitted — Awaiting Kickoff</div>
-              <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, margin: 0 }}>
-                Your project brief has been received by the E&amp;L engineering team. Your dedicated Solutions Architect will reach out within 1 business day to confirm your DebiCheck setup and project timeline.
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc" }}>
+                  Profile Status: Awaiting Approval, Service Contract &amp; Payment Mandate
+                </span>
+                <span className="portal-badge portal-badge--pending" style={{ fontSize: "10px" }}>
+                  Operations Review
+                </span>
+              </div>
+              <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0.25rem 0 0.75rem 0" }}>
+                Your project brief for <strong>{onboarding.selectedPackageCode || "your selected plan"}</strong> has been received. Our engineering desk is preparing your deliverables. Here are your 3 activation gates:
               </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.5rem" }}>
+                <div style={{ padding: "0.5rem 0.75rem", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", fontSize: "0.75rem", color: "#e2e8f0" }}>
+                  <span style={{ fontWeight: 700, color: "#fbbf24" }}>1. Executive Approval:</span> Engineering review within 1 business day.
+                </div>
+                <div style={{ padding: "0.5rem 0.75rem", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", fontSize: "0.75rem", color: "#e2e8f0" }}>
+                  <span style={{ fontWeight: 700, color: "#38bdf8" }}>2. Service Contract:</span> Master Services Agreement sent for digital sign-off.
+                </div>
+                <div style={{ padding: "0.5rem 0.75rem", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", fontSize: "0.75rem", color: "#e2e8f0" }}>
+                  <span style={{ fontWeight: 700, color: "#34d399" }}>3. DebiCheck Mandate:</span> Bank-authenticated debit order authorization.
+                </div>
+              </div>
               <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", flexWrap: "wrap" }}>
                 <Link to="/portal/onboarding" className="portal-btn portal-btn--ghost portal-btn--sm">
-                  View Brief Summary
+                  View Onboarding Brief
                 </Link>
-                <a href="https://eandl.digital/contact" target="_blank" rel="noreferrer" className="portal-btn portal-btn--ghost portal-btn--sm">
-                  <ExternalLink size={14} /> Contact Support
+                <a href="mailto:hello@eandl.digital" className="portal-btn portal-btn--ghost portal-btn--sm">
+                  Contact Solutions Architect
                 </a>
               </div>
             </div>
