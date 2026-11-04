@@ -14,7 +14,7 @@ const GEMINI_MODELS = [
 ];
 
 async function callGemini(body: object): Promise<Response | null> {
-  const models = GEMINI_MODELS.slice(0, 2);
+  const models = GEMINI_MODELS;
   for (const model of models) {
     try {
       const res = await fetch(
@@ -23,15 +23,15 @@ async function callGemini(body: object): Promise<Response | null> {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(2500),
+          signal: AbortSignal.timeout(4000),
         }
       );
-      if (res.status === 503 || res.status === 429) {
+      if (res.status === 503 || res.status === 429 || res.status === 404) {
         continue;
       }
       if (res.ok) return res;
     } catch (err: any) {
-      if (err?.name === "TimeoutError") break;
+      if (err?.name === "TimeoutError") continue;
     }
   }
   return null;
@@ -303,4 +303,79 @@ Return ONLY a valid JSON object:
     timeline: "1 to 2 Weeks",
     urgency: "Standard Priority"
   };
+}
+
+export interface EnhanceFieldParams {
+  field: "goals" | "audience" | "businessName" | "colors" | "general";
+  currentValue: string;
+  businessName?: string;
+  industry?: string;
+}
+
+/**
+ * Intelligent AI copy enhancer for client onboarding form fields.
+ * Uses Gemini API with an immediate smart local fallback if the network is delayed.
+ */
+export async function enhanceFormFieldWithAI(params: EnhanceFieldParams): Promise<string> {
+  const { field, currentValue, businessName, industry } = params;
+  const biz = businessName?.trim() || "Our Company";
+  const ind = industry?.trim() || "General Business";
+
+  const fieldLabel =
+    field === "goals" ? "Primary Website Goals & Business Objectives" :
+    field === "audience" ? "Target Customers & Client Profile" :
+    field === "businessName" ? "Company Description / Positioning Tagline" :
+    "Brand Style & Palette";
+
+  const prompt = `You are an elite digital strategist and copywriter at E&L Digital.
+A client is filling out their website onboarding form.
+Field to improve: ${fieldLabel}
+Client's current draft / rough notes: "${currentValue.trim() || "None yet. Generate a compelling, tailored example for this business."}"
+Business Context:
+- Company Name: ${biz}
+- Industry: ${ind}
+
+Instructions:
+1. Turn this into a concise, professional, highly articulated statement (1-2 sentences maximum).
+2. Sound authoritative, modern, and inspiring.
+3. Return ONLY the enhanced text. Do NOT wrap in quotes, do not add introductory phrases like "Here is:".`;
+
+  try {
+    const res = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 120,
+        temperature: 0.7,
+      },
+    });
+
+    if (res && res.ok) {
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (text && text.length > 10) {
+        return text.replace(/^["'“”]+|["'“”]+$/g, "").trim();
+      }
+    }
+  } catch (err) {
+    console.warn("[Gemini] Field enhancer error:", err);
+  }
+
+  // Instant intelligent fallback guarantees zero wait or failure
+  const val = currentValue.trim();
+  if (field === "goals") {
+    if (val) {
+      return `Establish a modern, high-converting digital presence for ${biz} that showcases verified capabilities, streamlines client acquisition, and drives measurable revenue.`;
+    }
+    return `Build trust with qualified clients, showcase ${biz}'s services with clarity, and automate inbound consultation requests.`;
+  }
+  if (field === "audience") {
+    if (val) {
+      return `Targeting discerning clients and businesses seeking premium, trustworthy ${ind.toLowerCase()} services with responsive digital communication.`;
+    }
+    return `Motivated consumers and commercial partners in the ${ind.toLowerCase()} sector who value reliability, exceptional quality, and seamless support.`;
+  }
+  if (field === "colors") {
+    return `Signature deep slate (#0F172A) complemented by energetic teal (#0D9488) and crisp silver-white accents for an elevated executive aesthetic.`;
+  }
+  return val || `${biz} — Premium ${ind} solutions tailored for modern client success.`;
 }

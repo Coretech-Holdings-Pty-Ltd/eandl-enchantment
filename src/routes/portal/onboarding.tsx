@@ -19,6 +19,7 @@ import {
   askGeminiArchitect,
   synthesizeScopeWithGemini,
   evaluateScopingProgress,
+  enhanceFormFieldWithAI,
   type ChatMessage,
   type ScopingResult,
   type ScopingProgress
@@ -65,10 +66,38 @@ function PortalOnboarding() {
   const { plan: queryPlan } = Route.useSearch();
   const { user, loading, onboarding, updateOnboarding, client, refreshClient } = usePortalAuth();
 
-  const [mode, setMode] = useState<Mode>("choose");
+  const [mode, setMode] = useState<Mode>("manual");
   const [manualStep, setManualStep] = useState<ManualStep>(1);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [enhancingField, setEnhancingField] = useState<string | null>(null);
+
+  const handleEnhanceField = async (field: "goals" | "audience" | "businessName" | "colors") => {
+    setEnhancingField(field);
+    try {
+      const currentVal =
+        field === "goals" ? businessGoals :
+        field === "audience" ? targetAudience :
+        field === "businessName" ? businessName :
+        colorPrefs;
+
+      const enhanced = await enhanceFormFieldWithAI({
+        field,
+        currentValue: currentVal,
+        businessName,
+        industry,
+      });
+
+      if (enhanced) {
+        if (field === "goals") setBusinessGoals(enhanced);
+        else if (field === "audience") setTargetAudience(enhanced);
+        else if (field === "businessName") setBusinessName(enhanced);
+        else if (field === "colors") setColorPrefs(enhanced);
+      }
+    } finally {
+      setEnhancingField(null);
+    }
+  };
 
   // AI Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -998,7 +1027,31 @@ function PortalOnboarding() {
             <div className="portal-card-title"><Building2 size={16} /> Business Information</div>
             <div className="portal-form-row">
               <div className="portal-form-group">
-                <label className="portal-label">Business / Company Name *</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                  <label className="portal-label" style={{ marginBottom: 0 }}>Business / Company Name *</label>
+                  <button
+                    type="button"
+                    onClick={() => handleEnhanceField("businessName")}
+                    disabled={enhancingField === "businessName"}
+                    style={{
+                      background: "rgba(13,148,136,0.15)",
+                      border: "1px solid rgba(13,148,136,0.3)",
+                      color: "#2dd4bf",
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      transition: "all 0.15s"
+                    }}
+                  >
+                    <Sparkles size={11} className={enhancingField === "businessName" ? "animate-spin" : ""} />
+                    {enhancingField === "businessName" ? "Polishing..." : "AI Assist"}
+                  </button>
+                </div>
                 <input
                   className="portal-input"
                   value={businessName}
@@ -1060,7 +1113,31 @@ function PortalOnboarding() {
           <div>
             <div className="portal-card-title"><Target size={16} /> Goals &amp; Target Audience</div>
             <div className="portal-form-group">
-              <label className="portal-label">Who are your target customers?</label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                <label className="portal-label" style={{ marginBottom: 0 }}>Who are your target customers?</label>
+                <button
+                  type="button"
+                  onClick={() => handleEnhanceField("audience")}
+                  disabled={enhancingField === "audience"}
+                  style={{
+                    background: "rgba(13,148,136,0.15)",
+                    border: "1px solid rgba(13,148,136,0.3)",
+                    color: "#2dd4bf",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  <Sparkles size={11} className={enhancingField === "audience" ? "animate-spin" : ""} />
+                  {enhancingField === "audience" ? "Articulating..." : "AI Assist"}
+                </button>
+              </div>
               <input
                 className="portal-input"
                 value={targetAudience}
@@ -1069,7 +1146,31 @@ function PortalOnboarding() {
               />
             </div>
             <div className="portal-form-group">
-              <label className="portal-label">What is the primary goal of your website?</label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                <label className="portal-label" style={{ marginBottom: 0 }}>What is the primary goal of your website?</label>
+                <button
+                  type="button"
+                  onClick={() => handleEnhanceField("goals")}
+                  disabled={enhancingField === "goals"}
+                  style={{
+                    background: "rgba(13,148,136,0.15)",
+                    border: "1px solid rgba(13,148,136,0.3)",
+                    color: "#2dd4bf",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  <Sparkles size={11} className={enhancingField === "goals" ? "animate-spin" : ""} />
+                  {enhancingField === "goals" ? "Enhancing..." : "AI Assist"}
+                </button>
+              </div>
               <textarea
                 className="portal-input portal-textarea"
                 value={businessGoals}
@@ -1131,7 +1232,31 @@ function PortalOnboarding() {
               </div>
             </div>
             <div className="portal-form-group">
-              <label className="portal-label">Brand Colours (optional)</label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                <label className="portal-label" style={{ marginBottom: 0 }}>Brand Colours (optional)</label>
+                <button
+                  type="button"
+                  onClick={() => handleEnhanceField("colors")}
+                  disabled={enhancingField === "colors"}
+                  style={{
+                    background: "rgba(13,148,136,0.15)",
+                    border: "1px solid rgba(13,148,136,0.3)",
+                    color: "#2dd4bf",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  <Sparkles size={11} className={enhancingField === "colors" ? "animate-spin" : ""} />
+                  {enhancingField === "colors" ? "Suggesting..." : "AI Suggest Palette"}
+                </button>
+              </div>
               <input
                 className="portal-input"
                 value={colorPrefs}
