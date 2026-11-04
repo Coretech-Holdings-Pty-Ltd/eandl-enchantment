@@ -68,8 +68,9 @@ export function getPortalAccess(client: any): {
 
   const hasProjects =
     client.portal_access_projects === true ||
+    client.account_status === "active" ||
     activeSubs.some((s: any) => {
-      const cat = s.packages?.category || s.package_category || "";
+      const cat = s.packages?.category || s.package_category || s.category || "";
       return ["website", "ecommerce", "app", "system", "custom"].includes(cat);
     });
 
@@ -77,7 +78,7 @@ export function getPortalAccess(client: any): {
     client.portal_access_learning === true ||
     client.learning_access === true ||
     activeSubs.some((s: any) => {
-      const cat = s.packages?.category || s.package_category || "";
+      const cat = s.packages?.category || s.package_category || s.category || "";
       return cat === "growth_community" || s.learning_access === true;
     });
 

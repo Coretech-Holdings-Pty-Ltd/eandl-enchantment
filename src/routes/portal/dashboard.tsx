@@ -79,7 +79,7 @@ function PortalDashboard() {
       )}
 
       {/* Completed Onboarding Banner — Informs client of approval, contract & payment mandate */}
-      {onboarding?.isCompleted && !access.projects && (
+      {onboarding?.isCompleted && onboarding?.status !== "converted" && !access.projects && (
         <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(245,158,11,0.35)", background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(15,23,42,0.5))" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(245,158,11,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

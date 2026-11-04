@@ -157,12 +157,35 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         sessionUser.user_metadata?.portal_access_learning === true;
 
       // 4. Load client + subscriptions
-      const { data: clientData } = await partnerSchema()
+      let { data: clientData } = await partnerSchema()
         .from("clients")
-        .select("*, subscriptions(id, status, package_id, package_code, monthly_fee_cents, packages(name, category))")
+        .select("*, subscriptions(id, status, package_id, package_code, category, monthly_fee_cents, packages(name, category))")
         .eq("user_id", sessionUser.id)
         .eq("brand_id", BRAND_ID)
         .maybeSingle();
+
+      // Fallback: if client not found by user_id, look up by verified session email
+      if (!clientData && sessionUser.email) {
+        const { data: clientByEmail } = await partnerSchema()
+          .from("clients")
+          .select("*, subscriptions(id, status, package_id, package_code, category, monthly_fee_cents, packages(name, category))")
+          .eq("email", sessionUser.email)
+          .eq("brand_id", BRAND_ID)
+          .maybeSingle();
+
+        if (clientByEmail) {
+          clientData = clientByEmail;
+          // Auto-link authenticated user_id if not linked yet
+          if (!clientByEmail.user_id) {
+            try {
+              await partnerSchema()
+                .from("clients")
+                .update({ user_id: sessionUser.id })
+                .eq("id", clientByEmail.id);
+            } catch (_) {}
+          }
+        }
+      }
 
       if (clientData) {
         const computedAccess = getPortalAccess(clientData);
@@ -179,7 +202,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           businessType: clientData.business_type,
           accountStatus: clientData.account_status,
           companyId: clientData.company_id,
-          userId: clientData.user_id,
+          userId: clientData.user_id || sessionUser.id,
         });
         setAccess(computedAccess);
       } else {
