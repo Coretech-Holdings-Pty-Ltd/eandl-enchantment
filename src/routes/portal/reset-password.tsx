@@ -26,12 +26,16 @@ export const Route = createFileRoute("/portal/reset-password")({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionActive, setSessionActive] = useState(false);
+  const [verifyingToken, setVerifyingToken] = useState(false);
 
   // Check if session or recovery tokens are present
   useEffect(() => {
@@ -41,30 +45,51 @@ function ResetPasswordPage() {
       const tokenHash = searchParams.get("token_hash") || hashParams.get("token_hash");
       const type = (searchParams.get("type") || hashParams.get("type") || "recovery") as any;
       const code = searchParams.get("code") || hashParams.get("code");
+      const emailParam = searchParams.get("email") || hashParams.get("email");
+
+      if (emailParam) {
+        setEmail(emailParam);
+      }
 
       if (code) {
+        setVerifyingToken(true);
         supabase.auth.exchangeCodeForSession(code).then(({ error: codeErr }) => {
+          setVerifyingToken(false);
           if (codeErr) {
             console.warn("[ResetPassword] code exchange notice:", codeErr);
           } else {
+            setSessionActive(true);
             setError(null);
           }
         });
       }
 
       if (tokenHash) {
+        setVerifyingToken(true);
         supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ error: verifyErr }) => {
+          setVerifyingToken(false);
           if (verifyErr) {
             console.warn("[ResetPassword] OTP verify notice:", verifyErr);
+            setError("Recovery token expired or already used. If you have an 8-digit code, you can enter it below.");
           } else {
+            setSessionActive(true);
             setError(null);
           }
         });
       }
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionActive(true);
+        if (session.user?.email) setEmail(session.user.email);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        setSessionActive(true);
+        if (session?.user?.email) setEmail(session.user.email);
         setError(null);
       }
     });
@@ -73,6 +98,42 @@ function ResetPasswordPage() {
       subscription.unsubscribe();
     };
   }, []);
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = email.trim();
+    const cleanOtp = otpCode.trim();
+
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setError("Please provide your registered account email.");
+      return;
+    }
+    if (!cleanOtp || cleanOtp.length < 6) {
+      setError("Please enter the 8-digit or 6-digit code sent to your email.");
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      const { error: otpErr } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: cleanOtp,
+        type: "recovery",
+      });
+
+      if (otpErr) {
+        setError(otpErr.message || "Invalid or expired recovery code. Please request a new one.");
+      } else {
+        setSessionActive(true);
+      }
+    } catch {
+      setError("Failed to verify code. Please check your internet connection.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,12 +152,26 @@ function ResetPasswordPage() {
     setBusy(true);
 
     try {
+      // If user provided OTP code and not verified yet, verify first
+      if (!sessionActive && otpCode.trim() && email.trim()) {
+        const { error: verifyErr } = await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: otpCode.trim(),
+          type: "recovery",
+        });
+        if (verifyErr) {
+          setError(verifyErr.message || "Invalid verification code.");
+          setBusy(false);
+          return;
+        }
+      }
+
       const { error: updateErr } = await supabase.auth.updateUser({
         password: password,
       });
 
       if (updateErr) {
-        setError(updateErr.message || "Failed to update password. Your recovery link may have expired.");
+        setError(updateErr.message || "Failed to update password. Your recovery session may have expired.");
       } else {
         setSuccess(true);
       }
@@ -204,6 +279,41 @@ function ResetPasswordPage() {
           ) : (
             /* Reset Form */
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              {!sessionActive && (
+                <div className="space-y-3 p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-slate-800 dark:text-teal-200">
+                  <div className="font-bold text-[11px] text-teal-700 dark:text-teal-300">
+                    Verify Your Identity
+                  </div>
+                  <div>
+                    <label className="block font-bold text-foreground mb-1">
+                      Your Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="you@company.co.za"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-teal-600 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-100 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-foreground mb-1">
+                      8-Digit Code from Email *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={10}
+                      placeholder="e.g. 48933513"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.trim())}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 font-mono font-bold tracking-widest focus:outline-none focus:border-teal-600 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-100 text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="font-bold text-foreground">New Password (Min. 8 chars) *</label>
