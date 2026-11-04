@@ -162,8 +162,10 @@ function PortalLoginPage() {
             : err
         );
       } else {
-        setSuccess("Account created! ✅ Check your email to verify, then sign in to complete your onboarding.");
-        setTab("login");
+        navigate({
+          to: "/portal/verify",
+          search: { email: email.trim(), next: "/portal/dashboard" },
+        });
       }
     } catch {
       setError("Failed to create client account. Please contact support.");
@@ -478,6 +480,14 @@ function PortalLoginPage() {
                                                                                 >
                                                                                   Resend verification email
                                                                                 </button>
+                                                                                <span className="text-rose-500">•</span>
+                                                                                <Link
+                                                                                  to="/portal/verify"
+                                                                                  search={{ email: email.trim(), next: "/portal/dashboard" }}
+                                                                                  className="text-amber-300 hover:text-amber-200 underline font-semibold"
+                                                                                >
+                                                                                  Enter 6-digit code
+                                                                                </Link>
                                                                                 <span className="text-rose-500">•</span>
                                                                                 <Link
                                                                                   to="/portal/forgot-password"

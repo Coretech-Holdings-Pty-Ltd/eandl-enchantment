@@ -31,6 +31,7 @@ import { Route as PortalProjectRouteImport } from './routes/portal/project'
 import { Route as PortalResetPasswordRouteImport } from './routes/portal/reset-password'
 import { Route as PortalSettingsRouteImport } from './routes/portal/settings'
 import { Route as PortalSupportRouteImport } from './routes/portal/support'
+import { Route as PortalVerifyRouteImport } from './routes/portal/verify'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -143,6 +144,11 @@ const PortalSupportRoute = PortalSupportRouteImport.update({
   path: '/support',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalVerifyRoute = PortalVerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => PortalRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/portal/reset-password': typeof PortalResetPasswordRoute
   '/portal/settings': typeof PortalSettingsRoute
   '/portal/support': typeof PortalSupportRoute
+  '/portal/verify': typeof PortalVerifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/portal/reset-password': typeof PortalResetPasswordRoute
   '/portal/settings': typeof PortalSettingsRoute
   '/portal/support': typeof PortalSupportRoute
+  '/portal/verify': typeof PortalVerifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -216,6 +224,7 @@ export interface FileRoutesById {
   '/portal/reset-password': typeof PortalResetPasswordRoute
   '/portal/settings': typeof PortalSettingsRoute
   '/portal/support': typeof PortalSupportRoute
+  '/portal/verify': typeof PortalVerifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/portal/reset-password'
     | '/portal/settings'
     | '/portal/support'
+    | '/portal/verify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/portal/reset-password'
     | '/portal/settings'
     | '/portal/support'
+    | '/portal/verify'
   id:
     | '__root__'
     | '/'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/portal/reset-password'
     | '/portal/settings'
     | '/portal/support'
+    | '/portal/verify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -461,6 +473,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSupportRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/verify': {
+      id: '/portal/verify'
+      path: '/verify'
+      fullPath: '/portal/verify'
+      preLoaderRoute: typeof PortalVerifyRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
 
@@ -477,6 +496,7 @@ interface PortalRouteChildren {
   PortalResetPasswordRoute: typeof PortalResetPasswordRoute
   PortalSettingsRoute: typeof PortalSettingsRoute
   PortalSupportRoute: typeof PortalSupportRoute
+  PortalVerifyRoute: typeof PortalVerifyRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
@@ -492,6 +512,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalResetPasswordRoute: PortalResetPasswordRoute,
   PortalSettingsRoute: PortalSettingsRoute,
   PortalSupportRoute: PortalSupportRoute,
+  PortalVerifyRoute: PortalVerifyRoute,
 }
 
 const PortalRouteWithChildren =
