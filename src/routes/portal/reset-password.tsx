@@ -40,6 +40,17 @@ function ResetPasswordPage() {
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
       const tokenHash = searchParams.get("token_hash") || hashParams.get("token_hash");
       const type = (searchParams.get("type") || hashParams.get("type") || "recovery") as any;
+      const code = searchParams.get("code") || hashParams.get("code");
+
+      if (code) {
+        supabase.auth.exchangeCodeForSession(code).then(({ error: codeErr }) => {
+          if (codeErr) {
+            console.warn("[ResetPassword] code exchange notice:", codeErr);
+          } else {
+            setError(null);
+          }
+        });
+      }
 
       if (tokenHash) {
         supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ error: verifyErr }) => {

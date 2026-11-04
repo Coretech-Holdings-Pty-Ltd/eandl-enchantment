@@ -10,17 +10,27 @@ import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/auth/confirm")({
-  validateSearch: (s: Record<string, unknown>): { token_hash?: string; type?: string; next?: string } => ({
+  validateSearch: (s: Record<string, unknown>): {
+    token_hash?: string;
+    type?: string;
+    next?: string;
+    code?: string;
+    error?: string;
+    error_description?: string;
+  } => ({
     token_hash: typeof s["token_hash"] === "string" ? s["token_hash"] : undefined,
     type: typeof s["type"] === "string" ? s["type"] : undefined,
     next: typeof s["next"] === "string" ? s["next"] : undefined,
+    code: typeof s["code"] === "string" ? s["code"] : undefined,
+    error: typeof s["error"] === "string" ? s["error"] : undefined,
+    error_description: typeof s["error_description"] === "string" ? s["error_description"] : undefined,
   }),
   component: AuthConfirmPage,
 });
 
 function AuthConfirmPage() {
   const navigate = useNavigate();
-  const { token_hash, type, next } = Route.useSearch();
+  const { token_hash, type, next, code, error, error_description } = Route.useSearch();
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -28,37 +38,98 @@ function AuthConfirmPage() {
     let isMounted = true;
 
     async function handleVerify() {
-      if (!token_hash || !type) {
-        setStatus("error");
-        setErrorMessage("Missing authentication verification token or type.");
+      const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const hashParams = typeof window !== "undefined" ? new URLSearchParams(window.location.hash.replace(/^#/, "")) : null;
+
+      // 1. Check for Supabase error passed in URL
+      const passedError =
+        error_description ||
+        error ||
+        searchParams?.get("error_description") ||
+        hashParams?.get("error_description") ||
+        searchParams?.get("error") ||
+        hashParams?.get("error");
+
+      if (passedError) {
+        if (isMounted) {
+          setStatus("error");
+          setErrorMessage(passedError);
+        }
         return;
       }
 
-      try {
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash,
-          type: type as any,
-        });
-
-        if (error) {
-          if (isMounted) {
-            setStatus("error");
-            setErrorMessage(error.message || "Failed to verify credential. Link may have expired.");
-          }
-        } else {
-          if (isMounted) {
+      // 2. PKCE code exchange flow (?code=...)
+      const pkceCode = code || searchParams?.get("code");
+      if (pkceCode) {
+        try {
+          const { data, error: codeErr } = await supabase.auth.exchangeCodeForSession(pkceCode);
+          if (codeErr) {
+            console.warn("[AuthConfirm] exchangeCodeForSession error:", codeErr);
+          } else if (data?.session && isMounted) {
             setStatus("success");
-            const target = next || (type === "recovery" ? "/portal/reset-password" : "/portal/dashboard");
+            const target = next || "/portal/dashboard";
             setTimeout(() => {
               navigate({ to: target as any });
-            }, 1200);
+            }, 800);
+            return;
           }
+        } catch (e) {
+          console.warn("[AuthConfirm] exchangeCode exception:", e);
         }
-      } catch (err: any) {
-        if (isMounted) {
-          setStatus("error");
-          setErrorMessage(err?.message || "An unexpected error occurred during confirmation.");
+      }
+
+      // 3. OTP verification flow (?token_hash=...&type=...)
+      const effectiveTokenHash = token_hash || searchParams?.get("token_hash") || hashParams?.get("token_hash");
+      const effectiveType = type || searchParams?.get("type") || hashParams?.get("type");
+      if (effectiveTokenHash && effectiveType) {
+        try {
+          const { error: otpErr } = await supabase.auth.verifyOtp({
+            token_hash: effectiveTokenHash,
+            type: effectiveType as any,
+          });
+
+          if (otpErr) {
+            console.warn("[AuthConfirm] verifyOtp notice:", otpErr);
+          } else if (isMounted) {
+            setStatus("success");
+            const target = next || (effectiveType === "recovery" ? "/portal/reset-password" : "/portal/dashboard");
+            setTimeout(() => {
+              navigate({ to: target as any });
+            }, 800);
+            return;
+          }
+        } catch (e: any) {
+          console.warn("[AuthConfirm] verifyOtp exception:", e);
         }
+      }
+
+      // 4. Session check (implicit grant or already active session)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && isMounted) {
+          setStatus("success");
+          const target = next || "/portal/dashboard";
+          setTimeout(() => {
+            navigate({ to: target as any });
+          }, 600);
+          return;
+        }
+      } catch (e) {
+        console.warn("[AuthConfirm] getSession notice:", e);
+      }
+
+      // 5. Fallback: Check if user is signed in after a slight debounce
+      await new Promise(r => setTimeout(r, 600));
+      const { data: { session: delayedSession } } = await supabase.auth.getSession();
+      if (delayedSession?.user && isMounted) {
+        setStatus("success");
+        navigate({ to: (next || "/portal/dashboard") as any });
+        return;
+      }
+
+      if (isMounted) {
+        setStatus("error");
+        setErrorMessage("Verification link may have expired or was already completed. Please try signing in or request a new link.");
       }
     }
 
@@ -67,7 +138,7 @@ function AuthConfirmPage() {
     return () => {
       isMounted = false;
     };
-  }, [token_hash, type, next, navigate]);
+  }, [token_hash, type, next, code, error, error_description, navigate]);
 
   return (
     <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4">
