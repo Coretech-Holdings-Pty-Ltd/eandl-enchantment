@@ -213,48 +213,48 @@ function PortalLoginPage() {
       </header>
 
       {/* Main Responsive Grid */}
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex flex-col justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+      <main className="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 lg:py-10 flex flex-col justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Left Column: Visual Showcase & Value Proposition */}
-          <div className="lg:col-span-7 space-y-6 lg:space-y-8">
-            <div className="space-y-3 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-teal-500/20 via-emerald-500/15 to-amber-500/10 text-teal-300 border border-teal-500/30">
-                <Sparkles size={13} className="text-teal-400 animate-spin-slow" />
+          <div className="lg:col-span-6 space-y-5">
+            <div className="space-y-2.5 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-gradient-to-r from-teal-500/20 via-emerald-500/15 to-amber-500/10 text-teal-300 border border-teal-500/30">
+                <Sparkles size={12} className="text-teal-400 animate-spin-slow" />
                 <span>Client & Partner Workspace • 2026</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-3.5xl font-black tracking-tight text-foreground leading-tight">
                 Your Unified Digital{" "}
                 <span className="bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-800 dark:from-teal-400 dark:via-emerald-300 dark:to-amber-300 bg-clip-text text-transparent">
                   Command Center
                 </span>
               </h1>
 
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0">
                 Direct client visibility into live development sprints, DebiCheck billing retainers, Gemini-powered AI onboarding, and accredited learning academies.
               </p>
             </div>
 
             {/* Interactive Feature Bento Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               
               {/* Card 1: Live Project Velocity */}
-              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-teal-500/30 transition-all">
+              <div className="p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2 hover:border-teal-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                      <FolderKanban size={16} />
+                    <div className="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400">
+                      <FolderKanban size={14} />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Project Workspaces</span>
+                    <span className="text-[11px] font-bold text-foreground">Project Workspaces</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-100/80 text-teal-800 border border-teal-300 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30 font-bold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-teal-100/80 text-teal-800 border border-teal-300 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30 font-bold">
                     SPRINT 4
                   </span>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+                  <div className="flex justify-between text-[10px] text-muted-foreground font-medium">
                     <span>Deliverable Progress</span>
                     <span className="text-teal-400 font-bold">85% Complete</span>
                   </div>
@@ -263,27 +263,27 @@ function PortalLoginPage() {
                   </div>
                 </div>
 
-                <p className="text-[11px] text-muted-foreground leading-snug">
-                  Track staging releases, review milestone approvals, and submit change requests seamlessly.
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  Track staging releases, review milestone approvals, and submit change requests.
                 </p>
               </div>
 
               {/* Card 2: DebiCheck & Care Retainers */}
-              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-amber-500/30 transition-all">
+              <div className="p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2 hover:border-amber-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                      <CreditCard size={16} />
+                    <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                      <CreditCard size={14} />
                     </div>
-                    <span className="text-xs font-bold text-foreground">DebiCheck Retainers</span>
+                    <span className="text-[11px] font-bold text-foreground">DebiCheck Retainers</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 font-bold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 font-bold">
                     PROTECTED
                   </span>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+                  <div className="flex justify-between text-[10px] text-muted-foreground font-medium">
                     <span>Monthly Quota Active</span>
                     <span className="text-amber-400 font-bold">18h Remaining</span>
                   </div>
@@ -292,84 +292,84 @@ function PortalLoginPage() {
                   </div>
                 </div>
 
-                <p className="text-[11px] text-muted-foreground leading-snug">
+                <p className="text-[10px] text-muted-foreground leading-snug">
                   Automated debit order status, quota hours, and zero friction invoicing.
                 </p>
               </div>
 
               {/* Card 3: E&L Digital Academy */}
-              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-blue-500/30 transition-all">
+              <div className="p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2 hover:border-blue-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                      <GraduationCap size={16} />
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                      <GraduationCap size={14} />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Learning Academy</span>
+                    <span className="text-[11px] font-bold text-foreground">Learning Academy</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800 border border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30 font-bold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-blue-100/80 text-blue-800 border border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30 font-bold">
                     ACCREDITED
                   </span>
                 </div>
 
-                <p className="text-[11px] text-foreground font-semibold line-clamp-1">
+                <p className="text-[10px] text-foreground font-semibold line-clamp-1">
                   Applied Generative AI &amp; Autonomous Agents
                 </p>
 
-                <p className="text-[11px] text-muted-foreground leading-snug">
-                  Hands-on digital curriculum, video lessons, and verifiable completion certificates.
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  Hands-on digital curriculum, video lessons, and completion certificates.
                 </p>
               </div>
 
               {/* Card 4: Gemini AI Intake Engine */}
-              <div className="p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2.5 hover:border-purple-500/30 transition-all">
+              <div className="p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-teal-500/40 space-y-2 hover:border-purple-500/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                      <Sparkles size={16} />
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                      <Sparkles size={14} />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Gemini AI Intake</span>
+                    <span className="text-[11px] font-bold text-foreground">Gemini AI Intake</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-100/80 text-purple-800 border border-purple-300 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30 font-bold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-purple-100/80 text-purple-800 border border-purple-300 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30 font-bold">
                     SMART AGENT
                   </span>
                 </div>
 
-                <p className="text-[11px] text-foreground font-semibold line-clamp-1">
+                <p className="text-[10px] text-foreground font-semibold line-clamp-1">
                   Dynamic Project Questionnaires
                 </p>
 
-                <p className="text-[11px] text-muted-foreground leading-snug">
-                  Conversational scoping that aligns business goals and technical stacks in minutes.
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  Conversational scoping that aligns business goals in minutes.
                 </p>
               </div>
             </div>
 
             {/* Enterprise Trust Strip */}
-            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-8 border-t border-border text-muted-foreground text-xs">
-              <div className="flex items-center gap-1.5 text-[11px]">
-                <ShieldCheck size={14} className="text-teal-400" />
-                <span>Supabase Row-Level Security</span>
+            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 border-t border-border text-muted-foreground text-[11px]">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck size={13} className="text-teal-400" />
+                <span>Postgres RLS Security</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[11px]">
-                <Shield size={14} className="text-amber-400" />
-                <span>South African POPIA &amp; Bank Compliant</span>
+              <div className="flex items-center gap-1.5">
+                <Shield size={13} className="text-amber-400" />
+                <span>POPIA &amp; Bank Compliant</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[11px]">
-                <Activity size={14} className="text-emerald-400" />
-                <span>99.9% Uptime Guarantee</span>
+              <div className="flex items-center gap-1.5">
+                <Activity size={13} className="text-emerald-400" />
+                <span>99.9% Uptime</span>
               </div>
             </div>
           </div>
 
           {/* Right Column: High-End Authentication Card */}
-          <div className="lg:col-span-5 w-full">
-            <div className="relative bg-card backdrop-blur-2xl text-foreground rounded-3xl p-6 sm:p-8 shadow-2xl border border-border space-y-5">
+          <div className="lg:col-span-6 w-full max-w-[430px] mx-auto">
+            <div className="relative bg-card backdrop-blur-2xl text-foreground rounded-3xl p-6 sm:p-7 shadow-2xl border border-border space-y-4">
               
               {/* Header */}
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold tracking-wider text-teal-400 uppercase flex items-center gap-1.5">
-                    <ShieldCheck size={14} />
+                  <span className="text-[11px] font-mono font-bold tracking-wider text-teal-400 uppercase flex items-center gap-1.5">
+                    <ShieldCheck size={13} />
                     Verified Client Access
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary text-muted-foreground border border-border font-mono">
@@ -377,11 +377,11 @@ function PortalLoginPage() {
                   </span>
                 </div>
 
-                <h2 className="text-2xl font-black tracking-tight text-foreground">
+                <h2 className="text-xl font-black tracking-tight text-foreground">
                   {tab === "login" ? "Welcome to Your Portal" : "Create Client Account"}
                 </h2>
 
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-[11px] text-muted-foreground leading-snug">
                   {tab === "login"
                     ? "Sign in with your verified credentials to track projects, manage care quotas, and access courses."
                     : "Register your business profile to access your dedicated project workspace and learning academy."}
