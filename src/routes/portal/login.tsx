@@ -85,7 +85,7 @@ function PortalLoginPage() {
       if (resendErr) {
         setResendStatus(`Notice: ${resendErr.message}`);
       } else {
-        setResendStatus(`Verification email dispatched to ${targetEmail}! Please check your inbox and spam.`);
+        setResendStatus(`Verification link sent! Note: If this email address is already verified, Supabase does not re-send verification emails — please use "Reset password" instead.`);
       }
     } catch {
       setResendStatus("Failed to dispatch verification email. Please try again.");
@@ -113,9 +113,9 @@ function PortalLoginPage() {
       if (err) {
         setError(
           err.includes("Email not confirmed")
-            ? "Please verify your email address to access your client portal."
+            ? "Your email address is not yet verified. Please verify via the email link or enter your 6-digit code."
             : err.includes("Invalid login credentials")
-              ? "Invalid email or password. Please verify your credentials."
+              ? "Incorrect password for this account. If you need to recover your account, click 'Reset password' below."
               : err
         );
       } else {
