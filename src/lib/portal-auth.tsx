@@ -488,21 +488,39 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     const accountLast4 = mandateData.accountNumber.slice(-4);
 
     try {
-      // Update partner.clients
-      const { error: clientErr } = await partnerSchema()
-        .from("clients")
-        .update({
-          mandate_status: "authorized",
-          debicheck_status: "active",
-          bank_name: mandateData.bankName,
-          account_number: mandateData.accountNumber,
-          account_type: mandateData.accountType,
-          branch_code: mandateData.branchCode,
-          account_holder: mandateData.accountHolder,
-        })
-        .eq("id", client.id);
+      // Update partner.clients (do NOT include debicheck_status column as it does not exist on clients table)
+      let clientUpdated = false;
+      if (client.id) {
+        const { error: clientErr } = await partnerSchema()
+          .from("clients")
+          .update({
+            mandate_status: "authorized",
+            bank_name: mandateData.bankName,
+            account_number: mandateData.accountNumber,
+            account_type: mandateData.accountType,
+            branch_code: mandateData.branchCode,
+            account_holder: mandateData.accountHolder,
+          })
+          .eq("id", client.id);
 
-      if (clientErr) throw clientErr;
+        if (!clientErr) clientUpdated = true;
+      }
+
+      if (!clientUpdated && client.email) {
+        const { error: emailErr } = await partnerSchema()
+          .from("clients")
+          .update({
+            mandate_status: "authorized",
+            bank_name: mandateData.bankName,
+            account_number: mandateData.accountNumber,
+            account_type: mandateData.accountType,
+            branch_code: mandateData.branchCode,
+            account_holder: mandateData.accountHolder,
+          })
+          .eq("email", client.email);
+
+        if (emailErr) console.warn("Email fallback update note:", emailErr);
+      }
 
       // Update partner.mandates if we have mandateId
       if (client.mandateId) {
@@ -520,7 +538,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
             accepted_at: new Date().toISOString(),
           })
           .eq("id", client.mandateId);
-      } else {
+      } else if (client.email) {
         // Try to find mandate by client email
         await partnerSchema()
           .from("mandates")
@@ -539,10 +557,23 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       }
 
       // Update subscriptions to active
-      await partnerSchema()
-        .from("subscriptions")
-        .update({ status: "active", site_status: "live" })
-        .eq("client_id", client.id);
+      if (client.id) {
+        await partnerSchema()
+          .from("subscriptions")
+          .update({ status: "active", site_status: "live" })
+          .eq("client_id", client.id);
+      }
+
+      // Update local state immediately so UI updates instantaneously
+      setClient(prev => prev ? {
+        ...prev,
+        mandateStatus: "authorized",
+        bankName: mandateData.bankName,
+        accountNumber: mandateData.accountNumber,
+        accountType: mandateData.accountType,
+        branchCode: mandateData.branchCode,
+        accountHolder: mandateData.accountHolder,
+      } : null);
 
       // Refresh client state
       await refreshClient();

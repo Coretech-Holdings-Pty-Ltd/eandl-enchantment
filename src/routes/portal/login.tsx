@@ -249,8 +249,8 @@ function PortalLoginPage() {
           <main className="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 lg:py-10 flex flex-col justify-center">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
-              {/* Left Column: Visual Showcase & Value Proposition */}
-                    <div className="lg:col-span-6 space-y-5">
+              {/* Left Column: Visual Showcase & Value Proposition (Desktop Only - cleanly hidden on small screens) */}
+              <div className="hidden lg:block lg:col-span-6 space-y-5">
                       <div className="space-y-2.5 text-center lg:text-left">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-gradient-to-r from-teal-500/20 via-emerald-500/15 to-amber-500/10 text-teal-300 border border-teal-500/30">
                           <Sparkles size={12} className="text-teal-400 animate-spin-slow" />
@@ -394,9 +394,9 @@ function PortalLoginPage() {
                                                               </div>
                                                             </div>
 
-                                                            {/* Right Column: High-End Authentication Card */}
-                                                                <div className="lg:col-span-6 w-full max-w-[430px] mx-auto">
-                                                                  <div className="relative bg-card backdrop-blur-2xl text-foreground rounded-3xl p-6 sm:p-7 shadow-2xl border border-border space-y-4">
+                                                                {/* Right Column: High-End Authentication Card */}
+                                                                <div className="w-full max-w-[430px] mx-auto lg:col-span-6">
+                                                                  <div className="relative bg-card backdrop-blur-2xl text-foreground rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl border border-border space-y-4">
 
                                                                     {/* Header */}
                                                                       <div className="space-y-1">

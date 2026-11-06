@@ -7,7 +7,8 @@ import {
   LayoutDashboard, FolderKanban, GraduationCap, Zap,
   ArrowRight, CheckCircle2, Clock, AlertCircle, Lock,
   TrendingUp, BookOpen, Shield, ExternalLink,
-  FileText, CreditCard, Building2, CheckSquare, AlertTriangle, Loader2
+  FileText, CreditCard, Building2, CheckSquare, AlertTriangle, Loader2,
+  Printer, Download
 } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";
@@ -175,34 +176,52 @@ function PortalDashboard() {
       )}
 
       {/* ── Mandate Signing Card ───────────────────────────────────────── */}
-      {client?.mandateStatus === "pending_signature" && client?.mandateDocUrl && (
-        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(239,68,68,0.4)", background: "linear-gradient(135deg, rgba(239,68,68,0.06), rgba(15,23,42,0.5))" }}>
+      {Boolean(client?.mandateDocUrl && client?.mandateStatus !== "authorized") && (
+        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(239,68,68,0.45)", background: "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(15,23,42,0.6))" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(239,68,68,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(239,68,68,0.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <FileText size={24} color="#f87171" />
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
                 <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc" }}>
-                  Action Required: Sign Your Service Agreement & DebiCheck Mandate
+                  Action Required: Review, Print &amp; Sign Service Agreement Mandate
                 </span>
                 <span className="portal-badge" style={{ background: "rgba(239,68,68,0.2)", color: "#f87171", borderColor: "rgba(239,68,68,0.3)", fontSize: "10px" }}>
-                  Signature Pending
+                  Level 2 Action
                 </span>
               </div>
-              <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0.25rem 0 1rem 0" }}>
-                Your service agreement has been prepared. Please review the document, complete your banking details, and authorize your DebiCheck debit mandate to activate your account.
+              <p style={{ fontSize: "0.82rem", color: "#cbd5e1", lineHeight: 1.6, margin: "0.25rem 0 0.85rem 0" }}>
+                Your official service agreement and DebiCheck debit order mandate have been prepared by our operations desk. Please review or print the agreement, submit your banking account details below, and authorize the mandate to activate your retainer and sprint build.
               </p>
 
-              {/* View PDF */}
-              <a
-                href={client.mandateDocUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, color: "#f87171", textDecoration: "none", fontSize: "0.78rem", fontWeight: 700, marginBottom: "1rem" }}
-              >
-                <FileText size={14} /> View / Download Agreement (PDF)
-              </a>
+              {/* View / Download / Print Buttons */}
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+                <a
+                  href={client.mandateDocUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: 8, color: "#f87171", textDecoration: "none", fontSize: "0.78rem", fontWeight: 700 }}
+                >
+                  <ExternalLink size={13} /> View Agreement (PDF)
+                </a>
+                <a
+                  href={client.mandateDocUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#e2e8f0", textDecoration: "none", fontSize: "0.78rem", fontWeight: 700 }}
+                >
+                  <Download size={13} /> Download PDF
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handlePrintAgreement(client.mandateDocUrl!)}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#e2e8f0", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
+                >
+                  <Printer size={13} /> Print Agreement
+                </button>
+              </div>
 
               {/* Toggle form */}
               {!showMandateForm ? (
@@ -360,6 +379,49 @@ function PortalDashboard() {
                       )}
                     </button>
                   </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MANDATE AUTHORIZED CONFIRMATION CARD ──────────────────────────── */}
+      {client?.mandateStatus === "authorized" && (
+        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(16,185,129,0.4)", background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(15,23,42,0.5))" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(16,185,129,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <CheckCircle2 size={24} color="#34d399" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc" }}>
+                  Service Agreement Signed &amp; DebiCheck Mandate Authorized
+                </span>
+                <span className="portal-badge portal-badge--active" style={{ fontSize: "10px" }}>
+                  Level 3 Verified
+                </span>
+              </div>
+              <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0.25rem 0 0.75rem 0" }}>
+                Your banking account ({client.bankName || "South African Bank"} · ••••{client.accountNumber ? client.accountNumber.slice(-4) : "••••"}) and signed mandate are registered. Our operations desk is loading the DebiCheck debit order with your bank.
+              </p>
+              {client.mandateDocUrl && (
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <a
+                    href={client.mandateDocUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 0.9rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#e2e8f0", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600 }}
+                  >
+                    <FileText size={13} /> View Signed SLA (PDF)
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => handlePrintAgreement(client.mandateDocUrl!)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 0.9rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#e2e8f0", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer" }}
+                  >
+                    <Printer size={13} /> Print Agreement
+                  </button>
                 </div>
               )}
             </div>
