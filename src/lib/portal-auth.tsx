@@ -172,31 +172,35 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         sessionUser.user_metadata?.portal_access_learning === true;
 
       // 4. Load client + subscriptions
-      let { data: clientData } = await partnerSchema()
+      let { data: clientRows } = await partnerSchema()
         .from("clients")
         .select("*, subscriptions(id, status, package_id, package_code, category, monthly_fee_cents, packages(name, category))")
         .eq("user_id", sessionUser.id)
         .eq("brand_id", BRAND_ID)
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      let clientData = clientRows?.[0] || null;
 
       // Fallback: if client not found by user_id, look up by verified session email
       if (!clientData && sessionUser.email) {
-        const { data: clientByEmail } = await partnerSchema()
+        const { data: emailRows } = await partnerSchema()
           .from("clients")
           .select("*, subscriptions(id, status, package_id, package_code, category, monthly_fee_cents, packages(name, category))")
           .eq("email", sessionUser.email)
           .eq("brand_id", BRAND_ID)
-          .maybeSingle();
+          .order("created_at", { ascending: false })
+          .limit(1);
 
-        if (clientByEmail) {
-          clientData = clientByEmail;
+        if (emailRows && emailRows.length > 0) {
+          clientData = emailRows[0];
           // Auto-link authenticated user_id if not linked yet
-          if (!clientByEmail.user_id) {
+          if (!clientData.user_id) {
             try {
               await partnerSchema()
                 .from("clients")
                 .update({ user_id: sessionUser.id })
-                .eq("id", clientByEmail.id);
+                .eq("id", clientData.id);
             } catch (_) {}
           }
         }
