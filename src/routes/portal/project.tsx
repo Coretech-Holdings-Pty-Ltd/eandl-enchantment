@@ -84,13 +84,61 @@ function PortalProject() {
           <RefreshCw size={16} className="animate-spin" /> Loading project details…
         </div>
       ) : !project ? (
-        <div className="portal-card" style={{ textAlign: "center", padding: "3rem" }}>
-          <FolderKanban size={48} style={{ margin: "0 auto 1rem", opacity: 0.2 }} />
-          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#e2e8f0", marginBottom: "0.5rem" }}>Project setup in progress</div>
-          <p style={{ fontSize: "0.82rem", color: "#64748b", maxWidth: 360, margin: "0 auto 1.5rem", lineHeight: 1.6 }}>
-            Your project hasn't been created in our system yet. Complete onboarding first, then your solutions architect will set up your project within 1 business day.
-          </p>
-          <a href="/portal/onboarding" className="portal-btn portal-btn--primary portal-btn--sm">Complete onboarding →</a>
+        <div className="space-y-5">
+          {/* Hero holding card */}
+          <div className="portal-card" style={{ textAlign: "center", padding: "2.5rem 1.5rem", borderColor: "rgba(13,148,136,0.3)", background: "linear-gradient(135deg, rgba(13,148,136,0.07) 0%, rgba(15,23,42,0.6) 100%)", position: "relative", overflow: "hidden" }}>
+            {/* Background glow */}
+            <div style={{ position: "absolute", top: "-40px", left: "50%", transform: "translateX(-50%)", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(13,148,136,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+            {/* Pulsing icon */}
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(13,148,136,0.12)", border: "1px solid rgba(13,148,136,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem", animation: "pulse 2.5s ease-in-out infinite", position: "relative" }}>
+              <FolderKanban size={32} color="#2dd4bf" />
+            </div>
+            <h2 style={{ fontSize: "1.35rem", fontWeight: 900, color: "#f8fafc", marginBottom: "0.5rem", letterSpacing: "-0.01em" }}>Project Setup in Progress</h2>
+            <p style={{ fontSize: "0.85rem", color: "#94a3b8", maxWidth: 400, margin: "0 auto 1.75rem", lineHeight: 1.75 }}>
+              Your Solutions Architect is reviewing your brief. Your dedicated staging environment and sprint board will be ready within <strong style={{ color: "#e2e8f0" }}>1–2 business days</strong> of mandate authorization.
+            </p>
+
+            {/* 4-stage mini pipeline */}
+            <div style={{ display: "flex", justifyContent: "center", maxWidth: 480, margin: "0 auto 2rem" }}>
+              {[
+                { label: "Brief\nReceived", done: true },
+                { label: "Architect\nReview", active: true },
+                { label: "Staging\nSetup", pending: true },
+                { label: "Build\nKickoff", pending: true },
+              ].map((stage, i, arr) => (
+                <div key={i} style={{ flex: 1, textAlign: "center", position: "relative" }}>
+                  {i > 0 && <div style={{ position: "absolute", left: 0, top: 13, right: "50%", height: 2, background: stage.done ? "#0d9488" : "rgba(255,255,255,0.08)", zIndex: 0 }} />}
+                  {i < arr.length - 1 && <div style={{ position: "absolute", left: "50%", top: 13, right: 0, height: 2, background: stage.done ? "#0d9488" : "rgba(255,255,255,0.08)", zIndex: 0 }} />}
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", margin: "0 auto 0.5rem", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 800, background: stage.done ? "#0d9488" : stage.active ? "rgba(13,148,136,0.18)" : "rgba(255,255,255,0.04)", border: stage.active ? "2px solid #2dd4bf" : stage.done ? "none" : "1px solid rgba(255,255,255,0.1)", color: stage.done ? "white" : stage.active ? "#2dd4bf" : "#475569", zIndex: 1, position: "relative", boxShadow: stage.active ? "0 0 12px rgba(45,212,191,0.4)" : "none" }}>
+                    {stage.done ? "✓" : stage.active ? "●" : "○"}
+                  </div>
+                  <div style={{ fontSize: "0.58rem", fontWeight: 700, color: stage.done ? "#0d9488" : stage.active ? "#2dd4bf" : "#475569", letterSpacing: "0.03em", whiteSpace: "pre-line", lineHeight: 1.3 }}>{stage.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <a href="/portal/onboarding" className="portal-btn portal-btn--ghost portal-btn--sm">View your brief</a>
+              <a href={`https://wa.me/27732890453?text=Hi%20E%26L%20Digital%2C%20I%20want%20to%20check%20on%20my%20project%20setup%20status`} target="_blank" rel="noreferrer" className="portal-btn portal-btn--primary portal-btn--sm">
+                <MessageSquare size={13} /> WhatsApp Update
+              </a>
+            </div>
+          </div>
+
+          {/* What to expect cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.875rem" }}>
+            {[
+              { icon: "🏗️", title: "Staging Server", desc: "Your own preview environment ready within 48 hours" },
+              { icon: "📋", title: "Sprint Board", desc: "Task tracker shared with your project team" },
+              { icon: "📧", title: "Kickoff Email", desc: "Intro from your dedicated Solutions Architect" },
+            ].map((item) => (
+              <div key={item.title} className="portal-card" style={{ padding: "1.125rem", textAlign: "center", background: "rgba(255,255,255,0.02)" }}>
+                <div style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>{item.icon}</div>
+                <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#e2e8f0", marginBottom: "0.25rem" }}>{item.title}</div>
+                <div style={{ fontSize: "0.72rem", color: "#64748b", lineHeight: 1.5 }}>{item.desc}</div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <>
