@@ -12,6 +12,7 @@ import {
   Sparkles, CheckCircle2, Clock, ArrowUpRight
 } from "lucide-react";
 import { usePortalAuth } from "@/lib/portal-auth";
+import portalLogo from "@/assets/logo.png";
 
 interface NavItem {
   label: string;
@@ -148,10 +149,12 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
           {/* Brand Header */}
           <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
             <Link to="/portal/dashboard" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 via-emerald-500 to-amber-400 p-[1.5px] shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
-                <div className="w-full h-full bg-[#0d1424] rounded-[10px] flex items-center justify-center">
-                  <Zap size={20} className="text-teal-400 drop-shadow" />
-                </div>
+              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shadow-md">
+                <img
+                  src={portalLogo}
+                  alt="E&L Digital"
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <div>
                 <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
@@ -443,10 +446,12 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
 
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <Link to="/portal/dashboard" className="flex items-center gap-2 group md:hidden">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-teal-500 to-amber-400 p-[1px] shadow-sm">
-                  <div className="w-full h-full bg-[#0a0f1d] rounded-[7px] flex items-center justify-center">
-                    <Zap size={14} className="text-teal-400" />
-                  </div>
+                <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center">
+                  <img
+                    src={portalLogo}
+                    alt="E&L"
+                    className="w-6 h-6 object-contain"
+                  />
                 </div>
               </Link>
               
@@ -554,8 +559,8 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Page Content with bottom padding for mobile dock */}
-        <main className="portal-content flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-28 md:pb-10">
+        {/* Page Content — extra bottom padding on mobile so bottom dock never covers content */}
+        <main className="portal-content flex-1 max-w-7xl w-full mx-auto" style={{ paddingBottom: undefined }}>
           {children}
         </main>
 

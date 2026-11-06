@@ -64,7 +64,7 @@ const MANUAL_STEPS = [
 function PortalOnboarding() {
   const navigate = useNavigate();
   const { plan: queryPlan } = Route.useSearch();
-  const { user, loading, onboarding, updateOnboarding, client, refreshClient } = usePortalAuth();
+  const { user, loading, onboarding, updateOnboarding, client, refreshClient, access } = usePortalAuth();
 
   const [mode, setMode] = useState<Mode>("manual");
   const [manualStep, setManualStep] = useState<ManualStep>(1);
@@ -219,125 +219,174 @@ function PortalOnboarding() {
 
   // ── Completed State View ──────────────────────────────────────────────
   if (onboarding?.isCompleted || onboarding?.mode === "admin_bypassed") {
+    const planName = onboarding.selectedPackageCode || selectedPackage || "Your Plan";
+    const biz = businessName || onboarding.businessName || "your business";
+    const hasMandateDoc = !!client?.mandateDocUrl;
+    const isAuthorized = client?.mandateStatus === "authorized";
+    const isLive = !!access.projects;
+
+    const journeySteps = [
+      {
+        icon: <CheckCircle2 size={18} />,
+        label: "Brief Submitted",
+        done: true,
+      },
+      {
+        icon: hasMandateDoc ? <CheckCircle2 size={18} /> : <Clock size={18} />,
+        label: "Service Contract & Mandate",
+        done: hasMandateDoc,
+      },
+      {
+        icon: isAuthorized ? <CheckCircle2 size={18} /> : <Clock size={18} />,
+        label: "DebiCheck Authorized",
+        done: isAuthorized,
+      },
+      {
+        icon: isLive ? <CheckCircle2 size={18} /> : <Clock size={18} />,
+        label: "Build Activated",
+        done: isLive,
+      },
+    ];
+
     return (
       <PortalLayout>
-        <div className="portal-page-header">
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-            <h1 className="portal-page-title" style={{ marginBottom: 0 }}>Onboarding Submitted</h1>
-            <span className="portal-badge portal-badge--pending" style={{ fontSize: "11px", fontWeight: 800 }}>
-              Awaiting Approval &amp; Mandate
-            </span>
-          </div>
-          <p className="portal-page-sub">
-            Your onboarding brief for <strong>{businessName || onboarding.businessName || "your business"}</strong> has been received. Your client profile is updated to <strong>Pending Approval &amp; DebiCheck Mandate</strong>.
+        {/* ── Hero Banner ── */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(13,148,136,0.18) 0%, rgba(16,185,129,0.10) 50%, rgba(15,23,42,0.6) 100%)",
+          border: "1px solid rgba(45,212,191,0.25)",
+          borderRadius: 16,
+          padding: "2.5rem 1.5rem 2rem",
+          marginBottom: "1.5rem",
+          textAlign: "center",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          {/* glow */}
+          <div style={{ position: "absolute", top: "-40px", left: "50%", transform: "translateX(-50%)", width: 200, height: 120, background: "radial-gradient(ellipse, rgba(45,212,191,0.25) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <div style={{ fontSize: "2.75rem", marginBottom: "0.5rem", lineHeight: 1 }}>🎉</div>
+          <h1 style={{ fontSize: "clamp(1.6rem, 5vw, 2.25rem)", fontWeight: 900, color: "#f8fafc", margin: "0 0 0.5rem", letterSpacing: "-0.02em" }}>
+            Onboarding Complete!
+          </h1>
+          <p style={{ fontSize: "0.95rem", color: "#94a3b8", margin: "0 0 1rem" }}>
+            Brief received for <strong style={{ color: "#e2e8f0" }}>{biz}</strong>
           </p>
-        </div>
-
-        {/* Profile Status & Three Mandatory Gates */}
-        <div className="portal-card" style={{ borderColor: "rgba(245,158,11,0.35)", background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(15,23,42,0.5))", marginBottom: "1.25rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <Shield size={20} color="#fbbf24" />
-            <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc" }}>
-              Profile Updated: What Happens Before Your Build Starts
-            </span>
-          </div>
-          <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0 0 1rem 0" }}>
-            To activate your platform build and dedicated private staging server, please complete the three approval steps below:
-          </p>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.75rem" }}>
-            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 800, color: "#fbbf24" }}>
-                <span>1. Engineering Approval</span>
-              </div>
-              <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0.35rem 0 0 0", lineHeight: 1.5 }}>
-                Your dedicated Solutions Architect will review your scoping brief and uploaded assets within 1 business day.
-              </p>
-            </div>
-
-            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 800, color: "#38bdf8" }}>
-                <span>2. Service Contract</span>
-              </div>
-              <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0.35rem 0 0 0", lineHeight: 1.5 }}>
-                You will receive your official Master Services Agreement &amp; SLA via email for secure digital sign-off.
-              </p>
-            </div>
-
-            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 800, color: "#34d399" }}>
-                <span>3. DebiCheck Mandate</span>
-              </div>
-              <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0.35rem 0 0 0", lineHeight: 1.5 }}>
-                An automated debit order mandate will be sent directly to your banking app/SMS for safe authorization.
-              </p>
-            </div>
+          {/* Plan pill */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.35rem 1rem", borderRadius: 999, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.4)", fontSize: "0.82rem", fontWeight: 800, color: "#2dd4bf", boxShadow: "0 0 12px rgba(45,212,191,0.2)" }}>
+            <Zap size={13} /> {planName}
           </div>
         </div>
 
-        <div className="portal-card" style={{ borderColor: "rgba(16,185,129,0.25)", background: "rgba(16,185,129,0.04)" }}>
-          <div className="portal-card-title"><CheckCircle2 size={18} color="#34d399" /> Roadmap to Go-Live</div>
-          <div className="portal-timeline">
-            {[
-              { label: "Kickoff review & intake", sub: "Your Solutions Architect will review your uploaded assets and reach out within 1 business day", done: true },
-              { label: "Contract & DebiCheck mandate sign-off", sub: "Digital SLA agreement and bank debit order authorization", done: false },
-              { label: "Design mockup created", sub: "We'll present your custom design within 3–5 business days", done: false },
-              { label: "Development & Staging review", sub: "You test and approve every page on our private staging link", done: false },
-              { label: "Live Launch! 🚀", sub: "Your site goes live on your custom domain with SSL and Google SEO", done: false },
-            ].map((item, i) => (
-              <div key={i} className="portal-timeline-item">
-                <div className="portal-timeline-dot-wrap">
-                  <div className={`portal-timeline-dot portal-timeline-dot--${item.done ? "done" : "pending"}`}>{item.done ? "✓" : i + 1}</div>
-                  {i < 4 && <div className="portal-timeline-line" />}
+        {/* ── Journey Tracker ── */}
+        <div className="portal-card" style={{ marginBottom: "1.25rem" }}>
+          <div className="portal-card-title"><Sparkles size={16} color="#fbbf24" /> Your Activation Journey</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "1rem" }}>
+            {journeySteps.map((step, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                {/* connector line */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                    background: step.done ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.04)",
+                    border: step.done ? "1.5px solid rgba(52,211,153,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                    color: step.done ? "#34d399" : "#475569",
+                  }}>
+                    {step.icon}
+                  </div>
+                  {i < journeySteps.length - 1 && (
+                    <div style={{ width: 2, flex: 1, minHeight: 16, background: step.done ? "rgba(52,211,153,0.4)" : "rgba(255,255,255,0.06)", margin: "3px 0" }} />
+                  )}
                 </div>
-                <div className="portal-timeline-body">
-                  <div className="portal-timeline-title">{item.label}</div>
-                  <div className="portal-timeline-sub">{item.sub}</div>
+                <div style={{ flex: 1, paddingBottom: i < journeySteps.length - 1 ? "0.75rem" : 0 }}>
+                  <div style={{ fontSize: "0.88rem", fontWeight: 700, color: step.done ? "#e2e8f0" : "#64748b" }}>{step.label}</div>
+                  {step.done && <div style={{ fontSize: "0.75rem", color: "#34d399", marginTop: 2 }}>Complete ✓</div>}
+                  {!step.done && <div style={{ fontSize: "0.75rem", color: "#475569", marginTop: 2 }}>Pending</div>}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Plan & Scope Summary */}
-        <div className="portal-card" style={{ marginTop: "1.25rem" }}>
-          <div className="portal-card-title"><Sparkles size={16} color="#fbbf24" /> Project &amp; Plan Details</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginTop: "1rem" }}>
-            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Selected Plan</div>
-              <div style={{ fontSize: "1rem", fontWeight: 800, color: "#2dd4bf", marginTop: "0.25rem" }}>
-                {selectedPackage || onboarding.selectedPackageCode || "Grow Online Business"}
-              </div>
+        {/* ── Contextual CTA Card ── */}
+        {hasMandateDoc && !isAuthorized && (
+          <div className="portal-card" style={{ borderColor: "rgba(245,158,11,0.4)", background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(15,23,42,0.5))", marginBottom: "1.25rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.5rem" }}>
+              <AlertCircle size={18} color="#fbbf24" />
+              <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#fbbf24" }}>Action Required</span>
             </div>
-            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Company / Brand</div>
-              <div style={{ fontSize: "1rem", fontWeight: 800, color: "#f8fafc", marginTop: "0.25rem" }}>
-                {businessName || onboarding.businessName || "Client"}
-              </div>
-            </div>
-            <div style={{ padding: "0.875rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Contact</div>
-              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#f8fafc", marginTop: "0.25rem" }}>
-                {contactPerson || onboarding.contactPerson || user.email}
-              </div>
-            </div>
-          </div>
-
-          {onboarding.aiRecommendation && (
-            <div style={{ marginTop: "1.25rem", padding: "1rem", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-              <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#e2e8f0", marginBottom: "0.375rem" }}>Executive Scope Summary</div>
-              <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.7, margin: 0 }}>{onboarding.aiRecommendation}</p>
-            </div>
-          )}
-
-          <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0 0 1rem" }}>
+              Your mandate document is ready. Please sign your service mandate to proceed with your build activation.
+            </p>
             <Link to="/portal/dashboard" className="portal-btn portal-btn--primary portal-btn--sm">
-              Go to Dashboard <ArrowRight size={13} />
+              <Shield size={13} /> Sign Your Mandate <ArrowRight size={13} />
             </Link>
-            <a href="mailto:hello@eandl.digital" className="portal-btn portal-btn--ghost portal-btn--sm">
-              Email Solutions Architect
-            </a>
           </div>
+        )}
+
+        {isAuthorized && !isLive && (
+          <div className="portal-card" style={{ borderColor: "rgba(45,212,191,0.3)", background: "rgba(45,212,191,0.05)", marginBottom: "1.25rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.5rem" }}>
+              <Rocket size={18} color="#2dd4bf" />
+              <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#2dd4bf" }}>Build Activation in Progress</span>
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
+              Mandate authorized! Our operations desk is activating your dedicated build environment — typically within 1 business day.
+            </p>
+          </div>
+        )}
+
+        {isLive && (
+          <div className="portal-card" style={{ borderColor: "rgba(16,185,129,0.4)", background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(15,23,42,0.5))", marginBottom: "1.25rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.5rem" }}>
+              <CheckCircle2 size={18} color="#34d399" />
+              <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#34d399" }}>Your Project is Live!</span>
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0 0 1rem" }}>
+              Head to <strong style={{ color: "#e2e8f0" }}>My Project & Sprint</strong> to track your build progress, review milestones, and preview your staging site.
+            </p>
+            <Link to="/portal/project" className="portal-btn portal-btn--primary portal-btn--sm">
+              <ExternalLink size={13} /> Go to My Project <ArrowRight size={13} />
+            </Link>
+          </div>
+        )}
+
+        {/* ── AI Recommendation Card ── */}
+        {onboarding.aiRecommendation && (
+          <div className="portal-card" style={{ marginBottom: "1.25rem", borderColor: "rgba(139,92,246,0.25)", background: "rgba(139,92,246,0.04)" }}>
+            <div className="portal-card-title" style={{ color: "#a78bfa" }}>
+              <Sparkles size={16} color="#a78bfa" /> Executive Scope Summary
+            </div>
+            <p style={{ fontSize: "0.83rem", color: "#94a3b8", lineHeight: 1.75, margin: "0.75rem 0 0" }}>
+              {onboarding.aiRecommendation}
+            </p>
+          </div>
+        )}
+
+        {/* ── Brief / Scope Details Grid ── */}
+        <div className="portal-card" style={{ marginBottom: "1.25rem" }}>
+          <div className="portal-card-title"><CheckCircle2 size={16} color="#34d399" /> Brief Summary</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem", marginTop: "1rem" }}>
+            {[
+              { label: "Selected Plan", value: planName, accent: "#2dd4bf" },
+              { label: "Business", value: biz },
+              { label: "Contact Person", value: contactPerson || onboarding.contactPerson || user.email },
+              { label: "Industry", value: onboarding.industry || "—" },
+            ].map(({ label, value, accent }) => (
+              <div key={label} style={{ padding: "0.75rem", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "0.25rem" }}>{label}</div>
+                <div style={{ fontSize: "0.9rem", fontWeight: 700, color: accent || "#e2e8f0" }}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Action Buttons ── */}
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "2rem" }}>
+          <Link to="/portal/dashboard" className="portal-btn portal-btn--primary">
+            Go to Dashboard <ArrowRight size={14} />
+          </Link>
+          <a href="mailto:hello@eandl.digital" className="portal-btn portal-btn--ghost">
+            <ExternalLink size={14} /> Contact Solutions Architect
+          </a>
         </div>
       </PortalLayout>
     );
