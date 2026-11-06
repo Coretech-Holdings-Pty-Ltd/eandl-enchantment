@@ -15,6 +15,14 @@ export interface PortalClient {
   accountStatus: string;
   companyId?: string;
   userId?: string;
+  mandateStatus?: string;    // 'pending_signature' | 'authorized' | 'active' | null
+  mandateDocUrl?: string;    // public URL to the uploaded agreement PDF
+  mandateId?: string;        // UUID of the mandate record
+  bankName?: string;
+  accountNumber?: string;
+  accountType?: string;
+  branchCode?: string;
+  accountHolder?: string;
 }
 
 export interface PortalProfile {
@@ -77,6 +85,13 @@ interface PortalAuthContextType {
   logout: () => Promise<void>;
   refreshClient: () => Promise<void>;
   updateOnboarding: (updates: Partial<OnboardingRecord>) => Promise<void>;
+  signMandate: (mandateData: {
+    bankName: string;
+    accountHolder: string;
+    accountType: string;
+    accountNumber: string;
+    branchCode: string;
+  }) => Promise<{ error?: string }>;
   toast: string | null;
   setToast: (msg: string | null) => void;
 }
@@ -203,6 +218,14 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
           accountStatus: clientData.account_status,
           companyId: clientData.company_id,
           userId: clientData.user_id || sessionUser.id,
+          mandateStatus: clientData.mandate_status,
+          mandateDocUrl: clientData.mandate_doc_url,
+          mandateId: clientData.mandate_id,
+          bankName: clientData.bank_name,
+          accountNumber: clientData.account_number,
+          accountType: clientData.account_type,
+          branchCode: clientData.branch_code,
+          accountHolder: clientData.account_holder,
         });
         setAccess(computedAccess);
       } else {
@@ -453,6 +476,83 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     if (user) await hydrateFromSession(user);
   };
 
+  const signMandate = async (mandateData: {
+    bankName: string;
+    accountHolder: string;
+    accountType: string;
+    accountNumber: string;
+    branchCode: string;
+  }) => {
+    if (!client?.id) return { error: "No client record found" };
+
+    const accountLast4 = mandateData.accountNumber.slice(-4);
+
+    try {
+      // Update partner.clients
+      const { error: clientErr } = await partnerSchema()
+        .from("clients")
+        .update({
+          mandate_status: "authorized",
+          debicheck_status: "active",
+          bank_name: mandateData.bankName,
+          account_number: mandateData.accountNumber,
+          account_type: mandateData.accountType,
+          branch_code: mandateData.branchCode,
+          account_holder: mandateData.accountHolder,
+        })
+        .eq("id", client.id);
+
+      if (clientErr) throw clientErr;
+
+      // Update partner.mandates if we have mandateId
+      if (client.mandateId) {
+        await partnerSchema()
+          .from("mandates")
+          .update({
+            status: "authenticated",
+            bank_name: mandateData.bankName,
+            account_number: mandateData.accountNumber,
+            account_last4: accountLast4,
+            account_holder: mandateData.accountHolder,
+            account_type: mandateData.accountType,
+            branch_code: mandateData.branchCode,
+            terms_accepted: true,
+            accepted_at: new Date().toISOString(),
+          })
+          .eq("id", client.mandateId);
+      } else {
+        // Try to find mandate by client email
+        await partnerSchema()
+          .from("mandates")
+          .update({
+            status: "authenticated",
+            bank_name: mandateData.bankName,
+            account_number: mandateData.accountNumber,
+            account_last4: accountLast4,
+            account_holder: mandateData.accountHolder,
+            account_type: mandateData.accountType,
+            branch_code: mandateData.branchCode,
+            terms_accepted: true,
+            accepted_at: new Date().toISOString(),
+          })
+          .eq("client_email", client.email);
+      }
+
+      // Update subscriptions to active
+      await partnerSchema()
+        .from("subscriptions")
+        .update({ status: "active", site_status: "live" })
+        .eq("client_id", client.id);
+
+      // Refresh client state
+      await refreshClient();
+      return {};
+    } catch (err: any) {
+      console.error("signMandate error:", err);
+      return { error: err.message || "Failed to authorize mandate" };
+    }
+  };
+
   const updateOnboarding = async (updates: Partial<OnboardingRecord>) => {
     if (!onboarding?.id) return;
     setOnboarding(prev => prev ? { ...prev, ...updates } : prev);
@@ -510,7 +610,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     <PortalAuthContext.Provider value={{
       loading, user, session, profile, client, access, onboarding,
       isAdminUser, adminRole,
-      login, register, logout, refreshClient, updateOnboarding, toast, setToast
+      login, register, logout, refreshClient, updateOnboarding, signMandate, toast, setToast
     }}>
       {children}
     </PortalAuthContext.Provider>

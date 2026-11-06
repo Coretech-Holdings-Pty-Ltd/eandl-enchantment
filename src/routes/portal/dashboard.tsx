@@ -2,11 +2,12 @@
  * Portal Dashboard — main client landing after login
  */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard, FolderKanban, GraduationCap, Zap,
   ArrowRight, CheckCircle2, Clock, AlertCircle, Lock,
-  TrendingUp, BookOpen, Shield, ExternalLink
+  TrendingUp, BookOpen, Shield, ExternalLink,
+  FileText, CreditCard, Building2, CheckSquare, AlertTriangle, Loader2
 } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/portal/dashboard")({
 
 function PortalDashboard() {
   const navigate = useNavigate();
-  const { user, loading, profile, client, access, onboarding } = usePortalAuth();
+  const { user, loading, profile, client, access, onboarding, signMandate, setToast } = usePortalAuth();
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/portal/login" });
@@ -29,6 +30,58 @@ function PortalDashboard() {
   const onboardingPct = onboarding
     ? Math.round(((onboarding.currentStep - 1) / (onboarding.totalSteps || 5)) * 100)
     : 0;
+
+  // Mandate signing state
+  const [showMandateForm, setShowMandateForm] = useState(false);
+  const [mandateBankName, setMandateBankName] = useState("");
+  const [mandateAccountHolder, setMandateAccountHolder] = useState(profile?.fullName || "");
+  const [mandateAccountType, setMandateAccountType] = useState<"cheque" | "savings" | "transmission">("cheque");
+  const [mandateAccountNumber, setMandateAccountNumber] = useState("");
+  const [mandateBranchCode, setMandateBranchCode] = useState("");
+  const [mandateTermsAccepted, setMandateTermsAccepted] = useState(false);
+  const [mandateSubmitting, setMandateSubmitting] = useState(false);
+
+  const SA_BANKS: Record<string, string> = {
+    "Standard Bank": "051001",
+    "First National Bank (FNB)": "250655",
+    "Absa Bank": "632005",
+    "Nedbank": "198765",
+    "Capitec Bank": "470010",
+    "Discovery Bank": "679000",
+    "TymeBank": "678910",
+    "Investec Private": "580105",
+  };
+
+  const handleMandateBankChange = (bank: string) => {
+    setMandateBankName(bank);
+    if (SA_BANKS[bank]) setMandateBranchCode(SA_BANKS[bank]);
+  };
+
+  const handleSignMandate = async () => {
+    if (!mandateBankName || !mandateAccountHolder || !mandateAccountNumber || !mandateBranchCode) {
+      setToast("Please fill in all banking details.");
+      return;
+    }
+    if (!mandateTermsAccepted) {
+      setToast("Please accept the mandate terms to continue.");
+      return;
+    }
+    setMandateSubmitting(true);
+    const result = await signMandate({
+      bankName: mandateBankName,
+      accountHolder: mandateAccountHolder,
+      accountType: mandateAccountType,
+      accountNumber: mandateAccountNumber,
+      branchCode: mandateBranchCode,
+    });
+    setMandateSubmitting(false);
+    if (result.error) {
+      setToast(`Error: ${result.error}`);
+    } else {
+      setToast("✅ Mandate authorized successfully! Your account is now being activated.");
+      setShowMandateForm(false);
+    }
+  };
 
   return (
     <PortalLayout>
@@ -116,6 +169,199 @@ function PortalDashboard() {
                   Contact Solutions Architect
                 </a>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Mandate Signing Card ───────────────────────────────────────── */}
+      {client?.mandateStatus === "pending_signature" && client?.mandateDocUrl && (
+        <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(239,68,68,0.4)", background: "linear-gradient(135deg, rgba(239,68,68,0.06), rgba(15,23,42,0.5))" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(239,68,68,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <FileText size={24} color="#f87171" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
+                <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc" }}>
+                  Action Required: Sign Your Service Agreement & DebiCheck Mandate
+                </span>
+                <span className="portal-badge" style={{ background: "rgba(239,68,68,0.2)", color: "#f87171", borderColor: "rgba(239,68,68,0.3)", fontSize: "10px" }}>
+                  Signature Pending
+                </span>
+              </div>
+              <p style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, margin: "0.25rem 0 1rem 0" }}>
+                Your service agreement has been prepared. Please review the document, complete your banking details, and authorize your DebiCheck debit mandate to activate your account.
+              </p>
+
+              {/* View PDF */}
+              <a
+                href={client.mandateDocUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, color: "#f87171", textDecoration: "none", fontSize: "0.78rem", fontWeight: 700, marginBottom: "1rem" }}
+              >
+                <FileText size={14} /> View / Download Agreement (PDF)
+              </a>
+
+              {/* Toggle form */}
+              {!showMandateForm ? (
+                <div>
+                  <button
+                    onClick={() => setShowMandateForm(true)}
+                    className="portal-btn portal-btn--primary"
+                    style={{ padding: "0.625rem 1.5rem" }}
+                  >
+                    <CreditCard size={15} /> Complete Banking Details & Sign Mandate
+                  </button>
+                </div>
+              ) : (
+                <div style={{ background: "rgba(15,23,42,0.6)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "1.25rem", marginTop: "0.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                    <Building2 size={16} color="#2dd4bf" />
+                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f8fafc" }}>Banking Details</span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem" }}>
+                    {/* Bank Name */}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8", marginBottom: "0.3rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Bank Name *
+                      </label>
+                      <select
+                        value={mandateBankName}
+                        onChange={e => handleMandateBankChange(e.target.value)}
+                        style={{ width: "100%", padding: "0.6rem 0.75rem", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: mandateBankName ? "#f8fafc" : "#64748b", fontSize: "0.82rem" }}
+                      >
+                        <option value="">Select your bank</option>
+                        {Object.keys(SA_BANKS).map(bank => (
+                          <option key={bank} value={bank}>{bank}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Account Holder */}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8", marginBottom: "0.3rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Account Holder Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={mandateAccountHolder}
+                        onChange={e => setMandateAccountHolder(e.target.value)}
+                        placeholder="Full name as on bank account"
+                        style={{ width: "100%", padding: "0.6rem 0.75rem", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#f8fafc", fontSize: "0.82rem", boxSizing: "border-box" }}
+                      />
+                    </div>
+
+                    {/* Account Type */}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8", marginBottom: "0.3rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Account Type *
+                      </label>
+                      <select
+                        value={mandateAccountType}
+                        onChange={e => setMandateAccountType(e.target.value as any)}
+                        style={{ width: "100%", padding: "0.6rem 0.75rem", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#f8fafc", fontSize: "0.82rem" }}
+                      >
+                        <option value="cheque">Cheque / Current</option>
+                        <option value="savings">Savings</option>
+                        <option value="transmission">Transmission</option>
+                      </select>
+                    </div>
+
+                    {/* Account Number */}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8", marginBottom: "0.3rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Account Number *
+                      </label>
+                      <input
+                        type="text"
+                        value={mandateAccountNumber}
+                        onChange={e => setMandateAccountNumber(e.target.value.replace(/\D/g, ""))}
+                        placeholder="e.g. 62819283719"
+                        style={{ width: "100%", padding: "0.6rem 0.75rem", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#f8fafc", fontSize: "0.82rem", fontFamily: "monospace", boxSizing: "border-box" }}
+                      />
+                    </div>
+
+                    {/* Branch Code */}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8", marginBottom: "0.3rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Branch Code *
+                      </label>
+                      <input
+                        type="text"
+                        value={mandateBranchCode}
+                        onChange={e => setMandateBranchCode(e.target.value.replace(/\D/g, ""))}
+                        placeholder="Auto-filled by bank selection"
+                        style={{ width: "100%", padding: "0.6rem 0.75rem", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#f8fafc", fontSize: "0.82rem", fontFamily: "monospace", boxSizing: "border-box" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Terms */}
+                  <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8 }}>
+                    <label style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={mandateTermsAccepted}
+                        onChange={e => setMandateTermsAccepted(e.target.checked)}
+                        style={{ marginTop: "2px", accentColor: "#0d9488", width: 16, height: 16, flexShrink: 0 }}
+                      />
+                      <span style={{ fontSize: "0.75rem", color: "#cbd5e1", lineHeight: 1.6 }}>
+                        I authorize E&L Digital (Pty) Ltd to debit my account with the agreed monthly subscription amount via DebiCheck authenticated debit order. I confirm I have read and accept the{" "}
+                        <a href={client.mandateDocUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#2dd4bf" }}>
+                          service agreement and mandate terms
+                        </a>
+                        .
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}>
+                    <button
+                      onClick={() => setShowMandateForm(false)}
+                      style={{ flex: 1, padding: "0.625rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#94a3b8", fontSize: "0.82rem", cursor: "pointer" }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSignMandate}
+                      disabled={mandateSubmitting || !mandateTermsAccepted || !mandateBankName || !mandateAccountNumber}
+                      style={{
+                        flex: 2,
+                        padding: "0.625rem 1.25rem",
+                        background: mandateSubmitting || !mandateTermsAccepted || !mandateBankName || !mandateAccountNumber
+                          ? "rgba(13,148,136,0.3)"
+                          : "linear-gradient(135deg,#0d9488,#059669)",
+                        border: "none",
+                        borderRadius: 8,
+                        color: "#ffffff",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: mandateSubmitting ? "wait" : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem"
+                      }}
+                    >
+                      {mandateSubmitting ? (
+                        <>
+                          <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                          Authorizing…
+                        </>
+                      ) : (
+                        <>
+                          <CheckSquare size={14} />
+                          Authorize & Sign Mandate
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
