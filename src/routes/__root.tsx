@@ -15,21 +15,44 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../lib/theme";
 
 function NotFoundComponent() {
+  const isPortal = typeof window !== "undefined" && window.location.pathname.startsWith("/portal");
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          {isPortal ? "Portal Page Not Found" : "Page not found"}
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          {isPortal
+            ? "The client workspace route you requested does not exist or your session was updated."
+            : "The page you're looking for doesn't exist or has been moved."}
         </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {isPortal ? (
+            <>
+              <a
+                href="/portal/dashboard"
+                className="inline-flex items-center justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-500 shadow-md cursor-pointer"
+              >
+                Go to Portal Dashboard
+              </a>
+              <a
+                href="/portal/login"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
+              >
+                Sign In / Switch Account
+              </a>
+            </>
+          ) : (
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Go home
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -39,6 +62,8 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+  const isPortal = typeof window !== "undefined" && window.location.pathname.startsWith("/portal");
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -50,7 +75,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           This page didn't load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {isPortal
+            ? "Your client workspace session encountered a temporary issue. You can reload or return directly to your dashboard."
+            : "Something went wrong on our end. You can try refreshing or head back home."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -58,16 +85,33 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-500 shadow-md cursor-pointer"
           >
             Try again
           </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
-          >
-            Go home
-          </a>
+          {isPortal ? (
+            <>
+              <a
+                href="/portal/dashboard"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
+              >
+                Go to Portal Dashboard
+              </a>
+              <a
+                href="/portal/login"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
+              >
+                Switch Account
+              </a>
+            </>
+          ) : (
+            <a
+              href="/"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
+            >
+              Go home
+            </a>
+          )}
         </div>
 
         {Boolean(error) && (
@@ -154,6 +198,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Seamless Supabase auth hash token handler
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    const pathname = window.location.pathname;
+    if (hash && (hash.includes("access_token=") || hash.includes("type=recovery") || hash.includes("type=signup") || hash.includes("type=magiclink"))) {
+      if (pathname === "/" || pathname === "") {
+        window.location.replace(`/auth/confirm${hash}`);
+      }
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -112,7 +112,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<PortalProfile | null>(null);
   const [client, setClient] = useState<PortalClient | null>(null);
-  const [access, setAccess] = useState<PortalAccess>({ projects: false, learning: false, accountStatus: "none" });
+  const [access, setAccess] = useState<PortalAccess>({ projects: false, learning: false, accountStatus: "active" });
   const [onboarding, setOnboarding] = useState<OnboardingRecord | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminRole, setAdminRole] = useState<string | null>(null);
@@ -341,30 +341,56 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) await hydrateFromSession(s.user);
-      setLoading(false);
-    });
+    let isMounted = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
+    // Hard fallback timeout: if session resolution or hydration takes > 3.5s, force loading = false
+    const fallbackTimer = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 3500);
+
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+      if (!isMounted) return;
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        await hydrateFromSession(s.user);
+        try {
+          await hydrateFromSession(s.user);
+        } catch (e) {
+          console.warn("[PortalAuth] Initial hydrate exception:", e);
+        }
+      }
+      if (isMounted) setLoading(false);
+    }).catch((err) => {
+      console.warn("[PortalAuth] getSession error:", err);
+      if (isMounted) setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
+      if (!isMounted) return;
+      setSession(s);
+      setUser(s?.user ?? null);
+      if (s?.user) {
+        try {
+          await hydrateFromSession(s.user);
+        } catch (e) {
+          console.warn("[PortalAuth] onAuthStateChange hydrate error:", e);
+        }
       } else {
         setProfile(null);
         setClient(null);
-        setAccess({ projects: false, learning: false, accountStatus: "none" });
+        setAccess({ projects: false, learning: false, accountStatus: "active" });
         setOnboarding(null);
         setIsAdminUser(false);
         setAdminRole(null);
       }
-      if (event !== "INITIAL_SESSION") setLoading(false);
+      if (isMounted) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
   }, [hydrateFromSession]);
 
   const login = async (email: string, password: string) => {

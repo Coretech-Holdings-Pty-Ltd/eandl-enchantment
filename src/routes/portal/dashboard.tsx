@@ -26,12 +26,66 @@ function PortalDashboard() {
     if (!loading && !user) navigate({ to: "/portal/login" });
   }, [user, loading, navigate]);
 
-  if (loading || !user) return null;
+  const handlePrintAgreement = (docUrl?: string) => {
+    if (!docUrl) return;
+    const win = window.open(docUrl, "_blank");
+    if (win) {
+      win.focus();
+      setTimeout(() => win.print(), 800);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#080d19] flex flex-col items-center justify-center px-4 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center mb-4">
+          <Loader2 className="w-6 h-6 text-teal-400 animate-spin" />
+        </div>
+        <h2 className="text-base font-bold text-white mb-1">Loading Client Workspace...</h2>
+        <p className="text-xs text-slate-400">Verifying session and client configuration</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#080d19] flex flex-col items-center justify-center px-4 text-center">
+        <div className="max-w-md w-full p-6 rounded-2xl bg-slate-900/90 border border-white/10 shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center mx-auto mb-4 text-teal-400">
+            <Lock className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-black text-white mb-2">Portal Session Required</h2>
+          <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            Multiple browser login sessions or an expired token was detected. Please choose which account to sign in with.
+          </p>
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={() => navigate({ to: "/portal/login" })}
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/20 cursor-pointer"
+            >
+              Sign in to E&L Portal →
+            </button>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = "/portal/login";
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold text-xs transition-all cursor-pointer"
+            >
+              Switch Account / Clear Stored Sessions
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const displayName = profile?.fullName?.split(" ")[0] || user.email?.split("@")[0] || "there";
   const onboardingPct = onboarding
     ? Math.round(((onboarding.currentStep - 1) / (onboarding.totalSteps || 5)) * 100)
     : 0;
+
+  const accountStatusLabel = (access?.accountStatus || client?.accountStatus || "active").replace(/_/g, " ");
 
   // Mandate signing state
   const [showMandateForm, setShowMandateForm] = useState(false);
@@ -94,7 +148,7 @@ function PortalDashboard() {
         </h1>
         <p className="portal-page-sub">
           {client
-            ? `${client.name} · ${access.accountStatus.replace("_", " ")}`
+            ? `${client.name} · ${accountStatusLabel}`
             : "Welcome to your E&L client hub — let's get you set up."}
         </p>
       </div>

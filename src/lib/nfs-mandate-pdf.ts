@@ -354,3 +354,4 @@ export function generateNfsMandatePdf(details: MandateFormDetails): jsPDF {
 
   return doc;
 }
+

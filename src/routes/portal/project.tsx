@@ -47,7 +47,9 @@ function PortalProject() {
     })();
   }, [user, access, client]);
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return <PortalLayout>{null}</PortalLayout>;
+  }
 
   if (!access.projects) return (
     <PortalLayout>

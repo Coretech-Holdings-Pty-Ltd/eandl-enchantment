@@ -27,7 +27,9 @@ function MyLearning() {
     })();
   }, [user, access]);
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return <PortalLayout>{null}</PortalLayout>;
+  }
   if (!access.learning) return (
     <PortalLayout>
       <div className="portal-locked">

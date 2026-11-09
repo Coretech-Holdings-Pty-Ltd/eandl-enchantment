@@ -39,7 +39,9 @@ function PortalSupport() {
     setBusy(false);
   };
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return <PortalLayout>{null}</PortalLayout>;
+  }
   const statusColor: Record<string, string> = { open: "portal-badge--trial", in_progress: "portal-badge--pending", resolved: "portal-badge--done", closed: "" };
 
   return (

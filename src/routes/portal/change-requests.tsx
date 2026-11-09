@@ -39,7 +39,9 @@ function PortalChangeRequests() {
     setBusy(false);
   };
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return <PortalLayout>{null}</PortalLayout>;
+  }
   if (!access.projects) return (
     <PortalLayout>
       <div className="portal-locked">

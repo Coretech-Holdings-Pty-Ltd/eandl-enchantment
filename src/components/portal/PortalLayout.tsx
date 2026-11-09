@@ -12,6 +12,7 @@ import {
   Sparkles, CheckCircle2, Clock, ArrowUpRight
 } from "lucide-react";
 import { usePortalAuth } from "@/lib/portal-auth";
+import { supabase } from "@/lib/supabase";
 import portalLogo from "@/assets/logo.png";
 
 interface NavItem {
@@ -25,11 +26,97 @@ interface NavItem {
 }
 
 export function PortalLayout({ children }: { children: React.ReactNode }) {
-  const { profile, client, access, logout, user, onboarding, isAdminUser } = usePortalAuth();
+  const { profile, client, access, logout, user, onboarding, isAdminUser, loading } = usePortalAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
+
+  // Derive First + Last name initials (Strictly generated, zero photo upload)
+  const deriveInitials = (fullName?: string | null, clientName?: string | null, email?: string | null): string => {
+    const candidate = (fullName || clientName || "").replace(/\(.*?\)/g, "").replace(/\b(pty|ltd|holdings|group|co|cc)\b/gi, "").trim();
+    if (candidate) {
+      const words = candidate.split(/[\s._-]+/).filter(Boolean);
+      if (words.length >= 2) {
+        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+      }
+      if (words.length === 1 && words[0].length >= 2) {
+        return words[0].slice(0, 2).toUpperCase();
+      }
+      if (words.length === 1) {
+        return words[0][0].toUpperCase();
+      }
+    }
+    if (email && email.includes("@")) {
+      const local = email.split("@")[0].replace(/[0-9]/g, "");
+      const words = local.split(/[\s._-]+/).filter(Boolean);
+      if (words.length >= 2) {
+        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+      }
+      return (local.slice(0, 2) || "CL").toUpperCase();
+    }
+    return "CL";
+  };
+
+  const displayName = profile?.fullName || client?.name || user?.email?.split("@")[0] || "Client";
+  const initials = deriveInitials(profile?.fullName, client?.name, user?.email);
+
+  const safeAccountStatus = access?.accountStatus || client?.accountStatus || "active";
+  const accountBadgeColor = {
+    active: "bg-emerald-500 shadow-emerald-500/50",
+    trialing: "bg-amber-400 shadow-amber-400/50",
+    paused: "bg-orange-500 shadow-orange-500/50",
+    arrears: "bg-rose-500 shadow-rose-500/50",
+    cancelled: "bg-slate-500",
+    none: "bg-slate-400",
+  }[safeAccountStatus] || "bg-emerald-500 shadow-emerald-500/50";
+
+  // Prevent white screens: Render branded loading screen while hydrating
+  if (loading) {
+    return (
+      <div className="portal-shell bg-[#080d19] min-h-screen text-slate-100 flex flex-col items-center justify-center px-4 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center mb-4">
+          <Zap className="w-6 h-6 text-teal-400 animate-pulse" />
+        </div>
+        <h2 className="text-base font-bold text-white mb-1">Loading E&amp;L Portal...</h2>
+        <p className="text-xs text-slate-400">Verifying client workspace session</p>
+      </div>
+    );
+  }
+
+  // Prevent white screens: If no active session or session ambiguity, show Session Switcher
+  if (!user) {
+    return (
+      <div className="portal-shell bg-[#080d19] min-h-screen text-slate-100 flex flex-col items-center justify-center px-4 text-center">
+        <div className="max-w-md w-full p-6 rounded-2xl bg-slate-900/90 border border-white/10 shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center mx-auto mb-4 text-teal-400">
+            <Shield className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-black text-white mb-2">Portal Session Required</h2>
+          <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            Please sign in to access your E&amp;L client workspace, or switch to the correct client account.
+          </p>
+          <div className="flex flex-col gap-2.5">
+            <a
+              href="/portal/login"
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/20 text-center"
+            >
+              Sign in to E&amp;L Portal →
+            </a>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = "/portal/login";
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold text-xs transition-all cursor-pointer"
+            >
+              Switch Account / Clear Stored Sessions
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Derive Onboarding Stage/Level (1 to 4)
   const isMandateAuthorized = client?.mandateStatus === "authorized";
@@ -125,21 +212,6 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
     },
   ];
 
-  const rawName = profile?.fullName || client?.name || user?.email?.split("@")[0] || "Client";
-  const initials = rawName
-    .split(/[\s._-]+/).filter(Boolean).map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "CL";
-
-  const displayName = profile?.fullName || client?.name || user?.email?.split("@")[0] || "Client";
-  
-  const accountBadgeColor = {
-    active: "bg-emerald-500 shadow-emerald-500/50",
-    trialing: "bg-amber-400 shadow-amber-400/50",
-    paused: "bg-orange-500 shadow-orange-500/50",
-    arrears: "bg-rose-500 shadow-rose-500/50",
-    cancelled: "bg-slate-500",
-    none: "bg-slate-400",
-  }[access.accountStatus] || "bg-slate-400";
-
   return (
     <div className="portal-shell bg-[#080d19] min-h-screen text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
       {/* ── Mobile & Desktop Sidebar ─────────────────────────────────── */}
@@ -176,11 +248,11 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          {/* Client Identity & Account Status Card */}
-          <div className="px-3 py-2 mx-3 my-3 rounded-2xl bg-white/[0.03] border border-white/10 shadow-inner relative overflow-hidden">
+          {/* Client Identity & Account Status Card (Strictly Monogram, No Photo Upload) */}
+          <div className="px-3 py-2.5 mx-3 my-3 rounded-2xl bg-white/[0.04] border border-white/10 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
             <div className="flex items-center gap-3">
-              {/* Monogram Avatar — no photo, just initials in gradient ring */}
+              {/* Monogram Avatar — Generated First + Last Name Initials */}
               <div className="relative shrink-0">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[2px] shadow-lg shadow-teal-900/40">
                   <div className="w-full h-full bg-[#0c1322] rounded-[14px] flex items-center justify-center">
@@ -193,12 +265,12 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] font-black text-white truncate leading-tight">
-                  {client?.name || displayName}
+                  {displayName}
                 </div>
                 <div className="text-[10px] text-slate-400 truncate mt-0.5">{user?.email}</div>
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/5 text-slate-300 border border-white/10">
-                    {access.accountStatus}
+                    {safeAccountStatus}
                   </span>
                   {client?.mandateStatus === "authorized" && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -500,25 +572,26 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               )}
             </Link>
 
-            {/* User Avatar — clean monogram button, no text crowding on mobile */}
-            <div className="relative">
+            {/* User Avatar — clean monogram button, icon only on small screens */}
+            <div className="relative shrink-0">
               <button
                 onClick={() => setUserMenuOpen(v => !v)}
-                className="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer active:scale-95 shrink-0"
                 aria-label="Account menu"
+                title={displayName}
               >
                 {/* Monogram circle */}
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[1.5px] shadow-md shadow-teal-900/30">
-                  <div className="w-full h-full bg-[#0a0f1d] rounded-[6px] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[1.5px] shadow-md shadow-teal-900/30 shrink-0">
+                  <div className="w-full h-full bg-[#0a0f1d] rounded-[10px] flex items-center justify-center">
                     <span className="text-[11px] font-black bg-gradient-to-br from-teal-300 to-cyan-400 bg-clip-text text-transparent select-none leading-none">
                       {initials}
                     </span>
                   </div>
                 </div>
-                <span className="hidden md:block text-xs font-bold text-slate-200 max-w-[90px] truncate">
+                <span className="hidden md:inline-block text-xs font-bold text-slate-200 max-w-[120px] truncate">
                   {displayName}
                 </span>
-                <ChevronDown size={13} className={`hidden md:block text-slate-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={13} className={`hidden md:inline-block text-slate-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
               {/* User Dropdown Sheet */}
@@ -538,7 +611,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                       <div className="text-[10px] text-slate-400 truncate">{user?.email}</div>
                       <div className="mt-1 flex items-center gap-1 text-[9px]">
                         <span className="text-slate-500">Status</span>
-                        <span className="font-extrabold text-teal-300 uppercase">{access.accountStatus}</span>
+                        <span className="font-extrabold text-teal-300 uppercase">{safeAccountStatus}</span>
                       </div>
                     </div>
                   </div>

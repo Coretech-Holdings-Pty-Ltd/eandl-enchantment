@@ -746,3 +746,4 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
     </div>
   );
 }
+

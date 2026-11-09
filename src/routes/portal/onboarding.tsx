@@ -173,7 +173,9 @@ function PortalOnboarding() {
     }
   }, [queryPlan]);
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return <PortalLayout>{null}</PortalLayout>;
+  }
 
   // ── Asset Upload Handlers ─────────────────────────────────────────────
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

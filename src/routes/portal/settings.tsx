@@ -47,7 +47,9 @@ function PortalSettings() {
     setBusy(false);
   };
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return <PortalLayout>{null}</PortalLayout>;
+  }
 
   // Detect current plan by matching fee or name from client record
   const rawPlan = client?.accountStatus || "";

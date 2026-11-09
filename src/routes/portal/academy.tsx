@@ -42,7 +42,9 @@ function PortalAcademy() {
     setEnrolling(null);
   };
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return <PortalLayout>{null}</PortalLayout>;
+  }
 
   const trackColors: Record<string, string> = { level_1: "#2dd4bf", level_2: "#fbbf24", level_3: "#f472b6", business_track: "#a5b4fc", creative_track: "#fb923c", digital_systems: "#34d399" };
   const tracks = ["all", "level_1", "level_2", "level_3", "business_track", "creative_track"];
