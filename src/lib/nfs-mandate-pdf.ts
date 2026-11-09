@@ -7,6 +7,8 @@ import { jsPDF } from "jspdf";
 
 export interface MandateFormDetails {
   accountHolder: string;
+  registrationOrIdNumber?: string;
+  signatoryName?: string;
   address: string;
   bankName: string;
   branchName: string;
@@ -77,7 +79,8 @@ export function generateNfsMandatePdf(details: MandateFormDetails): jsPDF {
   doc.text("GIVEN BY: (NAME OF ACCOUNTHOLDER)", margin, y);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(13, 148, 136);
-  doc.text(` ${details.accountHolder.toUpperCase()}`, margin + 63, y);
+  const idSuffix = details.registrationOrIdNumber ? ` [REG/ID: ${details.registrationOrIdNumber}]` : "";
+  doc.text(` ${details.accountHolder.toUpperCase()}${idSuffix}`, margin + 63, y);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(15, 23, 42);
   doc.setDrawColor(180, 190, 205);
@@ -305,7 +308,7 @@ export function generateNfsMandatePdf(details: MandateFormDetails): jsPDF {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(15, 23, 42);
-  doc.text(`Signatory: ${details.accountHolder}`, stampX + 4, stampY + 11.5);
+  doc.text(`Signatory: ${details.signatoryName || details.accountHolder}`, stampX + 4, stampY + 11.5);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);

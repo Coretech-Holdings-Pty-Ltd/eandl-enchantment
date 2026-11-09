@@ -42,7 +42,15 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
   const [generatedPdfUrl, setGeneratedPdfUrl] = useState<string>("");
 
   // Step 1: Banking & Accountholder Form
-  const [accountHolder, setAccountHolder] = useState(client?.accountHolder || client?.name || profile?.fullName || "");
+  const rawInitialName = client?.accountHolder || client?.name || profile?.fullName || "";
+  const hasAliasPattern = /\(.*\)/.test(rawInitialName);
+
+  const [accountHolderType, setAccountHolderType] = useState<"company" | "individual">("company");
+  const [accountHolder, setAccountHolder] = useState(hasAliasPattern ? "" : rawInitialName);
+  const [registrationOrIdNumber, setRegistrationOrIdNumber] = useState("");
+  const [signatoryName, setSignatoryName] = useState(
+    profile?.fullName || (hasAliasPattern ? rawInitialName.split("(")[0].trim() : rawInitialName)
+  );
   const [address, setAddress] = useState((client as any)?.address || "Gauteng, South Africa");
   const [bankName, setBankName] = useState(client?.bankName || "First National Bank (FNB)");
   const [branchName, setBranchName] = useState("Universal Branch");
@@ -64,13 +72,13 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
 
   // Step 3: Signature — Draw vs Type mode
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [signMode, setSignMode] = useState<"draw" | "type">("draw");
+  const [signMode, setSignMode] = useState<"draw" | "type">("type");
   const [hasDrawn, setHasDrawn] = useState(false);
   const [signatureDataUrl, setSignatureDataUrl] = useState<string>("");
   const [isDrawing, setIsDrawing] = useState(false);
-  const [typedName, setTypedName] = useState("");
+  const [typedName, setTypedName] = useState(signatoryName || accountHolder);
   const [typedFont, setTypedFont] = useState("Dancing Script");
-  const [capacity, setCapacity] = useState("Account Holder / Director");
+  const [capacity, setCapacity] = useState("Director / Member");
   const [assistedBy, setAssistedBy] = useState("");
   const [legalConfirmed, setLegalConfirmed] = useState(false);
 
@@ -273,6 +281,8 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
       // 1. Generate pristine NFS 2-page PDF
       const pdfDetails: MandateFormDetails = {
         accountHolder,
+        registrationOrIdNumber,
+        signatoryName: signatoryName || typedName || accountHolder,
         address,
         bankName,
         branchName,
@@ -430,22 +440,111 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
               ══════════════════════════════════════════════════════════════ */}
           {step === 1 && (
             <div className="space-y-4">
-              <div className="p-3 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-xs text-teal-200">
-                <strong>Section A (Authority)</strong> requires your exact account details as registered with your South African bank for DebiCheck debit order collection.
+              {/* Critical Legal Name Warning */}
+              <div className="p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/25 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-black text-teal-300">
+                  <Shield size={14} /> Section A: Official Bank Accountholder Verification
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  South African banks strictly validate DebiCheck debit orders against your <strong>exact registered bank account name</strong>. Please do not use trading nicknames or contact aliases (such as &quot;Soso (Apex)&quot;). Provide your exact registered company name or your personal legal name.
+                </p>
+              </div>
+
+              {/* Entity Type Selector */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Account Entity Type *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAccountHolderType("company")}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      accountHolderType === "company"
+                        ? "bg-teal-500/20 border-teal-500 text-teal-200"
+                        : "bg-white/[0.03] border-white/10 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <Building2 size={13} /> Registered Company / Entity
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountHolderType("individual")}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      accountHolderType === "individual"
+                        ? "bg-teal-500/20 border-teal-500 text-teal-200"
+                        : "bg-white/[0.03] border-white/10 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Personal / Individual Account
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    Accountholder Name *
+                    {accountHolderType === "company" ? "Registered Company Name (on Bank Account) *" : "Full Legal Accountholder Name *"}
                   </label>
                   <input
                     type="text"
                     value={accountHolder}
                     onChange={e => setAccountHolder(e.target.value)}
-                    placeholder="Legal name on bank account"
+                    placeholder={accountHolderType === "company" ? "e.g. Apex Technologies (Pty) Ltd" : "e.g. Solulele Kwani"}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:border-teal-400 focus:outline-none"
                   />
+                  {/\(.*\)/.test(accountHolder) && (
+                    <div className="text-[10px] text-amber-400 mt-1">
+                      ⚠️ Note: &quot;{accountHolder}&quot; looks like an informal alias. Please enter your official registered name.
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    {accountHolderType === "company" ? "Company Registration No. (CIPC) *" : "South African ID / Passport No. *"}
+                  </label>
+                  <input
+                    type="text"
+                    value={registrationOrIdNumber}
+                    onChange={e => setRegistrationOrIdNumber(e.target.value)}
+                    placeholder={accountHolderType === "company" ? "e.g. 2024/123456/07" : "e.g. 9001015000088"}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:border-teal-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    Signatory Full Legal Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={signatoryName}
+                    onChange={e => {
+                      setSignatoryName(e.target.value);
+                      if (signMode === "type" && !typedName) setTypedName(e.target.value);
+                    }}
+                    placeholder="Full name of person authorizing mandate"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:border-teal-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    Signatory Legal Capacity *
+                  </label>
+                  <select
+                    value={capacity}
+                    onChange={e => setCapacity(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs focus:border-teal-400 focus:outline-none"
+                  >
+                    <option value="Director / Member">Director / Member</option>
+                    <option value="Managing Director">Managing Director</option>
+                    <option value="Financial Officer / CFO">Financial Officer / CFO</option>
+                    <option value="Account Holder">Account Holder (Individual)</option>
+                    <option value="Authorised Trustee / Partner">Authorised Trustee / Partner</option>
+                    <option value="Authorised Signatory">Authorised Signatory (Power of Attorney)</option>
+                  </select>
                 </div>
 
                 <div>
@@ -546,9 +645,12 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
                 <button
                   type="button"
                   onClick={() => {
-                    if (!accountHolder || !accountNumber || !branchCode) {
-                      setToast("Please fill in your account holder name, account number, and branch code.");
+                    if (!accountHolder.trim() || !registrationOrIdNumber.trim() || !signatoryName.trim() || !bankName || !accountNumber.trim() || !branchCode.trim()) {
+                      setToast("Please fill in your exact legal Accountholder Name, Reg/ID Number, Signatory Name, and Account Details.");
                       return;
+                    }
+                    if (signMode === "type" && !typedName) {
+                      setTypedName(signatoryName || accountHolder);
                     }
                     setStep(2);
                   }}
@@ -574,7 +676,8 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
                 <div>
                   <strong className="text-teal-300">A. AUTHORITY:</strong>
                   <p className="mt-1">
-                    GIVEN BY: <strong>{accountHolder}</strong> ({address})<br />
+                    GIVEN BY: <strong>{accountHolder.toUpperCase()}</strong> {registrationOrIdNumber ? `[REG/ID: ${registrationOrIdNumber}]` : ""} ({address})<br />
+                    AUTHORISED SIGNATORY: <strong>{signatoryName}</strong> ({capacity})<br />
                     BANK: <strong>{bankName}</strong> · BRANCH: <strong>{branchName} ({branchCode})</strong> · ACC: <strong>••••{accountNumber.slice(-4)}</strong> ({accountType.toUpperCase()})<br />
                     TO: <strong>E&amp;L Digital Holdings (Pty) Ltd / NFS Finance</strong> (Abbreviated Short Name: <strong>EANDL / NFS FINANCE</strong>)<br />
                     ADDRESS: Eagle Canyon Office Park, Cnr Christiaan De Wet &amp; Dolfyn St, Randpark Ridge, 2154<br />

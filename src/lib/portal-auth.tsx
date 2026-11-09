@@ -706,33 +706,74 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       // 4. Dispatch Email Confirmation to Client and Operations Desk
       try {
         if (targetEmail) {
-          const clientHtml = `
-            <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#0d1322;color:#ffffff;padding:32px;border-radius:16px;border:1px solid #1e293b;">
+          const clientHtml = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFS Debit Order Mandate Authorized & Signed — E&L Digital</title>
+</head>
+<body style="margin:0;padding:32px 12px;background:#090d16;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;">
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td align="center">
+        <table width="580" cellspacing="0" cellpadding="0" border="0" style="max-width:580px;width:100%;background:#111827;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);">
+          <!-- E&L Digital Verified Header Banner -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#0d9488 0%,#0f172a 100%);padding:26px 34px;border-bottom:2px solid rgba(45,212,191,0.25);">
+              <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="left" valign="middle">
+                    <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;display:inline-block;">E&amp;L Digital</span>
+                  </td>
+                  <td align="right" valign="middle">
+                    <span style="display:inline-block;padding:5px 12px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:999px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#ffffff;">
+                      DebiCheck Verified
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Email Content Body -->
+          <tr>
+            <td style="padding:34px;font-size:14px;line-height:1.65;color:#cbd5e1;">
               <div style="text-align:center;margin-bottom:24px;">
-                <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);color:#2dd4bf;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">
-                  E&L Digital · DebiCheck System
+                <div style="display:inline-block;padding:4px 12px;border-radius:20px;background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);color:#2dd4bf;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+                  E&amp;L Digital · DebiCheck System
                 </div>
-                <h2 style="font-size:22px;font-weight:900;color:#ffffff;margin:12px 0 0 0;">Mandate Authorized & Signed</h2>
-                <p style="color:#94a3b8;font-size:13px;margin:6px 0 0 0;">Ref: <strong style="color:#2dd4bf;">${contractRef}</strong></p>
+                <h2 style="font-size:22px;font-weight:900;color:#ffffff;margin:12px 0 4px 0;">Mandate Authorized &amp; Signed</h2>
+                <p style="color:#94a3b8;font-size:13px;margin:0;">Ref: <strong style="color:#2dd4bf;">${contractRef}</strong></p>
               </div>
-              <div style="background:#131c2e;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;font-size:13px;line-height:1.6;color:#cbd5e1;">
-                <p style="margin:0 0 12px 0;">Hello <strong>${mandateData.accountHolder}</strong>,</p>
-                <p style="margin:0 0 12px 0;">Your <strong>NFS Debit Order Mandate</strong> and Service Agreement have been legally signed online and authorized under the RSA Electronic Communications & Transactions Act 25 of 2002. Our operations team is now loading your DebiCheck payment instruction with your bank.</p>
-                <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:12px;">
-                  <div><strong>Bank:</strong> ${mandateData.bankName}</div>
-                  <div><strong>Account Holder:</strong> ${mandateData.accountHolder}</div>
-                  <div><strong>Account (Last 4):</strong> •••• ${accountLast4}</div>
-                  <div><strong>Account Type:</strong> ${mandateData.accountType.toUpperCase()}</div>
-                  <div><strong>Collection Interval:</strong> Monthly</div>
-                  <div><strong>First Collection Date:</strong> ${mandateData.firstPaymentDate || "Scheduled upon site go-live"}</div>
+
+              <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:22px;margin-bottom:22px;">
+                <p style="margin:0 0 12px 0;color:#ffffff;font-size:15px;">Hello <strong>${mandateData.accountHolder}</strong>,</p>
+                <p style="margin:0 0 14px 0;color:#94a3b8;font-size:13px;line-height:1.6;">Your <strong>NFS Debit Order Mandate</strong> and Service Agreement have been legally signed online and authorized under the <strong>RSA Electronic Communications &amp; Transactions Act 25 of 2002</strong>. Our operations team is now loading your DebiCheck payment instruction with your bank.</p>
+                <div style="background:rgba(255,255,255,0.03);padding:14px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);margin-bottom:14px;font-size:13px;line-height:1.8;">
+                  <div><strong style="color:#e2e8f0;">Bank:</strong> <span style="color:#2dd4bf;">${mandateData.bankName}</span></div>
+                  <div><strong style="color:#e2e8f0;">Account Holder:</strong> ${mandateData.accountHolder}</div>
+                  <div><strong style="color:#e2e8f0;">Account (Last 4):</strong> •••• ${accountLast4}</div>
+                  <div><strong style="color:#e2e8f0;">Account Type:</strong> ${mandateData.accountType.toUpperCase()}</div>
+                  <div><strong style="color:#e2e8f0;">Collection Interval:</strong> Monthly</div>
+                  <div><strong style="color:#e2e8f0;">First Collection Date:</strong> ${mandateData.firstPaymentDate || "Scheduled upon site go-live"}</div>
                 </div>
-                ${resolvedDocUrl ? `<p style="margin:12px 0 0 0;"><a href="${resolvedDocUrl}" target="_blank" style="display:inline-block;padding:10px 20px;background:#0d9488;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:12px;">📄 View Signed Mandate PDF →</a></p>` : ""}
+                ${resolvedDocUrl ? `<div style="text-align:center;margin-top:18px;"><a href="${resolvedDocUrl}" target="_blank" style="display:inline-block;padding:12px 26px;background:linear-gradient(135deg,#0d9488,#059669);color:#ffffff;text-decoration:none;border-radius:10px;font-weight:800;font-size:13px;box-shadow:0 4px 14px rgba(13,148,136,0.3);">📄 View / Download Signed Mandate PDF →</a></div>` : ""}
               </div>
-              <div style="text-align:center;font-size:11px;color:#64748b;">
-                E&L Digital Holdings (Pty) Ltd · Sandton, South Africa · hello@eandl.digital
+
+              <!-- Footer -->
+              <div style="text-align:center;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.06);padding-top:18px;">
+                <div style="font-weight:700;color:#94a3b8;margin-bottom:4px;">E&amp;L Digital Holdings (Pty) Ltd</div>
+                <div>Sandton, South Africa &bull; <a href="mailto:hello@eandl.digital" style="color:#2dd4bf;text-decoration:none;">hello@eandl.digital</a> &bull; <a href="https://eandl.digital" style="color:#2dd4bf;text-decoration:none;">eandl.digital</a></div>
               </div>
-            </div>
-          `;
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 
           // Send to client
           await supabase.functions.invoke("send-email", {
