@@ -1,5 +1,5 @@
 /**
- * CoreTech Engine Supabase Client - E&L Client Portal
+ * E&L Cloud Infrastructure Supabase Client - E&L Client Portal
  * Shared project: xhowrpswxqthslzwikkl
  */
 import { createClient } from "@supabase/supabase-js";

@@ -8,10 +8,11 @@ import {
   ArrowRight, CheckCircle2, Clock, AlertCircle, Lock,
   TrendingUp, BookOpen, Shield, ExternalLink,
   FileText, CreditCard, Building2, CheckSquare, AlertTriangle, Loader2,
-  Printer, Download
+  Printer, Download, PenTool
 } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";
+import { supabase } from "@/lib/supabase";
 import { NfsMandateSignWizard } from "@/components/portal/NfsMandateSignWizard";
 
 export const Route = createFileRoute("/portal/dashboard")({
@@ -146,9 +147,9 @@ function PortalDashboard() {
         <h1 className="portal-page-title">
           Good day, {displayName} 👋
         </h1>
-        <p className="portal-page-sub">
+        <p className="portal-page-sub text-xs text-slate-400">
           {client
-            ? `${client.name} · ${accountStatusLabel}`
+            ? `${(client.name || "").replace(/\(.*?\)/g, "").trim()} • ${accountStatusLabel}`
             : "Welcome to your E&L client hub — let's get you set up."}
         </p>
       </div>

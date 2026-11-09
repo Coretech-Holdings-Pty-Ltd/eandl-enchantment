@@ -10,7 +10,7 @@ import {
   CheckCircle2, Send, SkipForward, Building2, Globe, Palette,
   Target, FileText, UploadCloud, Sparkles, RefreshCw, Lock,
   Check, X, File, Image as ImageIcon, Shield, ExternalLink,
-  AlertCircle
+  AlertCircle, Clock, Rocket
 } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";

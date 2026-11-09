@@ -43,7 +43,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
 
   // Step 1: Banking & Accountholder Form
   const [accountHolder, setAccountHolder] = useState(client?.accountHolder || client?.name || profile?.fullName || "");
-  const [address, setAddress] = useState(client?.address || "Gauteng, South Africa");
+  const [address, setAddress] = useState((client as any)?.address || "Gauteng, South Africa");
   const [bankName, setBankName] = useState(client?.bankName || "First National Bank (FNB)");
   const [branchName, setBranchName] = useState("Universal Branch");
   const [branchCode, setBranchCode] = useState(client?.branchCode || "250655");
@@ -98,8 +98,11 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    const touch = "touches" in e && e.touches[0] ? e.touches[0] : null;
+    const clientX = touch ? touch.clientX : ("clientX" in e ? e.clientX : 0);
+    const clientY = touch ? touch.clientY : ("clientY" in e ? e.clientY : 0);
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
@@ -111,8 +114,11 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    const touch = "touches" in e && e.touches[0] ? e.touches[0] : null;
+    const clientX = touch ? touch.clientX : ("clientX" in e ? e.clientX : 0);
+    const clientY = touch ? touch.clientY : ("clientY" in e ? e.clientY : 0);
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
     ctx.lineTo(x, y);
     ctx.stroke();
     setHasDrawn(true);

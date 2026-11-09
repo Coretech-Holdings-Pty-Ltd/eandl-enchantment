@@ -37,28 +37,43 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
     const candidate = (fullName || clientName || "").replace(/\(.*?\)/g, "").replace(/\b(pty|ltd|holdings|group|co|cc)\b/gi, "").trim();
     if (candidate) {
       const words = candidate.split(/[\s._-]+/).filter(Boolean);
-      if (words.length >= 2) {
-        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+      const first = words[0];
+      const last = words[words.length - 1];
+      if (words.length >= 2 && first && last && first[0] && last[0]) {
+        return (first[0] + last[0]).toUpperCase();
       }
-      if (words.length === 1 && words[0].length >= 2) {
-        return words[0].slice(0, 2).toUpperCase();
+      if (first && first.length >= 2) {
+        return first.slice(0, 2).toUpperCase();
       }
-      if (words.length === 1) {
-        return words[0][0].toUpperCase();
+      if (first && first[0]) {
+        return first[0].toUpperCase();
       }
     }
     if (email && email.includes("@")) {
-      const local = email.split("@")[0].replace(/[0-9]/g, "");
+      const local = (email.split("@")[0] || "").replace(/[0-9]/g, "");
       const words = local.split(/[\s._-]+/).filter(Boolean);
-      if (words.length >= 2) {
-        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+      const first = words[0];
+      const last = words[words.length - 1];
+      if (words.length >= 2 && first && last && first[0] && last[0]) {
+        return (first[0] + last[0]).toUpperCase();
       }
-      return (local.slice(0, 2) || "CL").toUpperCase();
+      if (first && first.length >= 2) {
+        return first.slice(0, 2).toUpperCase();
+      }
+      return "CL";
     }
     return "CL";
   };
 
-  const displayName = profile?.fullName || client?.name || user?.email?.split("@")[0] || "Client";
+  // Clean person name (e.g. "Sipho Tester" without "(CoreBiz)" cramming)
+  const rawFullName = profile?.fullName || client?.name || user?.email?.split("@")[0] || "Client";
+  const personName = rawFullName.replace(/\(.*?\)/g, "").trim() || "Client";
+
+  // Company / brand name extracted from parentheses or business record
+  const companyMatch = (client?.name || "").match(/\((.*?)\)/);
+  const companyName = companyMatch ? companyMatch[1] : (client?.businessType || "");
+
+  const displayName = personName;
   const initials = deriveInitials(profile?.fullName, client?.name, user?.email);
 
   const safeAccountStatus = access?.accountStatus || client?.accountStatus || "active";
@@ -265,8 +280,13 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] font-black text-white truncate leading-tight">
-                  {displayName}
+                  {personName}
                 </div>
+                {companyName && (
+                  <div className="text-[10px] font-bold text-teal-300 truncate">
+                    {companyName}
+                  </div>
+                )}
                 <div className="text-[10px] text-slate-400 truncate mt-0.5">{user?.email}</div>
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/5 text-slate-300 border border-white/10">
@@ -540,7 +560,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                   </span>
                 </div>
                 <div className="hidden sm:block text-[10px] text-slate-400 font-medium truncate">
-                  {client?.name ? `${client.name} &bull; ` : ""}{levelTitle}
+                  {personName} • {levelTitle}
                 </div>
               </div>
             </div>
@@ -578,7 +598,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                 onClick={() => setUserMenuOpen(v => !v)}
                 className="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer active:scale-95 shrink-0"
                 aria-label="Account menu"
-                title={displayName}
+                title={personName}
               >
                 {/* Monogram circle */}
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[1.5px] shadow-md shadow-teal-900/30 shrink-0">
@@ -588,8 +608,8 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                     </span>
                   </div>
                 </div>
-                <span className="hidden md:inline-block text-xs font-bold text-slate-200 max-w-[120px] truncate">
-                  {displayName}
+                <span className="hidden md:inline-block text-xs font-bold text-slate-200">
+                  {personName}
                 </span>
                 <ChevronDown size={13} className={`hidden md:inline-block text-slate-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
               </button>

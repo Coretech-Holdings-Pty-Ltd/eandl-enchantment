@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/lib/theme";
 import { companyContact } from "@/lib/site-content";
 import logo from "@/assets/logo.png";
-import guide from "@/assets/el-package-guide.pdf.asset.json";
 
 export function Brand({ onClick }: { onClick?: () => void } = {}) {
   return (
@@ -293,9 +292,6 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             <div>
               <h4>Resources</h4>
               <div className="footer-links">
-                <a href={guide.url} target="_blank" rel="noreferrer">
-                  Package guide ↗
-                </a>
                 <Link to="/learning-hub" hash="free-course">
                   Free AI Kickstart Course
                 </Link>

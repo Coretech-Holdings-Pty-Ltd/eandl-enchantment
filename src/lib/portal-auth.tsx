@@ -120,7 +120,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
 
   const hydrateFromSession = useCallback(async (sessionUser: User) => {
     try {
-      // 1. Check administrative privileges (CoreTech staff or Brand Admin)
+      // 1. Check administrative privileges (Brand Staff or Brand Admin)
       try {
         const { data: myCtx } = await coreSchema().rpc("my_context");
         if (myCtx) {

@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowUpRight, Check, Download, Sparkles } from "lucide-react";
+import { ArrowUpRight, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/site-layout";
 import { packages, pageHead } from "@/lib/site-content";
-import guide from "@/assets/el-package-guide.pdf.asset.json";
 
 export const Route = createFileRoute("/packages")({
   head: () =>
@@ -57,11 +56,6 @@ function Packages() {
                   Prices in ZAR, excl. VAT. Longer commitments carry lower monthly fees.
                 </p>
               </div>
-              <Button asChild variant="glass" className="pill-button">
-                <a href={guide.url} target="_blank" rel="noreferrer">
-                  Full package guide <Download />
-                </a>
-              </Button>
             </div>
             <div className="package-grid">
               {packages.map((p) => (

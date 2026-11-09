@@ -53,7 +53,7 @@ function ForgotPasswordPage() {
 
       const redirectUrl = `${origin}/portal/reset-password`;
 
-      // Dispatch white-labeled password reset via brand edge function (never Supabase default CoreTech email)
+      // Dispatch white-labeled password reset via brand edge function
       const { data: fnData, error: fnErr } = await supabase.functions.invoke("send-email", {
         body: {
           action: "auth_recovery",
