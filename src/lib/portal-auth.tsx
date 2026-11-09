@@ -591,6 +591,8 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
 
     try {
       // 1. Update or upsert partner.clients table
+      // NOTE: Only columns that exist in partner.clients schema are allowed here.
+      // Do NOT add `address` — it is NOT a column in this table (causes PGRST204).
       const clientUpdatePayload: Record<string, any> = {
         mandate_status: "authorized",
         bank_name: mandateData.bankName,
@@ -604,30 +606,37 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       if (resolvedDocUrl) {
         clientUpdatePayload.mandate_doc_url = resolvedDocUrl;
       }
-      if (mandateData.address) {
-        clientUpdatePayload.address = mandateData.address;
-      }
 
       let clientUpdated = false;
       let effectiveClientId = client?.id;
 
+      // Always prefer updating by explicit client ID + brand_id to avoid cross-brand row pollution
       if (client?.id) {
         const { error: clientErr } = await partnerSchema()
           .from("clients")
           .update(clientUpdatePayload)
-          .eq("id", client.id);
+          .eq("id", client.id)
+          .eq("brand_id", BRAND_ID);
 
-        if (!clientErr) clientUpdated = true;
+        if (clientErr) {
+          console.error("[signMandate] client update by id failed:", clientErr.code, clientErr.message);
+        } else {
+          clientUpdated = true;
+        }
       }
 
+      // Fallback: match by email + brand_id (never update cross-brand rows)
       if (!clientUpdated && targetEmail) {
         const { data: matchedRows, error: emailErr } = await partnerSchema()
           .from("clients")
           .update(clientUpdatePayload)
           .eq("email", targetEmail)
+          .eq("brand_id", BRAND_ID)
           .select("id");
 
-        if (!emailErr && matchedRows && matchedRows.length > 0) {
+        if (emailErr) {
+          console.error("[signMandate] client update by email failed:", emailErr.code, emailErr.message);
+        } else if (matchedRows && matchedRows.length > 0) {
           clientUpdated = true;
           effectiveClientId = matchedRows[0].id;
         }

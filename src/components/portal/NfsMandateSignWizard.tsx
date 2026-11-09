@@ -333,7 +333,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
         accountNumber,
         branchCode,
         branchName,
-        address,
+        // Note: address is NOT stored in partner.clients — omit to prevent PGRST204 schema errors
         mandateDocUrl: uploadedDocUrl || localPdfUrl,
         mandateReference: contractRef,
         signatureDataUrl: finalSigDataUrl,
@@ -343,9 +343,9 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
       });
 
       if (result.error) {
-        setToast(`Error saving mandate: ${result.error}`);
-        // Don't block step 4 if DB save had non-critical error — still show confirmation
-        setStep(4);
+        // Critical error — stay on Step 3 so the user knows what happened
+        setToast(`❌ Mandate save failed: ${result.error}. Please try again or contact support.`);
+        // Stay on step 3 — do NOT advance to 4 on error
       } else {
         setToast("✅ NFS Debit Order Mandate legally authorized & recorded!");
         setStep(4);
