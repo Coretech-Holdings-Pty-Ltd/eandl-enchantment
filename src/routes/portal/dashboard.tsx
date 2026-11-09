@@ -23,6 +23,22 @@ function PortalDashboard() {
   const navigate = useNavigate();
   const { user, loading, profile, client, access, onboarding, signMandate, setToast } = usePortalAuth();
 
+  // Mandate signing state (Must be called unconditionally at top of component)
+  const [showMandateForm, setShowMandateForm] = useState(false);
+  const [mandateBankName, setMandateBankName] = useState("");
+  const [mandateAccountHolder, setMandateAccountHolder] = useState("");
+  const [mandateAccountType, setMandateAccountType] = useState<"cheque" | "savings" | "transmission">("cheque");
+  const [mandateAccountNumber, setMandateAccountNumber] = useState("");
+  const [mandateBranchCode, setMandateBranchCode] = useState("");
+  const [mandateTermsAccepted, setMandateTermsAccepted] = useState(false);
+  const [mandateSubmitting, setMandateSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (profile?.fullName && !mandateAccountHolder) {
+      setMandateAccountHolder(profile.fullName);
+    }
+  }, [profile?.fullName, mandateAccountHolder]);
+
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/portal/login" });
   }, [user, loading, navigate]);
@@ -87,16 +103,6 @@ function PortalDashboard() {
     : 0;
 
   const accountStatusLabel = (access?.accountStatus || client?.accountStatus || "active").replace(/_/g, " ");
-
-  // Mandate signing state
-  const [showMandateForm, setShowMandateForm] = useState(false);
-  const [mandateBankName, setMandateBankName] = useState("");
-  const [mandateAccountHolder, setMandateAccountHolder] = useState(profile?.fullName || "");
-  const [mandateAccountType, setMandateAccountType] = useState<"cheque" | "savings" | "transmission">("cheque");
-  const [mandateAccountNumber, setMandateAccountNumber] = useState("");
-  const [mandateBranchCode, setMandateBranchCode] = useState("");
-  const [mandateTermsAccepted, setMandateTermsAccepted] = useState(false);
-  const [mandateSubmitting, setMandateSubmitting] = useState(false);
 
   const SA_BANKS: Record<string, string> = {
     "Standard Bank": "051001",

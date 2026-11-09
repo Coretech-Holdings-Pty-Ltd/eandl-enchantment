@@ -394,9 +394,60 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
   }, [hydrateFromSession]);
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      // 1. Fully purge any existing stale, conflicting, or corrupted local sessions
+      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+      if (typeof window !== "undefined") {
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith("sb-") && key.includes("-auth-token")) {
+            localStorage.removeItem(key);
+          }
+        }
+        sessionStorage.clear();
+      }
+    } catch (_) {}
+
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     if (error) return { error: error.message };
+
+    if (data?.session && data?.user) {
+      setSession(data.session);
+      setUser(data.user);
+      try {
+        await hydrateFromSession(data.user);
+      } catch (e) {
+        console.warn("[PortalAuth] Hydration notice on login:", e);
+      }
+    }
     return {};
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (_) {}
+    if (typeof window !== "undefined") {
+      try {
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith("sb-") || key.startsWith("el_")) {
+            localStorage.removeItem(key);
+          }
+        }
+        sessionStorage.clear();
+      } catch (_) {}
+    }
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    setClient(null);
+    setAccess({ projects: false, learning: false, accountStatus: "active" });
+    setOnboarding(null);
+    setIsAdminUser(false);
+    setAdminRole(null);
+    if (typeof window !== "undefined") {
+      window.location.href = "/portal/login";
+    }
   };
 
   const register = async (
@@ -504,10 +555,6 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     }
 
     return {};
-  };
-
-  const logout = async () => {
-    await supabase.auth.signOut();
   };
 
   const refreshClient = async () => {

@@ -66,15 +66,43 @@ function AuthConfirmPage() {
           if (codeErr) {
             console.warn("[AuthConfirm] exchangeCodeForSession error:", codeErr);
           } else if (data?.session && isMounted) {
+            if (typeof window !== "undefined" && window.history?.replaceState) {
+              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+            }
             setStatus("success");
             const target = next || "/portal/dashboard";
             setTimeout(() => {
-              navigate({ to: target as any });
-            }, 800);
+              window.location.href = target;
+            }, 600);
             return;
           }
         } catch (e) {
           console.warn("[AuthConfirm] exchangeCode exception:", e);
+        }
+      }
+
+      // 2b. Implicit grant hash token handler (#access_token=...&refresh_token=...)
+      const accessToken = hashParams?.get("access_token") || searchParams?.get("access_token");
+      const refreshToken = hashParams?.get("refresh_token") || searchParams?.get("refresh_token");
+      if (accessToken) {
+        try {
+          const { data, error: setSessionErr } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || "",
+          });
+          if (!setSessionErr && data?.session && isMounted) {
+            if (typeof window !== "undefined" && window.history?.replaceState) {
+              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+            }
+            setStatus("success");
+            const target = next || (type === "recovery" ? "/portal/reset-password" : "/portal/dashboard");
+            setTimeout(() => {
+              window.location.href = target;
+            }, 600);
+            return;
+          }
+        } catch (e) {
+          console.warn("[AuthConfirm] setSession exception:", e);
         }
       }
 

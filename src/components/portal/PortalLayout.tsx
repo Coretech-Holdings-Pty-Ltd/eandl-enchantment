@@ -235,7 +235,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
       >
         <div className="portal-sidebar-inner flex flex-col h-full overflow-y-auto no-scrollbar">
           {/* Brand Header */}
-          <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+          <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02] shrink-0">
             <Link to="/portal/dashboard" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shadow-md">
                 <img
@@ -250,7 +250,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-teal-400/80">
-                  Client Hub &bull; RSA
+                  Client Hub • RSA
                 </div>
               </div>
             </Link>
@@ -263,27 +263,27 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          {/* Client Identity & Account Status Card (Strictly Monogram, No Photo Upload) */}
-          <div className="px-3 py-2.5 mx-3 my-3 rounded-2xl bg-white/[0.04] border border-white/10 shadow-lg relative overflow-hidden">
+          {/* Client Identity & Account Status Card (Strictly Monogram Initials, Never Squashed) */}
+          <div className="px-3.5 py-3 mx-3 my-3 rounded-2xl bg-white/[0.04] border border-white/10 shadow-lg relative overflow-hidden shrink-0">
             <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
             <div className="flex items-center gap-3">
-              {/* Monogram Avatar — Generated First + Last Name Initials */}
+              {/* Monogram Avatar — Generated First + Last Name Initials (Round Avatar) */}
               <div className="relative shrink-0">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[2px] shadow-lg shadow-teal-900/40">
-                  <div className="w-full h-full bg-[#0c1322] rounded-[14px] flex items-center justify-center">
-                    <span className="text-sm font-black tracking-tight bg-gradient-to-br from-teal-300 to-cyan-400 bg-clip-text text-transparent select-none">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-teal-500 via-cyan-400 to-indigo-500 p-[2px] shadow-lg shadow-teal-950/50 shrink-0">
+                  <div className="w-full h-full bg-[#0a0f1d] rounded-full flex items-center justify-center">
+                    <span className="text-xs font-black tracking-wider text-teal-300 select-none">
                       {initials}
                     </span>
                   </div>
                 </div>
-                <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-[#0a0f1d] ${accountBadgeColor}`} />
+                <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-[#0a0f1d] ${accountBadgeColor}`} />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-black text-white truncate leading-tight">
+                <div className="text-sm font-black text-white truncate leading-tight">
                   {personName}
                 </div>
                 {companyName && (
-                  <div className="text-[10px] font-bold text-teal-300 truncate">
+                  <div className="inline-block mt-0.5 text-[10px] font-bold text-teal-300 bg-teal-500/15 border border-teal-500/30 px-1.5 py-0.5 rounded truncate max-w-full">
                     {companyName}
                   </div>
                 )}
@@ -500,18 +500,16 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Bottom Links */}
-          <div className="p-3 border-t border-white/10 space-y-1 bg-black/20">
+          <div className="p-3 border-t border-white/10 space-y-1 bg-black/20 shrink-0">
             <a
               href="/"
-              target="_blank"
-              rel="noreferrer"
               className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-white/[0.04] transition-colors"
             >
               <span className="flex items-center gap-2.5">
                 <Home size={15} />
                 <span>E&amp;L Public Website</span>
               </span>
-              <ExternalLink size={13} className="text-slate-500" />
+              <ArrowUpRight size={13} className="text-slate-500" />
             </a>
             <button
               onClick={logout}
@@ -592,23 +590,23 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               )}
             </Link>
 
-            {/* User Avatar — clean monogram button, icon only on small screens */}
+            {/* User Avatar — polished executive button, icon only on small screens */}
             <div className="relative shrink-0">
               <button
                 onClick={() => setUserMenuOpen(v => !v)}
-                className="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer active:scale-95 shrink-0"
+                className="flex items-center gap-2 p-1 md:pr-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-white/10 hover:border-teal-500/30 transition-all cursor-pointer active:scale-95 shrink-0 shadow-sm"
                 aria-label="Account menu"
                 title={personName}
               >
                 {/* Monogram circle */}
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[1.5px] shadow-md shadow-teal-900/30 shrink-0">
-                  <div className="w-full h-full bg-[#0a0f1d] rounded-[10px] flex items-center justify-center">
-                    <span className="text-[11px] font-black bg-gradient-to-br from-teal-300 to-cyan-400 bg-clip-text text-transparent select-none leading-none">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 via-cyan-400 to-indigo-500 p-[1.5px] shadow-sm shrink-0">
+                  <div className="w-full h-full bg-[#0a0f1d] rounded-full flex items-center justify-center">
+                    <span className="text-[11px] font-black tracking-tight text-teal-300 select-none">
                       {initials}
                     </span>
                   </div>
                 </div>
-                <span className="hidden md:inline-block text-xs font-bold text-slate-200">
+                <span className="hidden md:inline-block text-xs font-semibold text-slate-200">
                   {personName}
                 </span>
                 <ChevronDown size={13} className={`hidden md:inline-block text-slate-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />

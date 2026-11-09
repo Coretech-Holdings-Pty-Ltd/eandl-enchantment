@@ -34,11 +34,18 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/portal/login")({
-  validateSearch: (s: Record<string, unknown>): { tab?: string; plan?: string; term?: string; track?: string } => ({
+  validateSearch: (s: Record<string, unknown>): {
+    tab?: string;
+    plan?: string;
+    term?: string;
+    track?: string;
+    switch?: string;
+  } => ({
     tab: typeof s["tab"] === "string" ? s["tab"] : undefined,
     plan: typeof s["plan"] === "string" ? s["plan"] : undefined,
     term: typeof s["term"] === "string" ? s["term"] : undefined,
     track: typeof s["track"] === "string" ? s["track"] : undefined,
+    switch: typeof s["switch"] === "string" ? s["switch"] : undefined,
   }),
   component: PortalLoginPage,
 });
@@ -47,8 +54,8 @@ type Tab = "login" | "register";
 
 function PortalLoginPage() {
   const navigate = useNavigate();
-  const { login, register, user, loading } = usePortalAuth();
-  const { tab: tabParam, plan: planParam, term: termParam } = Route.useSearch();
+  const { login, register, logout, user, loading } = usePortalAuth();
+  const { tab: tabParam, plan: planParam, term: termParam, switch: switchParam } = Route.useSearch();
   const [tab, setTab] = useState<Tab>((tabParam === "register" ? "register" : "login") as Tab);
   const [selectedPlan] = useState<string | undefined>(planParam);
   const [selectedTerm] = useState<string | undefined>(termParam);
@@ -62,6 +69,18 @@ function PortalLoginPage() {
   const [success, setSuccess] = useState("");
   const [busy, setBusy] = useState(false);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
+
+  // If user requested to switch accounts, immediately clear existing session
+  useEffect(() => {
+    if (switchParam === "true" || switchParam === "1") {
+      logout();
+    }
+  }, [switchParam, logout]);
+
+  // Sync tab when URL param changes (e.g. back navigation)
+  useEffect(() => {
+    if (tabParam === "register") setTab("register");
+  }, [tabParam]);
 
   const handleResendVerification = async () => {
     const targetEmail = email.trim();
@@ -92,23 +111,25 @@ function PortalLoginPage() {
     }
   };
 
-  // Sync tab when URL param changes (e.g. back navigation)
-  useEffect(() => {
-    if (tabParam === "register") setTab("register");
-  }, [tabParam]);
-
-  useEffect(() => {
-    if (!loading && user) {
-      navigate({ to: "/portal/dashboard" });
-    }
-  }, [user, loading, navigate]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setBusy(true);
 
     try {
+      // 1. Fully purge any existing stale, conflicting, or corrupted local sessions
+      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+      if (typeof window !== "undefined") {
+        try {
+          for (const key of Object.keys(localStorage)) {
+            if (key.startsWith("sb-") || key.startsWith("el_")) {
+              localStorage.removeItem(key);
+            }
+          }
+          sessionStorage.clear();
+        } catch (_) {}
+      }
+
       const { error: err } = await login(email, password);
       if (err) {
         setError(
@@ -119,7 +140,7 @@ function PortalLoginPage() {
               : err
         );
       } else {
-        navigate({ to: "/portal/dashboard" });
+        window.location.href = "/portal/dashboard";
       }
     } catch {
       setError("An unexpected connection error occurred. Please try again.");
@@ -420,6 +441,31 @@ function PortalLoginPage() {
                                                                                 : "Register your business profile to access your dedicated project workspace and learning academy."}
                                                                             </p>
                                                                           </div>
+
+                                                                          {/* Active Session Switcher Card */}
+                                                                          {user && (
+                                                                            <div className="p-3.5 mb-2 rounded-2xl bg-teal-500/10 border border-teal-500/30 space-y-2">
+                                                                              <div className="flex items-center justify-between text-xs">
+                                                                                <span className="font-bold text-teal-300">Active Account:</span>
+                                                                                <span className="font-mono text-[11px] text-white truncate max-w-[180px]">{user.email}</span>
+                                                                              </div>
+                                                                              <div className="flex items-center gap-2 pt-1">
+                                                                                <Link
+                                                                                  to="/portal/dashboard"
+                                                                                  className="flex-1 py-1.5 px-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs text-center transition-all"
+                                                                                >
+                                                                                  Go to Dashboard →
+                                                                                </Link>
+                                                                                <button
+                                                                                  type="button"
+                                                                                  onClick={logout}
+                                                                                  className="py-1.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-semibold text-xs transition-all cursor-pointer"
+                                                                                >
+                                                                                  Switch Account
+                                                                                </button>
+                                                                              </div>
+                                                                            </div>
+                                                                          )}
 
                                                                           {/* Learning Hub Student Quick Link */}
                                                                           <div className="p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/30 flex items-center justify-between gap-3 shadow-xs">

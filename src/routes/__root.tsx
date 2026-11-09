@@ -97,12 +97,25 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
               >
                 Go to Portal Dashboard
               </a>
-              <a
-                href="/portal/login"
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    if (typeof window !== "undefined") {
+                      for (const key of Object.keys(localStorage)) {
+                        if (key.startsWith("sb-") || key.startsWith("el_")) {
+                          localStorage.removeItem(key);
+                        }
+                      }
+                      sessionStorage.clear();
+                    }
+                  } catch (_) {}
+                  window.location.href = "/portal/login?switch=true";
+                }}
                 className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 Switch Account
-              </a>
+              </button>
             </>
           ) : (
             <a
