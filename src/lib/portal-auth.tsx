@@ -577,15 +577,20 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     firstPaymentDate?: string;
     capacity?: string;
   }) => {
-    if (!client?.id && !client?.email) return { error: "No client record found" };
+    const targetEmail = client?.email || user?.email || "";
+    const targetUserId = client?.userId || user?.id || null;
+
+    if (!client?.id && !targetEmail) {
+      return { error: "No client account or authenticated email found." };
+    }
 
     const accountLast4 = mandateData.accountNumber.slice(-4);
     const resolvedDocUrl = mandateData.mandateDocUrl || client?.mandateDocUrl || "";
     const signedTimestamp = new Date().toISOString();
-    const contractRef = mandateData.mandateReference || `EL-MAN-${(client?.id || "CLIENT").slice(-6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+    const contractRef = mandateData.mandateReference || `EL-MAN-${(client?.id || "NFS").slice(-6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
     try {
-      // 1. Update partner.clients table
+      // 1. Update or upsert partner.clients table
       const clientUpdatePayload: Record<string, any> = {
         mandate_status: "authorized",
         bank_name: mandateData.bankName,
@@ -593,6 +598,8 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         account_type: mandateData.accountType,
         branch_code: mandateData.branchCode,
         account_holder: mandateData.accountHolder,
+        account_status: "active",
+        portal_enabled: true,
       };
       if (resolvedDocUrl) {
         clientUpdatePayload.mandate_doc_url = resolvedDocUrl;
@@ -602,6 +609,8 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       }
 
       let clientUpdated = false;
+      let effectiveClientId = client?.id;
+
       if (client?.id) {
         const { error: clientErr } = await partnerSchema()
           .from("clients")
@@ -611,20 +620,49 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         if (!clientErr) clientUpdated = true;
       }
 
-      if (!clientUpdated && client?.email) {
-        const { error: emailErr } = await partnerSchema()
+      if (!clientUpdated && targetEmail) {
+        const { data: matchedRows, error: emailErr } = await partnerSchema()
           .from("clients")
           .update(clientUpdatePayload)
-          .eq("email", client.email);
+          .eq("email", targetEmail)
+          .select("id");
 
-        if (emailErr) console.warn("Email fallback update note:", emailErr);
+        if (!emailErr && matchedRows && matchedRows.length > 0) {
+          clientUpdated = true;
+          effectiveClientId = matchedRows[0].id;
+        }
+      }
+
+      // If client row did not exist yet, insert a new client record
+      if (!clientUpdated && targetEmail) {
+        try {
+          const { data: insertedClient } = await partnerSchema()
+            .from("clients")
+            .insert({
+              brand_id: BRAND_ID,
+              user_id: targetUserId,
+              email: targetEmail,
+              name: mandateData.accountHolder || targetEmail.split("@")[0],
+              ...clientUpdatePayload,
+              portal_access_projects: true,
+            })
+            .select("id")
+            .maybeSingle();
+
+          if (insertedClient?.id) {
+            effectiveClientId = insertedClient.id;
+            clientUpdated = true;
+          }
+        } catch (insertErr) {
+          console.warn("Client insert fallback note:", insertErr);
+        }
       }
 
       // 2. Update partner.mandates if we have mandateId or email
       const mandatePayload: Record<string, any> = {
         brand_id: BRAND_ID,
         mandate_reference: contractRef,
-        debtor_name: mandateData.accountHolder || client?.name,
+        debtor_name: mandateData.accountHolder || client?.name || targetEmail,
         bank_name: mandateData.bankName,
         account_number: mandateData.accountNumber,
         account_last4: accountLast4,
@@ -635,7 +673,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         terms_accepted: true,
         accepted_at: signedTimestamp,
         document_url: resolvedDocUrl,
-        client_email: client?.email || user?.email,
+        client_email: targetEmail,
       };
 
       try {
@@ -654,47 +692,85 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       }
 
       // 3. Update subscriptions to active
-      if (client?.id) {
-        await partnerSchema()
-          .from("subscriptions")
-          .update({ status: "active", site_status: "live" })
-          .eq("client_id", client.id);
+      if (effectiveClientId) {
+        try {
+          await partnerSchema()
+            .from("subscriptions")
+            .update({ status: "active", site_status: "live" })
+            .eq("client_id", effectiveClientId);
+        } catch (subErr) {
+          console.warn("Subscription status update note:", subErr);
+        }
       }
 
       // 4. Dispatch Email Confirmation to Client and Operations Desk
       try {
-        const targetEmail = client?.email || user?.email;
         if (targetEmail) {
+          const clientHtml = `
+            <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#0d1322;color:#ffffff;padding:32px;border-radius:16px;border:1px solid #1e293b;">
+              <div style="text-align:center;margin-bottom:24px;">
+                <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);color:#2dd4bf;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+                  E&L Digital · DebiCheck System
+                </div>
+                <h2 style="font-size:22px;font-weight:900;color:#ffffff;margin:12px 0 0 0;">Mandate Authorized & Signed</h2>
+                <p style="color:#94a3b8;font-size:13px;margin:6px 0 0 0;">Ref: <strong style="color:#2dd4bf;">${contractRef}</strong></p>
+              </div>
+              <div style="background:#131c2e;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;font-size:13px;line-height:1.6;color:#cbd5e1;">
+                <p style="margin:0 0 12px 0;">Hello <strong>${mandateData.accountHolder}</strong>,</p>
+                <p style="margin:0 0 12px 0;">Your <strong>NFS Debit Order Mandate</strong> and Service Agreement have been legally signed online and authorized under the RSA Electronic Communications & Transactions Act 25 of 2002. Our operations team is now loading your DebiCheck payment instruction with your bank.</p>
+                <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:12px;">
+                  <div><strong>Bank:</strong> ${mandateData.bankName}</div>
+                  <div><strong>Account Holder:</strong> ${mandateData.accountHolder}</div>
+                  <div><strong>Account (Last 4):</strong> •••• ${accountLast4}</div>
+                  <div><strong>Account Type:</strong> ${mandateData.accountType.toUpperCase()}</div>
+                  <div><strong>Collection Interval:</strong> Monthly</div>
+                  <div><strong>First Collection Date:</strong> ${mandateData.firstPaymentDate || "Scheduled upon site go-live"}</div>
+                </div>
+                ${resolvedDocUrl ? `<p style="margin:12px 0 0 0;"><a href="${resolvedDocUrl}" target="_blank" style="display:inline-block;padding:10px 20px;background:#0d9488;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:12px;">📄 View Signed Mandate PDF →</a></p>` : ""}
+              </div>
+              <div style="text-align:center;font-size:11px;color:#64748b;">
+                E&L Digital Holdings (Pty) Ltd · Sandton, South Africa · hello@eandl.digital
+              </div>
+            </div>
+          `;
+
+          // Send to client
           await supabase.functions.invoke("send-email", {
             body: {
+              brand_id: BRAND_ID,
+              fromName: "E&L Digital Operations",
+              fromEmail: "noreply@eandl.digital",
               to: targetEmail,
               subject: "✅ NFS Debit Order Mandate Authorized & Signed — E&L Digital",
-              html: `
-                <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#0d1322;color:#ffffff;padding:32px;border-radius:16px;border:1px solid #1e293b;">
-                  <div style="text-align:center;margin-bottom:24px;">
-                    <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);color:#2dd4bf;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">
-                      E&L Digital · DebiCheck System
-                    </div>
-                    <h2 style="font-size:22px;font-weight:900;color:#ffffff;margin:12px 0 0 0;">Mandate Authorized & Signed</h2>
-                    <p style="color:#94a3b8;font-size:13px;margin:6px 0 0 0;">Ref: <strong style="color:#2dd4bf;">${contractRef}</strong></p>
-                  </div>
-                  <div style="background:#131c2e;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;font-size:13px;line-height:1.6;color:#cbd5e1;">
-                    <p style="margin:0 0 12px 0;">Hello <strong>${mandateData.accountHolder}</strong>,</p>
-                    <p style="margin:0 0 12px 0;">Your <strong>NFS Debit Order Mandate</strong> and Service Agreement have been legally signed online and authorized. Our operations team is now loading your DebiCheck payment instruction with your bank.</p>
-                    <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:12px;">
-                      <div><strong>Bank:</strong> ${mandateData.bankName}</div>
-                      <div><strong>Account Holder:</strong> ${mandateData.accountHolder}</div>
-                      <div><strong>Account (Last 4):</strong> •••• ${accountLast4}</div>
-                      <div><strong>Account Type:</strong> ${mandateData.accountType.toUpperCase()}</div>
-                      <div><strong>Collection Interval:</strong> Monthly</div>
-                    </div>
-                    ${resolvedDocUrl ? `<p style="margin:12px 0 0 0;"><a href="${resolvedDocUrl}" target="_blank" style="color:#2dd4bf;font-weight:700;text-decoration:none;">📄 View / Print Signed Mandate PDF →</a></p>` : ""}
-                  </div>
-                  <div style="text-align:center;font-size:11px;color:#64748b;">
-                    E&L Digital Holdings (Pty) Ltd · Sandton, South Africa · hello@eandl.digital
-                  </div>
-                </div>
-              `,
+              html: clientHtml,
+            },
+          });
+
+          // Send alert to admin desk
+          const adminHtml = `
+            <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#111827;color:#ffffff;padding:28px;border-radius:14px;border:1px solid #1f2937;">
+              <h3 style="color:#2dd4bf;margin:0 0 10px 0;">📋 New Client Mandate Signed Online</h3>
+              <p style="color:#cbd5e1;font-size:13px;line-height:1.5;">Client <strong>${mandateData.accountHolder}</strong> (${targetEmail}) has authorized and digitally signed their NFS DebiCheck Mandate.</p>
+              <div style="background:#1f2937;padding:12px;border-radius:8px;font-size:12px;margin:12px 0;line-height:1.6;">
+                <div><strong>Bank:</strong> ${mandateData.bankName}</div>
+                <div><strong>Account:</strong> •••• ${accountLast4} (${mandateData.accountType})</div>
+                <div><strong>Branch Code:</strong> ${mandateData.branchCode}</div>
+                <div><strong>Contract Reference:</strong> ${contractRef}</div>
+                <div><strong>Signed At:</strong> ${signedTimestamp}</div>
+              </div>
+              ${resolvedDocUrl ? `<p><a href="${resolvedDocUrl}" style="color:#38bdf8;font-weight:700;">View Signed Mandate PDF →</a></p>` : ""}
+              <p><a href="https://admin.eandl.digital/clients" style="color:#2dd4bf;">Open E&L Admin Operations Desk →</a></p>
+            </div>
+          `;
+
+          await supabase.functions.invoke("send-email", {
+            body: {
+              brand_id: BRAND_ID,
+              fromName: "E&L Digital Operations",
+              fromEmail: "noreply@eandl.digital",
+              to: "admin@coretechholdings.co.za",
+              subject: `📋 Client Mandate Signed: ${mandateData.accountHolder} (${contractRef})`,
+              html: adminHtml,
             },
           });
         }
@@ -705,6 +781,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       // 5. Update local client state
       setClient(prev => prev ? {
         ...prev,
+        id: prev.id || effectiveClientId || "",
         mandateStatus: "authorized",
         mandateDocUrl: resolvedDocUrl || prev.mandateDocUrl,
         bankName: mandateData.bankName,
@@ -712,7 +789,24 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
         accountType: mandateData.accountType,
         branchCode: mandateData.branchCode,
         accountHolder: mandateData.accountHolder,
-      } : null);
+      } : {
+        id: effectiveClientId || "client-new",
+        brandId: BRAND_ID,
+        userId: targetUserId || undefined,
+        name: mandateData.accountHolder,
+        email: targetEmail,
+        accountHolder: mandateData.accountHolder,
+        bankName: mandateData.bankName,
+        accountNumber: mandateData.accountNumber,
+        accountType: mandateData.accountType,
+        branchCode: mandateData.branchCode,
+        mandateStatus: "authorized",
+        mandateDocUrl: resolvedDocUrl,
+        accountStatus: "active",
+        portalAccessProjects: true,
+        portalAccessLearning: false,
+        portalEnabled: true,
+      });
 
       // Refresh client state
       await refreshClient();

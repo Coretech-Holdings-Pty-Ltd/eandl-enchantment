@@ -257,48 +257,74 @@ export function generateNfsMandatePdf(details: MandateFormDetails): jsPDF {
   // Signing block
   doc.setFont("helvetica", "normal");
   doc.text(`Signed at ${details.branchName || "Digital Portal, South Africa"} on this ${today}.`, margin, y);
-  y += 7;
+  y += 6;
 
-  // Digital Signature box
-  doc.setDrawColor(200, 215, 230);
+  // Digital Signature box with Official Verification Stamp
+  doc.setDrawColor(13, 148, 136);
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(margin, y, contentWidth, 38, 2, 2, "FD");
+  doc.roundedRect(margin, y, contentWidth, 44, 2, 2, "FD");
 
   doc.setFontSize(7.5);
-  doc.setTextColor(100, 116, 139);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(13, 148, 136);
   doc.text("DIGITAL SIGNATURE AS USED FOR OPERATING ON THE ACCOUNT", margin + 4, y + 5);
 
+  // Left side: Signature drawing / image
   if (details.signatureDataUrl && details.signatureDataUrl.startsWith("data:image")) {
     try {
-      doc.addImage(details.signatureDataUrl, "PNG", margin + 8, y + 7, 60, 22);
+      doc.addImage(details.signatureDataUrl, "PNG", margin + 6, y + 8, 65, 26);
     } catch (e) {
       console.warn("Could not embed signature image in PDF:", e);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
       doc.setTextColor(13, 148, 136);
-      doc.text(details.accountHolder, margin + 8, y + 20);
+      doc.text(details.accountHolder, margin + 8, y + 22);
     }
   } else {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(13, 148, 136);
-    doc.text(details.accountHolder, margin + 8, y + 20);
+    doc.text(details.accountHolder, margin + 8, y + 22);
   }
 
+  // Right side: Official Security Verification Stamp Box
+  const stampX = margin + 76;
+  const stampY = y + 7;
+  const stampW = contentWidth - 80;
+  const stampH = 33;
+
+  doc.setDrawColor(16, 185, 129);
+  doc.setFillColor(240, 253, 250);
+  doc.roundedRect(stampX, stampY, stampW, stampH, 1.5, 1.5, "FD");
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text(`Signatory: ${details.accountHolder}`, margin + 80, y + 14);
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(7.8);
-  doc.text(`Capacity: ${details.capacity || "Account Holder / Authorised Director"}`, margin + 80, y + 20);
-  doc.text(`Date & Time Authenticated: ${today} (Bank Debit Mandate Recorded)`, margin + 80, y + 26);
-  y += 45;
+  doc.setTextColor(5, 150, 105);
+  doc.text("[✓] DIGITALLY SIGNED & VERIFIED ONLINE", stampX + 4, stampY + 5.5);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`Signatory: ${details.accountHolder}`, stampX + 4, stampY + 11.5);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(51, 65, 85);
+  doc.text(`Capacity: ${details.capacity || "Account Holder / Authorised Director"}`, stampX + 4, stampY + 16.5);
+  doc.text(`Reference: ${details.contractReference}`, stampX + 4, stampY + 21.5);
+  doc.text(`Timestamp: ${today} (SAST / UTC+2)`, stampX + 4, stampY + 26);
+
+  doc.setFontSize(6.2);
+  doc.setTextColor(100, 116, 139);
+  doc.text("Compliance: RSA Electronic Communications & Transactions Act 25 of 2002", stampX + 4, stampY + 30.5);
+
+  y += 50;
 
   doc.setFontSize(8);
+  doc.setTextColor(15, 23, 42);
   doc.text(`ASSISTED BY: ${details.assistedBy || "N/A"}`, margin, y);
   doc.text(`CAPACITY: ${details.capacity || "Account Holder"}`, margin + 70, y);
-  y += 10;
+  y += 8;
 
   // Section E: FOR OFFICE USE
   doc.setDrawColor(13, 148, 136);

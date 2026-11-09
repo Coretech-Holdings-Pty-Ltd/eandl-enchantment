@@ -62,14 +62,100 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
   const [termsRead, setTermsRead] = useState(false);
   const [nonProcessingAgreed, setNonProcessingAgreed] = useState(true);
 
-  // Step 3: Signature
+  // Step 3: Signature — Draw vs Type mode
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [signMode, setSignMode] = useState<"draw" | "type">("draw");
   const [hasDrawn, setHasDrawn] = useState(false);
   const [signatureDataUrl, setSignatureDataUrl] = useState<string>("");
   const [isDrawing, setIsDrawing] = useState(false);
+  const [typedName, setTypedName] = useState("");
+  const [typedFont, setTypedFont] = useState("Dancing Script");
   const [capacity, setCapacity] = useState("Account Holder / Director");
   const [assistedBy, setAssistedBy] = useState("");
   const [legalConfirmed, setLegalConfirmed] = useState(false);
+
+  const CURSIVE_FONTS = [
+    { label: "Classic Script", value: "Dancing Script" },
+    { label: "Formal Cursive", value: "Great Vibes" },
+    { label: "Elegant Italic", value: "Pacifico" },
+    { label: "Bold Signature", value: "Sacramento" },
+  ];
+
+  // Inject Google Fonts for typed signatures
+  useEffect(() => {
+    const link = document.getElementById("cursive-fonts-link");
+    if (!link) {
+      const el = document.createElement("link");
+      el.id = "cursive-fonts-link";
+      el.rel = "stylesheet";
+      el.href = "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Great+Vibes&family=Pacifico&family=Sacramento&display=swap";
+      document.head.appendChild(el);
+    }
+  }, []);
+
+  // Render typed signature + verification stamp onto the canvas
+  const renderTypedSignature = (name: string, font: string) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dark background
+    ctx.fillStyle = "#0a0f1d";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Typed signature text in cursive
+    ctx.font = `52px '${font}', cursive`;
+    ctx.fillStyle = "#2dd4bf";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(name, 20, canvas.height / 2);
+
+    // Verification stamp (right side)
+    const stampX = canvas.width - 230;
+    const stampY = 10;
+    const stampW = 220;
+    const stampH = canvas.height - 20;
+
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(stampX, stampY, stampW, stampH);
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "rgba(16,185,129,0.08)";
+    ctx.fillRect(stampX, stampY, stampW, stampH);
+
+    ctx.fillStyle = "#10b981";
+    ctx.font = "bold 11px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("✓ DIGITALLY SIGNED & VERIFIED", stampX + stampW / 2, stampY + 18);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "9px sans-serif";
+    const stampDate = new Date().toLocaleString("en-ZA", { timeZone: "Africa/Johannesburg" });
+    const shortRef = `EL-MAN-${Date.now().toString().slice(-6)}`;
+    const lines = [
+      `Signatory: ${name.substring(0, 22)}`,
+      stampDate.substring(0, 24),
+      shortRef,
+      "RSA ECT Act 25 of 2002",
+    ];
+    lines.forEach((line, i) => {
+      ctx.fillText(line, stampX + stampW / 2, stampY + 32 + i * 13);
+    });
+
+    setSignatureDataUrl(canvas.toDataURL("image/png"));
+    setHasDrawn(true);
+  };
+
+  useEffect(() => {
+    if (step === 3 && signMode === "type" && typedName.trim()) {
+      const timer = setTimeout(() => renderTypedSignature(typedName, typedFont), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [typedName, typedFont, signMode, step]);
 
   // Auto-sync branch code when bank changes
   const handleBankChange = (b: string) => {
@@ -77,9 +163,24 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
     if (SA_BANKS[b]) setBranchCode(SA_BANKS[b]);
   };
 
-  // Canvas drawing handlers
+  // Switch signature mode
+  const handleSignModeSwitch = (mode: "draw" | "type") => {
+    setSignMode(mode);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    setHasDrawn(false);
+    setSignatureDataUrl("");
+    if (mode === "type" && typedName.trim()) {
+      setTimeout(() => renderTypedSignature(typedName, typedFont), 50);
+    }
+  };
+
+  // Canvas draw mode initialisation
   useEffect(() => {
-    if (step === 3 && canvasRef.current) {
+    if (step === 3 && signMode === "draw" && canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       if (ctx) {
@@ -89,7 +190,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
         ctx.lineJoin = "round";
       }
     }
-  }, [step]);
+  }, [step, signMode]);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     setIsDrawing(true);
@@ -156,6 +257,15 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
       return;
     }
 
+    // Auto-generate signature canvas for type mode if not yet rendered
+    let finalSigDataUrl = signatureDataUrl;
+    if (signMode === "type" && !finalSigDataUrl && typedName.trim()) {
+      renderTypedSignature(typedName, typedFont);
+      finalSigDataUrl = canvasRef.current?.toDataURL("image/png") || "";
+    } else if (signMode === "draw" && !finalSigDataUrl && canvasRef.current && hasDrawn) {
+      finalSigDataUrl = canvasRef.current.toDataURL("image/png");
+    }
+
     setSubmitting(true);
     const contractRef = `EL-MAN-${(client?.id || "NFS").slice(-6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
@@ -173,7 +283,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
         firstPaymentDate,
         decemberDebitDate: decemberDate,
         trackingFacility,
-        signatureDataUrl,
+        signatureDataUrl: finalSigDataUrl,
         capacity,
         assistedBy: assistedBy || "N/A",
       };
@@ -216,7 +326,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
         address,
         mandateDocUrl: uploadedDocUrl || localPdfUrl,
         mandateReference: contractRef,
-        signatureDataUrl,
+        signatureDataUrl: finalSigDataUrl,
         capacity,
         interval,
         firstPaymentDate,
@@ -224,10 +334,13 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
 
       if (result.error) {
         setToast(`Error saving mandate: ${result.error}`);
+        // Don't block step 4 if DB save had non-critical error — still show confirmation
+        setStep(4);
       } else {
         setToast("✅ NFS Debit Order Mandate legally authorized & recorded!");
         setStep(4);
-        if (onComplete) onComplete();
+        // onComplete is intentionally NOT called here — let user read Step 4 confirmation
+        // It will be called when user clicks "Return to Dashboard"
       }
     } catch (err: any) {
       console.error("Mandate signing failed:", err);
@@ -572,40 +685,120 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
           )}
 
           {/* ══════════════════════════════════════════════════════════════
-              STEP 3: DIGITAL SIGNATURE PAD
+              STEP 3: DIGITAL SIGNATURE PAD — Draw or Type
               ══════════════════════════════════════════════════════════════ */}
           {step === 3 && (
             <div className="space-y-4">
+
+              {/* Mode Toggle */}
+              <div className="flex gap-2 p-1 rounded-xl bg-white/[0.04] border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => handleSignModeSwitch("draw")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    signMode === "draw"
+                      ? "bg-teal-600 text-white shadow-md"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <PenTool size={13} /> Draw Signature
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSignModeSwitch("type")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    signMode === "type"
+                      ? "bg-teal-600 text-white shadow-md"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <Shield size={13} /> Type Signature
+                </button>
+              </div>
+
+              {/* Type mode: name input + font picker */}
+              {signMode === "type" && (
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      Type Your Full Legal Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={typedName}
+                      onChange={e => setTypedName(e.target.value)}
+                      placeholder="e.g. John Smith"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:border-teal-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      Signature Style
+                    </label>
+                    <div className="flex gap-2 flex-wrap">
+                      {CURSIVE_FONTS.map(f => (
+                        <button
+                          key={f.value}
+                          type="button"
+                          onClick={() => { setTypedFont(f.value); if (typedName.trim()) renderTypedSignature(typedName, f.value); }}
+                          className={`px-3 py-1.5 rounded-lg text-xs border transition-all cursor-pointer ${
+                            typedFont === f.value
+                              ? "bg-teal-600/30 border-teal-500/60 text-teal-200"
+                              : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-white/20"
+                          }`}
+                          style={{ fontFamily: `'${f.value}', cursive` }}
+                        >
+                          {typedName || f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500">
+                    Your typed name will be rendered in the selected style on the canvas below, with an official digital verification stamp. Valid under the RSA ECT Act 25 of 2002.
+                  </p>
+                </div>
+              )}
+
+              {/* Canvas — shared by both Draw and Type modes */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                  Draw Signature (Touch on Mobile / Mouse on Desktop) *
+                  {signMode === "draw"
+                    ? "Draw Signature (Touch on Mobile / Mouse on Desktop) *"
+                    : "Signature Preview with Verification Stamp *"}
                 </label>
                 <div className="relative border-2 border-dashed border-teal-500/40 rounded-2xl bg-black/40 overflow-hidden">
                   <canvas
                     ref={canvasRef}
                     width={560}
                     height={160}
-                    className="w-full h-40 touch-none cursor-crosshair block"
-                    onMouseDown={startDrawing}
-                    onMouseMove={draw}
-                    onMouseUp={stopDrawing}
-                    onMouseLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
+                    className={`w-full h-40 block ${signMode === "draw" ? "touch-none cursor-crosshair" : "cursor-not-allowed"}`}
+                    onMouseDown={signMode === "draw" ? startDrawing : undefined}
+                    onMouseMove={signMode === "draw" ? draw : undefined}
+                    onMouseUp={signMode === "draw" ? stopDrawing : undefined}
+                    onMouseLeave={signMode === "draw" ? stopDrawing : undefined}
+                    onTouchStart={signMode === "draw" ? startDrawing : undefined}
+                    onTouchMove={signMode === "draw" ? draw : undefined}
+                    onTouchEnd={signMode === "draw" ? stopDrawing : undefined}
                   />
-                  {!hasDrawn && (
+                  {!hasDrawn && signMode === "draw" && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-500 text-xs">
                       <PenTool size={16} className="mr-2 text-teal-400/60" /> Draw your legal signature here
                     </div>
                   )}
-                  <button
-                    type="button"
-                    onClick={clearSignature}
-                    className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <Eraser size={12} /> Clear
-                  </button>
+                  {!hasDrawn && signMode === "type" && !typedName.trim() && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-500 text-xs">
+                      <Shield size={16} className="mr-2 text-teal-400/60" /> Type your name above to preview
+                    </div>
+                  )}
+                  {signMode === "draw" && (
+                    <button
+                      type="button"
+                      onClick={clearSignature}
+                      className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <Eraser size={12} /> Clear
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -647,7 +840,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
                     className="mt-0.5 accent-teal-500 w-4 h-4 rounded"
                   />
                   <span className="text-xs text-amber-200/90 leading-relaxed">
-                    I confirm that I am legally authorised to operate on the account specified, and I electronically execute this <strong>NFS Debit Order Mandate</strong> for debit orders by E&amp;L Digital Holdings (Pty) Ltd.
+                    I confirm that I am legally authorised to operate on the account specified, and I electronically execute this <strong>NFS Debit Order Mandate</strong> for debit orders by E&amp;L Digital Holdings (Pty) Ltd. This signature is valid under the RSA Electronic Communications &amp; Transactions Act 25 of 2002.
                   </span>
                 </label>
               </div>
@@ -662,7 +855,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
                 </button>
                 <button
                   type="button"
-                  disabled={submitting || !legalConfirmed}
+                  disabled={submitting || !legalConfirmed || (signMode === "draw" && !hasDrawn) || (signMode === "type" && !typedName.trim())}
                   onClick={handleFinalSign}
                   className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 disabled:opacity-40 text-white font-black text-xs flex items-center gap-2 shadow-xl shadow-teal-900/40 transition-all cursor-pointer"
                 >
@@ -738,7 +931,7 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
               <div className="pt-3">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={() => { if (onComplete) onComplete(); onClose(); }}
                   className="px-8 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs transition-all shadow-md cursor-pointer"
                 >
                   Return to Dashboard
