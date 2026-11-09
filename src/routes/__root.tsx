@@ -6,6 +6,8 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  isRedirect,
+  isNotFound,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
@@ -60,7 +62,14 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
+  if (isRedirect(error)) {
+    throw error;
+  }
+  if (isNotFound(error)) {
+    throw error;
+  }
+
+  console.error("[RootErrorComponent]", error);
   const router = useRouter();
   const isPortal = typeof window !== "undefined" && window.location.pathname.startsWith("/portal");
 
@@ -128,8 +137,8 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         </div>
 
         {Boolean(error) && (
-          <details className="mt-6 text-left text-xs bg-card p-4 rounded-xl border border-border text-muted-foreground">
-            <summary className="cursor-pointer font-bold font-mono text-foreground">Diagnostic Details</summary>
+          <details open className="mt-6 text-left text-xs bg-card p-4 rounded-xl border border-destructive/30 text-muted-foreground">
+            <summary className="cursor-pointer font-bold font-mono text-foreground mb-1">Diagnostic Details</summary>
             <pre className="mt-2 text-[11px] font-mono text-destructive whitespace-pre-wrap word-break-all overflow-x-auto">
               {error instanceof Error ? error.stack || error.message : String(error)}
             </pre>

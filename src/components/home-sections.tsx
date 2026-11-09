@@ -330,7 +330,7 @@ export function PortalBand() {
           </div>
         </div>
         <Button asChild variant="glass" className="pill-button">
-          <Link to="/client-portal">
+          <Link to="/portal/login">
             Client access <ArrowRight />
           </Link>
         </Button>

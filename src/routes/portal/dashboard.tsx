@@ -8,7 +8,8 @@ import {
   ArrowRight, CheckCircle2, Clock, AlertCircle, Lock,
   TrendingUp, BookOpen, Shield, ExternalLink,
   FileText, CreditCard, Building2, CheckSquare, AlertTriangle, Loader2,
-  Printer, Download, PenTool
+  Printer, Download, PenTool,
+  Sparkles
 } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";

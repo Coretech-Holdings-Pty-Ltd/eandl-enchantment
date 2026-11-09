@@ -121,7 +121,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           <div className="nav-actions">
             <ThemeToggle className="desktop-theme-toggle" />
             <Button asChild variant="glass" className="pill-button portal-button">
-              <Link to="/client-portal">
+              <Link to="/portal/login">
                 <LockKeyhole size={13} />
                 Client portal
               </Link>
@@ -212,7 +212,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
                 </Link>
               </Button>
               <Button asChild variant="glass" className="pill-button w-full justify-between h-11 text-xs sm:text-sm font-semibold">
-                <Link to="/client-portal" onClick={() => setMenu(false)}>
+                <Link to="/portal/login" onClick={() => setMenu(false)}>
                   <span className="flex items-center gap-2">
                     <LockKeyhole size={14} />
                     Client portal
@@ -286,7 +286,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
                     AI
                   </span>
                 </Link>
-                <Link to="/client-portal">Client portal</Link>
+                <Link to="/portal/login">Client portal</Link>
               </div>
             </div>
             <div>

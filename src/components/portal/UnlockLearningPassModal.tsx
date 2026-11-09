@@ -296,3 +296,4 @@ export function UnlockLearningPassModal({ isOpen, onClose, onSuccess }: UnlockLe
     </div>
   );
 }
+
