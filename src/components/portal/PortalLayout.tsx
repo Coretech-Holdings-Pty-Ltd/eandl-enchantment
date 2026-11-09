@@ -125,8 +125,9 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
     },
   ];
 
-  const initials = (profile?.fullName || client?.name || user?.email || "?")
-    .split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  const rawName = profile?.fullName || client?.name || user?.email?.split("@")[0] || "Client";
+  const initials = rawName
+    .split(/[\s._-]+/).filter(Boolean).map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "CL";
 
   const displayName = profile?.fullName || client?.name || user?.email?.split("@")[0] || "Client";
   
@@ -176,31 +177,32 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Client Identity & Account Status Card */}
-          <div className="p-4 mx-3 my-3 rounded-2xl bg-white/[0.03] border border-white/10 shadow-inner relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-28 h-28 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="px-3 py-2 mx-3 my-3 rounded-2xl bg-white/[0.03] border border-white/10 shadow-inner relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
             <div className="flex items-center gap-3">
+              {/* Monogram Avatar — no photo, just initials in gradient ring */}
               <div className="relative shrink-0">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-500 to-amber-400 p-[1.5px] shadow-md">
-                  <div className="w-full h-full bg-[#0a0f1d] rounded-[10px] flex items-center justify-center text-xs font-black text-teal-300">
-                    {initials}
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[2px] shadow-lg shadow-teal-900/40">
+                  <div className="w-full h-full bg-[#0c1322] rounded-[14px] flex items-center justify-center">
+                    <span className="text-sm font-black tracking-tight bg-gradient-to-br from-teal-300 to-cyan-400 bg-clip-text text-transparent select-none">
+                      {initials}
+                    </span>
                   </div>
                 </div>
-                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-[#0a0f1d] ${accountBadgeColor}`} />
+                <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-[#0a0f1d] ${accountBadgeColor}`} />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-black text-white truncate">
+                <div className="text-[13px] font-black text-white truncate leading-tight">
                   {client?.name || displayName}
                 </div>
-                <div className="text-[10px] text-slate-400 truncate mt-0.5">
-                  {user?.email}
-                </div>
-                <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="text-[10px] text-slate-400 truncate mt-0.5">{user?.email}</div>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/5 text-slate-300 border border-white/10">
                     {access.accountStatus}
                   </span>
                   {client?.mandateStatus === "authorized" && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      <CheckCircle2 size={10} /> Mandate Active
+                      <CheckCircle2 size={9} /> Mandate ✓
                     </span>
                   )}
                 </div>
@@ -473,23 +475,23 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Right: Quick Concierge, Notification, and Avatar */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Direct Concierge WhatsApp Button */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* Direct Concierge WhatsApp — icon only on mobile */}
             <a
               href="https://wa.me/27732890453?text=Hi%20E%26L%20Digital,%20I%20need%20assistance%20with%20my%20client%20account"
               target="_blank"
               rel="noreferrer"
-              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs active:scale-95"
+              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
               title="Chat with Account Manager on WhatsApp"
             >
               <MessageSquare size={15} />
-              <span className="hidden sm:inline">WhatsApp Help</span>
+              <span className="hidden sm:inline text-[11px]">WhatsApp</span>
             </a>
 
             {/* Notification Bell */}
             <Link
               to="/portal/dashboard"
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all relative"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all relative shrink-0"
               title="Notifications"
             >
               <Bell size={16} />
@@ -498,32 +500,46 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               )}
             </Link>
 
-            {/* User Avatar Menu */}
+            {/* User Avatar — clean monogram button, no text crowding on mobile */}
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(v => !v)}
-                className="flex items-center gap-2 p-1 sm:pr-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer active:scale-95"
+                aria-label="Account menu"
               >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-teal-500 to-amber-400 p-[1px]">
-                  <div className="w-full h-full bg-[#0a0f1d] rounded-[7px] flex items-center justify-center text-xs font-black text-teal-300">
-                    {initials}
+                {/* Monogram circle */}
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[1.5px] shadow-md shadow-teal-900/30">
+                  <div className="w-full h-full bg-[#0a0f1d] rounded-[6px] flex items-center justify-center">
+                    <span className="text-[11px] font-black bg-gradient-to-br from-teal-300 to-cyan-400 bg-clip-text text-transparent select-none leading-none">
+                      {initials}
+                    </span>
                   </div>
                 </div>
-                <span className="hidden md:block text-xs font-bold text-slate-200 max-w-[100px] truncate">
+                <span className="hidden md:block text-xs font-bold text-slate-200 max-w-[90px] truncate">
                   {displayName}
                 </span>
-                <ChevronDown size={14} className={`text-slate-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={13} className={`hidden md:block text-slate-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
               {/* User Dropdown Sheet */}
               {userMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 sm:w-64 rounded-2xl bg-[#0f172a] border border-white/15 p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 mb-1.5">
-                    <div className="text-xs font-bold text-white truncate">{displayName}</div>
-                    <div className="text-[10px] text-slate-400 truncate">{user?.email}</div>
-                    <div className="mt-2 flex items-center justify-between text-[10px]">
-                      <span className="text-slate-400">Status</span>
-                      <span className="font-extrabold text-teal-300 uppercase">{access.accountStatus}</span>
+                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 mb-1.5 flex items-center gap-2.5">
+                    {/* Monogram in dropdown header */}
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 via-cyan-500 to-indigo-500 p-[1.5px] shadow-md shrink-0">
+                      <div className="w-full h-full bg-[#0c1322] rounded-[9px] flex items-center justify-center">
+                        <span className="text-xs font-black bg-gradient-to-br from-teal-300 to-cyan-400 bg-clip-text text-transparent select-none">
+                          {initials}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-white truncate">{displayName}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{user?.email}</div>
+                      <div className="mt-1 flex items-center gap-1 text-[9px]">
+                        <span className="text-slate-500">Status</span>
+                        <span className="font-extrabold text-teal-300 uppercase">{access.accountStatus}</span>
+                      </div>
                     </div>
                   </div>
                   <Link

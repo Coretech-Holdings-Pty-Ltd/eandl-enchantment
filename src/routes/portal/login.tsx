@@ -224,7 +224,7 @@ function PortalLoginPage() {
           <div className="flex items-center gap-3">
             <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium bg-secondary/70 border border-border text-muted-foreground">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>CoreTech Engine:</span>
+              <span>E&amp;L Portal Engine:</span>
               <span className="font-mono text-xs font-semibold text-foreground">Online</span>
             </div>
 

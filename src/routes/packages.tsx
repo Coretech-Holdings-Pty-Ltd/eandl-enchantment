@@ -127,7 +127,7 @@ function Packages() {
                 },
                 {
                   q: "Who builds and supports my website?",
-                  a: "E and L is your point of contact. CoreTech Holdings is the technology company that designs, develops, secures, hosts and maintains subscription platforms.",
+                  a: "E and L is your dedicated partner. Our specialized engineering desk designs, develops, secures, hosts and maintains subscription platforms with full ongoing care.",
                 },
                 {
                   q: "Who owns my website?",

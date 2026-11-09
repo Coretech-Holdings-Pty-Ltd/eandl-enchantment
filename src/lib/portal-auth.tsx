@@ -91,6 +91,14 @@ interface PortalAuthContextType {
     accountType: string;
     accountNumber: string;
     branchCode: string;
+    branchName?: string;
+    address?: string;
+    mandateDocUrl?: string;
+    mandateReference?: string;
+    signatureDataUrl?: string;
+    interval?: string;
+    firstPaymentDate?: string;
+    capacity?: string;
   }) => Promise<{ error?: string }>;
   toast: string | null;
   setToast: (msg: string | null) => void;
@@ -486,92 +494,145 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     accountType: string;
     accountNumber: string;
     branchCode: string;
+    branchName?: string;
+    address?: string;
+    mandateDocUrl?: string;
+    mandateReference?: string;
+    signatureDataUrl?: string;
+    interval?: string;
+    firstPaymentDate?: string;
+    capacity?: string;
   }) => {
-    if (!client?.id) return { error: "No client record found" };
+    if (!client?.id && !client?.email) return { error: "No client record found" };
 
     const accountLast4 = mandateData.accountNumber.slice(-4);
+    const resolvedDocUrl = mandateData.mandateDocUrl || client?.mandateDocUrl || "";
+    const signedTimestamp = new Date().toISOString();
+    const contractRef = mandateData.mandateReference || `EL-MAN-${(client?.id || "CLIENT").slice(-6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
     try {
-      // Update partner.clients (do NOT include debicheck_status column as it does not exist on clients table)
+      // 1. Update partner.clients table
+      const clientUpdatePayload: Record<string, any> = {
+        mandate_status: "authorized",
+        bank_name: mandateData.bankName,
+        account_number: mandateData.accountNumber,
+        account_type: mandateData.accountType,
+        branch_code: mandateData.branchCode,
+        account_holder: mandateData.accountHolder,
+      };
+      if (resolvedDocUrl) {
+        clientUpdatePayload.mandate_doc_url = resolvedDocUrl;
+      }
+      if (mandateData.address) {
+        clientUpdatePayload.address = mandateData.address;
+      }
+
       let clientUpdated = false;
-      if (client.id) {
+      if (client?.id) {
         const { error: clientErr } = await partnerSchema()
           .from("clients")
-          .update({
-            mandate_status: "authorized",
-            bank_name: mandateData.bankName,
-            account_number: mandateData.accountNumber,
-            account_type: mandateData.accountType,
-            branch_code: mandateData.branchCode,
-            account_holder: mandateData.accountHolder,
-          })
+          .update(clientUpdatePayload)
           .eq("id", client.id);
 
         if (!clientErr) clientUpdated = true;
       }
 
-      if (!clientUpdated && client.email) {
+      if (!clientUpdated && client?.email) {
         const { error: emailErr } = await partnerSchema()
           .from("clients")
-          .update({
-            mandate_status: "authorized",
-            bank_name: mandateData.bankName,
-            account_number: mandateData.accountNumber,
-            account_type: mandateData.accountType,
-            branch_code: mandateData.branchCode,
-            account_holder: mandateData.accountHolder,
-          })
+          .update(clientUpdatePayload)
           .eq("email", client.email);
 
         if (emailErr) console.warn("Email fallback update note:", emailErr);
       }
 
-      // Update partner.mandates if we have mandateId
-      if (client.mandateId) {
-        await partnerSchema()
-          .from("mandates")
-          .update({
-            status: "authenticated",
-            bank_name: mandateData.bankName,
-            account_number: mandateData.accountNumber,
-            account_last4: accountLast4,
-            account_holder: mandateData.accountHolder,
-            account_type: mandateData.accountType,
-            branch_code: mandateData.branchCode,
-            terms_accepted: true,
-            accepted_at: new Date().toISOString(),
-          })
-          .eq("id", client.mandateId);
-      } else if (client.email) {
-        // Try to find mandate by client email
-        await partnerSchema()
-          .from("mandates")
-          .update({
-            status: "authenticated",
-            bank_name: mandateData.bankName,
-            account_number: mandateData.accountNumber,
-            account_last4: accountLast4,
-            account_holder: mandateData.accountHolder,
-            account_type: mandateData.accountType,
-            branch_code: mandateData.branchCode,
-            terms_accepted: true,
-            accepted_at: new Date().toISOString(),
-          })
-          .eq("client_email", client.email);
+      // 2. Update partner.mandates if we have mandateId or email
+      const mandatePayload: Record<string, any> = {
+        brand_id: BRAND_ID,
+        mandate_reference: contractRef,
+        debtor_name: mandateData.accountHolder || client?.name,
+        bank_name: mandateData.bankName,
+        account_number: mandateData.accountNumber,
+        account_last4: accountLast4,
+        account_holder: mandateData.accountHolder,
+        account_type: mandateData.accountType,
+        branch_code: mandateData.branchCode,
+        status: "authorized",
+        terms_accepted: true,
+        accepted_at: signedTimestamp,
+        document_url: resolvedDocUrl,
+        client_email: client?.email || user?.email,
+      };
+
+      try {
+        if (client?.mandateId) {
+          await partnerSchema()
+            .from("mandates")
+            .update(mandatePayload)
+            .eq("id", client.mandateId);
+        } else {
+          await partnerSchema()
+            .from("mandates")
+            .upsert(mandatePayload, { onConflict: "mandate_reference" });
+        }
+      } catch (mErr) {
+        console.warn("Mandates table update notice:", mErr);
       }
 
-      // Update subscriptions to active
-      if (client.id) {
+      // 3. Update subscriptions to active
+      if (client?.id) {
         await partnerSchema()
           .from("subscriptions")
           .update({ status: "active", site_status: "live" })
           .eq("client_id", client.id);
       }
 
-      // Update local state immediately so UI updates instantaneously
+      // 4. Dispatch Email Confirmation to Client and Operations Desk
+      try {
+        const targetEmail = client?.email || user?.email;
+        if (targetEmail) {
+          await supabase.functions.invoke("send-email", {
+            body: {
+              to: targetEmail,
+              subject: "✅ NFS Debit Order Mandate Authorized & Signed — E&L Digital",
+              html: `
+                <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#0d1322;color:#ffffff;padding:32px;border-radius:16px;border:1px solid #1e293b;">
+                  <div style="text-align:center;margin-bottom:24px;">
+                    <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);color:#2dd4bf;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+                      E&L Digital · DebiCheck System
+                    </div>
+                    <h2 style="font-size:22px;font-weight:900;color:#ffffff;margin:12px 0 0 0;">Mandate Authorized & Signed</h2>
+                    <p style="color:#94a3b8;font-size:13px;margin:6px 0 0 0;">Ref: <strong style="color:#2dd4bf;">${contractRef}</strong></p>
+                  </div>
+                  <div style="background:#131c2e;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;font-size:13px;line-height:1.6;color:#cbd5e1;">
+                    <p style="margin:0 0 12px 0;">Hello <strong>${mandateData.accountHolder}</strong>,</p>
+                    <p style="margin:0 0 12px 0;">Your <strong>NFS Debit Order Mandate</strong> and Service Agreement have been legally signed online and authorized. Our operations team is now loading your DebiCheck payment instruction with your bank.</p>
+                    <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:12px;">
+                      <div><strong>Bank:</strong> ${mandateData.bankName}</div>
+                      <div><strong>Account Holder:</strong> ${mandateData.accountHolder}</div>
+                      <div><strong>Account (Last 4):</strong> •••• ${accountLast4}</div>
+                      <div><strong>Account Type:</strong> ${mandateData.accountType.toUpperCase()}</div>
+                      <div><strong>Collection Interval:</strong> Monthly</div>
+                    </div>
+                    ${resolvedDocUrl ? `<p style="margin:12px 0 0 0;"><a href="${resolvedDocUrl}" target="_blank" style="color:#2dd4bf;font-weight:700;text-decoration:none;">📄 View / Print Signed Mandate PDF →</a></p>` : ""}
+                  </div>
+                  <div style="text-align:center;font-size:11px;color:#64748b;">
+                    E&L Digital Holdings (Pty) Ltd · Sandton, South Africa · hello@eandl.digital
+                  </div>
+                </div>
+              `,
+            },
+          });
+        }
+      } catch (emailErr) {
+        console.warn("Mandate confirmation email dispatch note:", emailErr);
+      }
+
+      // 5. Update local client state
       setClient(prev => prev ? {
         ...prev,
         mandateStatus: "authorized",
+        mandateDocUrl: resolvedDocUrl || prev.mandateDocUrl,
         bankName: mandateData.bankName,
         accountNumber: mandateData.accountNumber,
         accountType: mandateData.accountType,

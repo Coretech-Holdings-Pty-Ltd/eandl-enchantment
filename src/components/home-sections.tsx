@@ -252,7 +252,7 @@ export function GrowthSection() {
               </Link>
             </Button>
             <p className="small-note mt-4">
-              Designed and developed by CoreTech. Supported by E and L.
+              Designed, built and managed by E&amp;L Digital.
             </p>
           </div>
         </div>

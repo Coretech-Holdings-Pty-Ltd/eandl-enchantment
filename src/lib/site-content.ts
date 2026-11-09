@@ -77,7 +77,7 @@ export const services = [
       "Continuous improvement and monthly platform support",
     ],
     description:
-      "Turn an idea into a dependable digital product. Our delivery spans design, development, integration, testing and long-term improvement, with CoreTech powering our subscription website builds.",
+      "Turn an idea into a dependable digital product. Our delivery spans design, development, integration, testing and long-term improvement, with our dedicated engineering desk powering our subscription website builds.",
   },
   {
     id: "hardware",
