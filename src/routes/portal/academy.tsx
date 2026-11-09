@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { GraduationCap, Clock, Users, Star, Lock, Play, BookOpen, ArrowRight, Zap } from "lucide-react";
+import { GraduationCap, Clock, Users, Star, Lock, Play, BookOpen, ArrowRight, Zap, Sparkles } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";
 import { partnerSchema, supabase, BRAND_ID } from "@/lib/supabase";
+import { UnlockLearningPassModal } from "@/components/portal/UnlockLearningPassModal";
 
 export const Route = createFileRoute("/portal/academy")({ component: PortalAcademy });
 
@@ -15,6 +16,7 @@ function PortalAcademy() {
   const [fetching, setFetching] = useState(true);
   const [enrolling, setEnrolling] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
+  const [showUnlockPassModal, setShowUnlockPassModal] = useState(false);
 
   useEffect(() => { if (!loading && !user) navigate({ to: "/portal/login" }); }, [user, loading, navigate]);
 
@@ -55,12 +57,27 @@ function PortalAcademy() {
       <div className="portal-locked">
         <div className="portal-locked-icon"><Lock size={36} color="#475569" /></div>
         <div className="portal-locked-title">Academy Access Required</div>
-        <p className="portal-locked-sub">The E&L Academy is included with Growth Community, Care Plus, and Enterprise System packages. Upgrade to unlock all courses.</p>
-        <div style={{ display: "flex", gap: "0.75rem" }}>
-          <a href="https://eandl.digital/packages" target="_blank" rel="noreferrer" className="portal-btn portal-btn--amber"><Zap size={16} /> Upgrade plan</a>
-          <a href="https://eandl.digital/contact" target="_blank" rel="noreferrer" className="portal-btn portal-btn--ghost">Contact us</a>
+        <p className="portal-locked-sub">The E&amp;L Academy is included with Growth Community packages or available directly via an Active Learner Pass (R199/mo). Add it to your plan to unlock all live masterclasses, tool templates, and certifications.</p>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <button
+            type="button"
+            onClick={() => setShowUnlockPassModal(true)}
+            className="portal-btn portal-btn--amber cursor-pointer"
+            style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#0f172a", fontWeight: 800 }}
+          >
+            <Sparkles size={16} /> Add Learning Pass to Plan (R199/mo)
+          </button>
+          <a href="mailto:hello@eandl.digital?subject=Learning%20Academy%20Inquiry" className="portal-btn portal-btn--ghost">
+            Contact Support
+          </a>
         </div>
       </div>
+
+      <UnlockLearningPassModal
+        isOpen={showUnlockPassModal}
+        onClose={() => setShowUnlockPassModal(false)}
+        onSuccess={() => setShowUnlockPassModal(false)}
+      />
     </PortalLayout>
   );
 

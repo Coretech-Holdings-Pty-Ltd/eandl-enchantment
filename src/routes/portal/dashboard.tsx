@@ -14,6 +14,7 @@ import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";
 import { supabase } from "@/lib/supabase";
 import { NfsMandateSignWizard } from "@/components/portal/NfsMandateSignWizard";
+import { UnlockLearningPassModal } from "@/components/portal/UnlockLearningPassModal";
 
 export const Route = createFileRoute("/portal/dashboard")({
   component: PortalDashboard,
@@ -23,8 +24,9 @@ function PortalDashboard() {
   const navigate = useNavigate();
   const { user, loading, profile, client, access, onboarding, signMandate, setToast } = usePortalAuth();
 
-  // Mandate signing state (Must be called unconditionally at top of component)
+  // Modal states (Must be called unconditionally at top of component)
   const [showMandateForm, setShowMandateForm] = useState(false);
+  const [showUnlockPassModal, setShowUnlockPassModal] = useState(false);
   const [mandateBankName, setMandateBankName] = useState("");
   const [mandateAccountHolder, setMandateAccountHolder] = useState("");
   const [mandateAccountType, setMandateAccountType] = useState<"cheque" | "savings" | "transmission">("cheque");
@@ -458,16 +460,28 @@ function PortalDashboard() {
             </div>
           ) : (
             <div>
-              <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, marginBottom: "1rem" }}>
-                Academy access is included with Growth Community, Care Plus, and Enterprise System packages.
+              <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, marginBottom: "0.85rem" }}>
+                Academy access is included with Growth Community packages, or available directly with an Active Learner Pass (R199/mo).
               </p>
-              <a href="https://eandl.digital/packages" target="_blank" rel="noreferrer" className="portal-btn portal-btn--ghost portal-btn--sm">
-                <Lock size={13} /> Unlock Academy
-              </a>
+              <button
+                type="button"
+                onClick={() => setShowUnlockPassModal(true)}
+                className="portal-btn portal-btn--amber portal-btn--sm cursor-pointer"
+                style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#0f172a", fontWeight: 800, padding: "0.5rem 1rem" }}
+              >
+                <Sparkles size={13} /> Add Learning Pass to Plan (R199/mo)
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Unlock Learning Pass Modal */}
+      <UnlockLearningPassModal
+        isOpen={showUnlockPassModal}
+        onClose={() => setShowUnlockPassModal(false)}
+        onSuccess={() => setShowUnlockPassModal(false)}
+      />
 
       {/* Help footer */}
       <div style={{ marginTop: "2rem", padding: "1rem 1.25rem", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>

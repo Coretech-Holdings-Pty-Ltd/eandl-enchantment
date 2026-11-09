@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Settings, User, Lock, LogOut, Save, CheckCircle2, TrendingUp, ArrowUpRight, Star, Package, ChevronRight } from "lucide-react";
+import { Settings, User, Lock, LogOut, Save, CheckCircle2, TrendingUp, ArrowUpRight, Star, Package, ChevronRight, GraduationCap, Sparkles } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";
 import { supabase } from "@/lib/supabase";
+import { UnlockLearningPassModal } from "@/components/portal/UnlockLearningPassModal";
 
 export const Route = createFileRoute("/portal/settings")({ component: PortalSettings });
 
@@ -25,6 +26,7 @@ function PortalSettings() {
   const [newPass, setNewPass] = useState("");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState("");
+  const [showUnlockPassModal, setShowUnlockPassModal] = useState(false);
 
   useEffect(() => { if (!loading && !user) navigate({ to: "/portal/login" }); }, [user, loading, navigate]);
   useEffect(() => { if (profile) { setFullName(profile.fullName || ""); setPhone(profile.phone || ""); } }, [profile]);
@@ -124,6 +126,70 @@ function PortalSettings() {
               ))}
             </div>
 
+            {/* Learning Pass Add-on Card */}
+            <div style={{
+              padding: "1rem 1.125rem",
+              borderRadius: 12,
+              marginBottom: "1.25rem",
+              background: access.learning ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.08)",
+              border: access.learning ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(245,158,11,0.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "1rem",
+              flexWrap: "wrap"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: access.learning ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: access.learning ? "#34d399" : "#fbbf24"
+                }}>
+                  <GraduationCap size={18} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span>E&amp;L Digital Learning Academy Pass</span>
+                    <span style={{
+                      fontSize: "9px", fontWeight: 800, textTransform: "uppercase",
+                      padding: "2px 7px", borderRadius: 20,
+                      background: access.learning ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)",
+                      color: access.learning ? "#34d399" : "#fbbf24",
+                      border: access.learning ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(245,158,11,0.4)"
+                    }}>
+                      {access.learning ? "Active & Unlocked" : "Available Add-on"}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: "2px 0 0 0" }}>
+                    {access.learning
+                      ? "Full access to Level 1 & Level 2 live masterclasses, templates, cohort community & certifications."
+                      : "Add the Active Learner Pass (R199/mo) to unlock all live masterclasses, AI templates, and workshops."}
+                  </p>
+                </div>
+              </div>
+
+              {!access.learning ? (
+                <button
+                  type="button"
+                  onClick={() => setShowUnlockPassModal(true)}
+                  className="portal-btn portal-btn--amber portal-btn--sm cursor-pointer"
+                  style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#0f172a", fontWeight: 800, whiteSpace: "nowrap" }}
+                >
+                  <Sparkles size={13} /> Add Learning Pass (R199/mo)
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/portal/academy" })}
+                  className="portal-btn portal-btn--ghost portal-btn--sm"
+                  style={{ color: "#34d399", borderColor: "rgba(16,185,129,0.3)" }}
+                >
+                  View Academy Courses <ChevronRight size={13} />
+                </button>
+              )}
+            </div>
+
             {/* Plans grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "0.75rem" }}>
               {PLANS.map((plan) => {
@@ -201,6 +267,12 @@ function PortalSettings() {
           <LogOut size={16} /> Sign out of portal
         </button>
       </div>
+
+      {/* Unlock Learning Pass Modal */}
+      <UnlockLearningPassModal
+        isOpen={showUnlockPassModal}
+        onClose={() => setShowUnlockPassModal(false)}
+      />
     </PortalLayout>
   );
 }

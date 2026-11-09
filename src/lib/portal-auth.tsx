@@ -100,6 +100,7 @@ interface PortalAuthContextType {
     firstPaymentDate?: string;
     capacity?: string;
   }) => Promise<{ error?: string }>;
+  unlockLearningPass: (tier: { id: string; name: string; price: string }) => Promise<{ error?: string }>;
   toast: string | null;
   setToast: (msg: string | null) => void;
 }
@@ -775,11 +776,83 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
+  const unlockLearningPass = async (tier: { id: string; name: string; price: string }) => {
+    if (!user) return { error: "Please sign in to unlock the Learning Pass." };
+    try {
+      // 1. Update user metadata in Supabase Auth
+      await supabase.auth.updateUser({
+        data: {
+          portal_access_learning: true,
+          learning_pass_tier: tier.id,
+          learning_pass_name: tier.name,
+          learning_pass_price: tier.price,
+        },
+      });
+
+      // 2. If client record exists, update client in partner.clients
+      if (client?.id) {
+        await partnerSchema()
+          .from("clients")
+          .update({
+            portal_access_learning: true,
+            learning_access: true,
+          })
+          .eq("id", client.id);
+      }
+
+      // 3. Insert operational support ticket so the admin team can update billing/mandate
+      try {
+        await partnerSchema().from("support_tickets").insert({
+          brand_id: BRAND_ID,
+          user_id: user.id,
+          client_id: client?.id || null,
+          company_id: client?.companyId || null,
+          subject: `🎓 Learning Pass Added: ${tier.name} (${tier.price})`,
+          body: `Client ${profile?.fullName || client?.name || user.email} requested/activated ${tier.name} (${tier.price}). Mandate status: ${client?.mandateStatus || "none"}. Banking: ${client?.bankName || "none"} (${client?.accountNumber ? "••••" + client.accountNumber.slice(-4) : "none"}).`,
+          priority: "high",
+          status: "open",
+          ticket_number: "LP-" + Date.now().toString().slice(-6),
+        });
+      } catch (tErr) {
+        console.warn("[PortalAuth] Ticket insert notice:", tErr);
+      }
+
+      // 4. Alert admins via Edge Function
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            action: "admin_learning_pass_alert",
+            brand_id: BRAND_ID,
+            client_name: profile?.fullName || client?.name || user.email,
+            email: user.email,
+            tier: tier.name,
+            price: tier.price,
+          },
+        });
+      } catch (_) {}
+
+      // 5. Update local access state immediately
+      setAccess(prev => ({
+        ...prev,
+        learning: true,
+        accountStatus: prev.accountStatus === "none" ? "active" : prev.accountStatus,
+      }));
+
+      // 6. Refresh client state
+      await refreshClient();
+
+      return {};
+    } catch (err: any) {
+      console.error("[PortalAuth] unlockLearningPass error:", err);
+      return { error: err?.message || "Failed to unlock learning pass" };
+    }
+  };
+
   return (
     <PortalAuthContext.Provider value={{
       loading, user, session, profile, client, access, onboarding,
       isAdminUser, adminRole,
-      login, register, logout, refreshClient, updateOnboarding, signMandate, toast, setToast
+      login, register, logout, refreshClient, updateOnboarding, signMandate, unlockLearningPass, toast, setToast
     }}>
       {children}
     </PortalAuthContext.Provider>

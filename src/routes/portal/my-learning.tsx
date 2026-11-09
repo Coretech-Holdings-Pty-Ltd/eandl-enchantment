@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { BookOpen, GraduationCap, Lock, Trophy, Clock, Play, CheckCircle2, ArrowRight } from "lucide-react";
+import { BookOpen, GraduationCap, Lock, Trophy, Clock, Play, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import { PortalLayout } from "@/components/portal/PortalLayout";
 import { usePortalAuth } from "@/lib/portal-auth";
 import { partnerSchema, BRAND_ID } from "@/lib/supabase";
+import { UnlockLearningPassModal } from "@/components/portal/UnlockLearningPassModal";
 
 export const Route = createFileRoute("/portal/my-learning")({ component: MyLearning });
 
@@ -13,6 +14,7 @@ function MyLearning() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [certs, setCerts] = useState<any[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [showUnlockPassModal, setShowUnlockPassModal] = useState(false);
 
   useEffect(() => { if (!loading && !user) navigate({ to: "/portal/login" }); }, [user, loading, navigate]);
 
@@ -35,9 +37,22 @@ function MyLearning() {
       <div className="portal-locked">
         <div className="portal-locked-icon"><Lock size={36} color="#475569" /></div>
         <div className="portal-locked-title">Academy Access Required</div>
-        <p className="portal-locked-sub">Upgrade to a plan that includes Academy access to start learning.</p>
-        <a href="https://eandl.digital/packages" target="_blank" rel="noreferrer" className="portal-btn portal-btn--amber">Upgrade plan</a>
+        <p className="portal-locked-sub">Add the Active Learner Pass (R199/mo) to your plan to unlock enrolled courses, masterclasses, and digital competency certificates.</p>
+        <button
+          type="button"
+          onClick={() => setShowUnlockPassModal(true)}
+          className="portal-btn portal-btn--amber cursor-pointer"
+          style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#0f172a", fontWeight: 800 }}
+        >
+          <Sparkles size={16} /> Add Learning Pass to Plan (R199/mo)
+        </button>
       </div>
+
+      <UnlockLearningPassModal
+        isOpen={showUnlockPassModal}
+        onClose={() => setShowUnlockPassModal(false)}
+        onSuccess={() => setShowUnlockPassModal(false)}
+      />
     </PortalLayout>
   );
 
