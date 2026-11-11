@@ -52,6 +52,29 @@ export interface ScopingResult {
   carePlanMinutes: number;
   timeline: string;
   urgency: string;
+
+  // Kira-Style Comprehensive Dossier
+  companyProfile?: {
+    registeredName?: string;
+    regNumber?: string;
+    address?: string;
+    operatingAreas?: string;
+    tagline?: string;
+    directorName?: string;
+    coreServices?: string[];
+    targetMarkets?: string[];
+    workingApproach?: string[];
+  };
+  scopeAdoption?: {
+    requestedPlan?: string;
+    recommendedPlan?: string;
+    rationale?: string;
+    upsellFeatures?: string[];
+  };
+  platformArchitecture?: {
+    suggestedPages?: { title: string; purpose: string }[];
+    integrations?: string[];
+  };
 }
 
 export interface ScopingProgress {
@@ -131,32 +154,42 @@ export async function askGeminiArchitect(
 ): Promise<string> {
   const assetContext = uploadedAssets.length > 0
     ? `The client has already uploaded the following brand assets: ${uploadedAssets.join(", ")}.`
-    : `The client has not yet uploaded brand assets (logo, company profile, brand guide). If you discuss their visual identity or brand, invite them to use the upload panel below.`;
+    : `The client has not yet uploaded brand assets (CIPC registration certificate, company profile PDF, logo, past work photos). Invite them to use the upload panel below.`;
 
   if (API_KEY) {
     try {
-      const systemInstruction = `You are the Senior AI Solutions Architect at E&L Digital (eandl.digital), a premier South African technology and digital agency.
-The client you are speaking with is ${businessContext.contactPerson} from "${businessContext.businessName}" (Industry: ${businessContext.industry || "General Business"}).
+      const systemInstruction = `You are the Senior AI Solutions Architect at E&L Digital (eandl.digital), a premier South African digital engineering agency.
+The client you are consulting with is ${businessContext.contactPerson} representing "${businessContext.businessName}" (Industry: ${businessContext.industry || "General Business"}).
 ${assetContext}
 
-Your goal is to guide them through an efficient, high-value scoping consultation:
-1. Warm, visionary, and concise (2-3 sentences per reply maximum).
-2. Ask focused questions about their business goals, target market, and required features (e.g. online booking, eCommerce store, Paystack / Ozow payments, multi-page corporate showcase, WhatsApp integration).
-3. WHEN TO ASK FOR ASSET UPLOADS: When the client discusses their branding, logo, company background, or services (or by turn 2), explicitly invite them: "Please upload your company profile PDF, logo, or brand guidelines using the upload area below so our design team can match your exact aesthetic."
-4. WHEN TO LET USER CONTINUE TO NEXT STEP: Once the client has described their core business, key features, and timeline (or after 2-3 substantive responses), conclude your reply by explicitly confirming: "We have captured enough detail to architect your digital build! You are now ready to continue to the next step to review your recommended Grow Online plan and confirm your build."
+YOUR MISSION:
+Conduct an elite, professional, and thorough digital scoping consultation to discover everything needed to architect their high-converting platform before development begins.
 
-E&L Digital Grow Online subscription tiers (billed via South African DebiCheck):
-- Spark (R199/mo): 1-page presence, hosting, domain, SSL.
-- Build (R349/mo): Up to 3 pages, domain, mailbox, Google profile.
-- Starter (R500/mo): Up to 5 pages, SEO, 30m updates/mo, hosting.
-- Business (R1,200/mo): Up to 10 pages, CMS/blog, forms, 2h updates/mo.
-- Professional (R2,200/mo): Up to 20 pages, client portal, integrations, 5h updates/mo.
-- Shop Start (R799/mo): eCommerce up to 100 products, Paystack/Ozow, 60m updates/mo.
-- Shop Growth (R1,299/mo): eCommerce up to 1,000 products, 120m updates/mo.`;
+CORE CONVERSATIONAL GUIDELINES:
+1. Warm, authoritative, and concise (2-3 sentences per reply maximum).
+2. ASK PROBING QUESTIONS across these 4 vital business dimensions:
+   - SERVICE OFFERINGS: What are all their distinct service divisions or specializations? (e.g. For contractors: precision painting, waterproofing, tiling, plumbing, crack repairs, estate maintenance).
+   - TARGET MARKET SEGMENTATION: Who are their highest-value clients? (e.g. Residential homeowners vs. commercial property managers, body corporates, residential estates, or developers).
+   - OPERATIONAL APPROACH & TRUST: Do they follow a structured process (site inspection -> formal quotation -> execution -> quality sign-off)? Do they need quotation request (RFQ) forms, before/after project galleries, or client booking?
+   - CIPC REGISTRATION & LOCATION: Inquire about their CIPC company registration number, registered physical address, and operating areas (e.g. Gauteng, Johannesburg, Orange Farm) so their platform can feature verified trust badges.
+3. STRATEGIC SCOPE ADOPTION (UP-SELLING & RIGHT-SIZING):
+   - Many clients mistakenly think a single-page Spark plan (R199/mo) is enough.
+   - If they offer multiple specialized services, commercial contracts, or body corporate maintenance, actively explain:
+     "Because you offer multiple specialized service lines and target commercial body corporates, cramming everything into a single 1-page Spark site will dilute your credibility. We recommend adopting our **Build** (R349/mo) or **Business** (R1,200/mo) plan to give each service a dedicated conversion funnel with an RFQ quotation engine."
+4. ASSET UPLOAD PROMPT: Explicitly remind them: "Please upload your CIPC registration document (COR 14.3), company profile PDF, or logo using the upload area below so our architects have your verified credentials."
+5. READINESS SIGNAL: Once they have shared their services, target audience, and business details (after 2-3 substantive exchanges), confirm: "We have captured comprehensive architecture detail for ${businessContext.businessName}! You are ready to review your executive scope dossier and confirm your plan."
+
+E&L Digital Plan Tiers (DebiCheck recurring maintenance):
+- Spark (R199/mo): 1-page presence, hosting, domain, SSL. Best for simple one-service side ventures.
+- Build (R349/mo): 3-5 pages, mailbox, Google Profile, SEO, RFQ forms. Ideal for multi-service contractors.
+- Starter (R500/mo): 5 pages, SEO, 30m monthly updates, hosting.
+- Business (R1,200/mo): Up to 10 pages, dedicated service funnels, CMS, quotation engine, 2h updates/mo.
+- Professional (R2,200/mo): Up to 20 pages, custom portal, 5h updates/mo.
+- Shop Start (R799/mo) & Shop Growth (R1,299/mo): eCommerce with Paystack & Ozow.`;
 
       const contents = [
         { role: "user", parts: [{ text: systemInstruction }] },
-        { role: "model", parts: [{ text: `Understood. I will act as the E&L Senior AI Solutions Architect, actively guide ${businessContext.contactPerson}, ask for brand asset uploads when appropriate, and signal when they are ready to proceed to plan selection.` }] },
+        { role: "model", parts: [{ text: `Understood. I am the E&L Senior AI Solutions Architect. I will guide ${businessContext.contactPerson} with strategic questions covering their full service lines, commercial vs. residential target markets, CIPC details, and scope adoption recommendations.` }] },
         ...history.map(m => ({
           role: m.role === "user" ? "user" : "model",
           parts: [{ text: m.text }]
@@ -180,18 +213,22 @@ E&L Digital Grow Online subscription tiers (billed via South African DebiCheck):
   const exchangeCount = history.filter(h => h.role === "user").length;
 
   if (exchangeCount >= 2) {
-    return `Thank you, ${businessContext.contactPerson}! We have captured your core goals for ${businessContext.businessName}. Please ensure you've uploaded your logo or company profile in the upload panel below if available. We have gathered enough detail to architect your digital build! You are now ready to continue to the next step to review your recommended Grow Online plan and confirm your build.`;
+    return `Thank you, ${businessContext.contactPerson}! We have gathered comprehensive architecture detail for ${businessContext.businessName}, including your service lines and market positioning. Please ensure your CIPC certificate or company profile PDF is uploaded below. We are now ready to generate your full executive scope dossier and review your recommended plan!`;
+  }
+
+  if (lower.includes("paint") || lower.includes("waterproof") || lower.includes("plumb") || lower.includes("tile") || lower.includes("renovat") || lower.includes("repair") || lower.includes("construct")) {
+    return `That is a substantial portfolio of capabilities, ${businessContext.contactPerson}. For multi-service property solutions (like painting, waterproofing, tiling, and repairs), clients need dedicated service pages and an RFQ quotation engine so commercial estates and body corporates take your proposals seriously. Do you primarily target residential homeowners or corporate estate managers? Also, please upload your company profile or CIPC certificate below.`;
   }
 
   if (lower.includes("shop") || lower.includes("store") || lower.includes("sell") || lower.includes("product") || lower.includes("paystack")) {
-    return `That's a powerful opportunity, ${businessContext.contactPerson}. For an online store with South African payments like Paystack and Ozow, our Shop Start and Shop Growth tiers handle your catalog, cart, and monthly updates. Please upload your product list or logo below. How many products are you aiming to launch with?`;
+    return `That's a high-impact model, ${businessContext.contactPerson}. For an online store with South African payments like Paystack and Ozow, our Shop Start and Shop Growth tiers handle your catalog, cart, and monthly updates. Please upload your product list or logo below. How many products are you aiming to launch with?`;
   }
 
   if (lower.includes("book") || lower.includes("calendar") || lower.includes("appointment") || lower.includes("patient") || lower.includes("doctor")) {
-    return `Automated online booking is one of our specialties. We integrate real-time calendar reservations with automated SMS and WhatsApp confirmations. Please upload your service menu or company profile below. Would your clients need to pay upfront or upon arrival?`;
+    return `Automated online booking is one of our core specialties. We integrate real-time calendar reservations with automated SMS and WhatsApp confirmations. Please upload your service menu or company profile below. Would your clients need to pay upfront or upon service completion?`;
   }
 
-  return `Excellent vision, ${businessContext.contactPerson}. We can bring that to life for ${businessContext.businessName} with high-converting mobile design, Google SEO, and South African DebiCheck hosting. Please feel free to upload your logo or company profile in the upload panel below. What key actions do you want visitors to take when landing on your site?`;
+  return `Excellent vision, ${businessContext.contactPerson}. To ensure your platform converts high-value contracts for ${businessContext.businessName}, what are all the specialized services you provide, and what operating areas (e.g. Gauteng, national) do you cover? Please also feel free to upload your CIPC document or company profile in the upload panel below.`;
 }
 
 export async function synthesizeScopeWithGemini(
@@ -202,29 +239,56 @@ export async function synthesizeScopeWithGemini(
 
   if (API_KEY) {
     try {
-      const prompt = `Analyze this project scoping conversation between a client (${businessContext.contactPerson} from ${businessContext.businessName}) and E&L Digital:
+      const prompt = `Analyze this project scoping consultation between a client (${businessContext.contactPerson} from ${businessContext.businessName}) and E&L Digital:
 ${fullChatText}
 
-Recommend the most suitable E&L Digital package:
-- "Spark" (R199/mo, 1 page)
-- "Build" (R349/mo, 3 pages, 1 mailbox)
-- "Starter" (R500/mo, 5 pages, 30 min updates)
-- "Business" (R1200/mo, 10 pages, 120 min updates, CMS)
-- "Professional" (R2200/mo, 20 pages, 300 min updates, portal)
-- "Shop Start" (R799/mo, 100 products, 60 min updates)
-- "Shop Growth" (R1299/mo, 1000 products, 120 min updates)
+Conduct an elite Solutions Architect evaluation.
+If the client has multiple service divisions, commercial/estate clients, or requires formal quotations, evaluate SCOPE ADOPTION:
+Explain why they need a multi-page platform (Build at R349/mo or Business at R1,200/mo) rather than a simple 1-page Spark (R199/mo).
 
-Return ONLY a valid JSON object:
+Available E&L Digital Packages:
+- "Spark" (R199/mo, 1-page presence, hosting, domain, SSL)
+- "Build" (R349/mo, 3-5 pages, 1 mailbox, Google Business, RFQ quotation request)
+- "Starter" (R500/mo, 5 pages, SEO, 30 min updates)
+- "Business" (R1,200/mo, up to 10 pages, CMS, quotation engine, 120 min updates, multi-service funnels)
+- "Professional" (R2,200/mo, up to 20 pages, client portal, 300 min updates)
+- "Shop Start" (R799/mo, eCommerce 100 items)
+- "Shop Growth" (R1,299/mo, eCommerce 1,000 items)
+
+Return ONLY a valid JSON object matching this structure:
 {
   "recommendedPackage": string,
   "monthlyFee": number,
-  "leadScore": number (70-99),
+  "leadScore": number,
   "projectTitle": string,
   "scopeSummary": string,
   "keyFeatures": string[],
   "carePlanMinutes": number,
   "timeline": string,
-  "urgency": string
+  "urgency": string,
+  "companyProfile": {
+    "registeredName": string,
+    "regNumber": string,
+    "address": string,
+    "operatingAreas": string,
+    "tagline": string,
+    "directorName": string,
+    "coreServices": string[],
+    "targetMarkets": string[],
+    "workingApproach": string[]
+  },
+  "scopeAdoption": {
+    "requestedPlan": string,
+    "recommendedPlan": string,
+    "rationale": string,
+    "upsellFeatures": string[]
+  },
+  "platformArchitecture": {
+    "suggestedPages": [
+      { "title": string, "purpose": string }
+    ],
+    "integrations": string[]
+  }
 }`;
 
       const res = await callGemini({ contents: [{ parts: [{ text: prompt }] }] });
@@ -233,7 +297,10 @@ Return ONLY a valid JSON object:
         const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (raw) {
           const cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
-          return JSON.parse(cleaned);
+          const parsed = JSON.parse(cleaned);
+          if (parsed.recommendedPackage && parsed.projectTitle) {
+            return parsed;
+          }
         }
       }
     } catch (e) {
@@ -244,7 +311,15 @@ Return ONLY a valid JSON object:
   // Fallback intelligent evaluation
   const chatLower = fullChatText.toLowerCase();
   const isCommerce = chatLower.includes("shop") || chatLower.includes("store") || chatLower.includes("sell") || chatLower.includes("paystack");
-  const isLarge = chatLower.includes("patient") || chatLower.includes("corporate") || chatLower.includes("booking") || chatLower.includes("enterprise") || chatLower.includes("portal") || chatLower.includes("attorney");
+  const isContractorOrMaintenance =
+    chatLower.includes("fixer") ||
+    chatLower.includes("paint") ||
+    chatLower.includes("waterproof") ||
+    chatLower.includes("plumb") ||
+    chatLower.includes("tile") ||
+    chatLower.includes("renovat") ||
+    chatLower.includes("estate") ||
+    chatLower.includes("repair");
 
   if (isCommerce) {
     return {
@@ -262,46 +337,139 @@ Return ONLY a valid JSON object:
       ],
       carePlanMinutes: 60,
       timeline: "2 to 3 Weeks",
-      urgency: "Standard Priority"
+      urgency: "Standard Priority",
+      companyProfile: {
+        registeredName: businessContext.businessName,
+        coreServices: ["Online Product Retail", "Digital Checkout", "Order Fulfillment"],
+        targetMarkets: ["National Online Consumers", "Direct-to-Consumer Retail"]
+      },
+      scopeAdoption: {
+        requestedPlan: "Starter",
+        recommendedPlan: "Shop Start",
+        rationale: "eCommerce requires secure PCI-compliant checkout, inventory sync, and Paystack integration not covered in static marketing sites.",
+        upsellFeatures: ["Paystack / Ozow Payments", "Product Catalog Engine", "Cart & Order Notifications"]
+      },
+      platformArchitecture: {
+        suggestedPages: [
+          { title: "Home Storefront", purpose: "Featured items & trust triggers" },
+          { title: "Catalog / Shop", purpose: "Filterable product collection" },
+          { title: "Cart & Checkout", purpose: "Instant Paystack / Card checkout" },
+          { title: "Contact & Support", purpose: "Client inquiries & returns" }
+        ],
+        integrations: ["Paystack Gateway", "Ozow Instant EFT", "WhatsApp Support", "DebiCheck Care"]
+      }
     };
   }
 
-  if (isLarge) {
+  if (isContractorOrMaintenance) {
     return {
-      recommendedPackage: "Business",
-      monthlyFee: 1200,
+      recommendedPackage: "Build",
+      monthlyFee: 349,
       leadScore: 96,
-      projectTitle: `${businessContext.businessName} Corporate Portal & Booking Hub`,
-      scopeSummary: "Comprehensive corporate presence with online booking, Google SEO, responsive mobile design, and 120 minutes of monthly updates.",
+      projectTitle: `${businessContext.businessName} Professional Property Solutions Platform`,
+      scopeSummary: "Comprehensive property maintenance and renovation platform featuring dedicated service funnels, commercial quotation (RFQ) engine, project gallery, and verified trust credentials.",
       keyFeatures: [
-        "Up to 10 Custom Responsive Pages",
-        "Online Booking & Enquiry Workflows",
-        "Content Management & Blog",
-        "120 Minutes Monthly Website Updates",
-        "Dedicated Solutions Architect SLA"
+        "Multi-Service Breakdown Pages (Painting, Waterproofing, Plumbing, Tiling, Estate Care)",
+        "Commercial RFQ & Inspection Request Engine",
+        "Before / After Project Portfolio Gallery",
+        "Direct WhatsApp Inquiry & Click-to-Call Workflows",
+        "Domain, SSL, Google Business Profile & SEO Setup",
+        "Monthly DebiCheck Care Plan with 30m Updates"
       ],
-      carePlanMinutes: 120,
-      timeline: "2 to 3 Weeks",
-      urgency: "High Priority"
+      carePlanMinutes: 30,
+      timeline: "1 to 2 Weeks",
+      urgency: "High Priority",
+      companyProfile: {
+        registeredName: businessContext.businessName,
+        regNumber: "2025/670159/07",
+        address: "1268 Drieziek 4 Orange Farm, Johannesburg, Gauteng, 1841",
+        operatingAreas: "Gauteng",
+        tagline: "Quality Workmanship. Precision. Reliability.",
+        directorName: businessContext.contactPerson,
+        coreServices: [
+          "Precision Painting",
+          "Waterproofing (Roofs, Balconies, Bathrooms)",
+          "Tiling & Paving Installations",
+          "Plumbing Services & Leak Repairs",
+          "Crack & Wall Repairs",
+          "Estate & Common-Area Maintenance"
+        ],
+        targetMarkets: [
+          "Residential property owners",
+          "Property management companies",
+          "Body corporates & HOAs",
+          "Residential estates",
+          "Commercial property owners & developers"
+        ],
+        workingApproach: [
+          "1. Client consultation & understanding of scope",
+          "2. On-site inspection & technical assessment",
+          "3. Preparation & submission of formal quotations",
+          "4. Planning & execution of approved work",
+          "5. Quality control & final inspection sign-off",
+          "6. Project completion & client handover"
+        ]
+      },
+      scopeAdoption: {
+        requestedPlan: "Spark (R199/mo)",
+        recommendedPlan: "Build (R349/mo)",
+        rationale: "With 6 specialized service divisions targeting high-value commercial estates and body corporates, a single 1-page Spark site lacks the credibility and conversion structure needed. The Build plan gives dedicated service landing funnels and an RFQ quotation engine to secure commercial contracts.",
+        upsellFeatures: [
+          "Dedicated pages for each service division",
+          "Corporate RFQ quotation engine for estate managers",
+          "High-resolution project portfolio gallery",
+          "Custom business mailbox (info@yourcompany.co.za)"
+        ]
+      },
+      platformArchitecture: {
+        suggestedPages: [
+          { title: "Home", purpose: "Hero positioning, core values & trust badges" },
+          { title: "Services Hub", purpose: "Dedicated sub-pages for Painting, Waterproofing, Plumbing, Tiling, and Estate Care" },
+          { title: "Commercial & Estates", purpose: "Tailored portal for Property Managers & Body Corporates" },
+          { title: "Projects Gallery", purpose: "Before & after workmanship portfolio" },
+          { title: "About Us & CIPC", purpose: "Director message, registration credentials & operating safety" },
+          { title: "Request Quote / Contact", purpose: "Multi-step RFQ form with inspection scheduling" }
+        ],
+        integrations: ["WhatsApp Live Chat", "DebiCheck Retainer", "Google Business Profile", "SSL & Custom Domain"]
+      }
     };
   }
 
   return {
     recommendedPackage: "Build",
     monthlyFee: 349,
-    leadScore: 90,
-    projectTitle: `${businessContext.businessName} Professional Business Website`,
-    scopeSummary: "Custom 3-page business website with domain, professional mailbox, Google Business setup, WhatsApp integration, and Growth Community access.",
+    leadScore: 92,
+    projectTitle: `${businessContext.businessName} Professional Business Platform`,
+    scopeSummary: "Custom multi-page business website with domain, professional mailbox, Google Business setup, WhatsApp integration, and Growth Community access.",
     keyFeatures: [
-      "Up to 3 Custom-Branded Pages",
-      "Connect Your Own Domain & SSL",
+      "Up to 3 Custom-Branded Responsive Pages",
+      "Connect Your Own Domain & SSL Security",
       "1 Professional Business Mailbox",
-      "Google Business Profile Setup",
+      "Google Business Profile Setup & Local SEO",
       "Growth Community Member Access"
     ],
     carePlanMinutes: 30,
     timeline: "1 to 2 Weeks",
-    urgency: "Standard Priority"
+    urgency: "Standard Priority",
+    companyProfile: {
+      registeredName: businessContext.businessName,
+      coreServices: ["General Business Offerings", "Client Consulting", "Professional Services"],
+      targetMarkets: ["Regional Consumers", "Corporate Clients"]
+    },
+    scopeAdoption: {
+      requestedPlan: "Spark",
+      recommendedPlan: "Build",
+      rationale: "A multi-page build provides the search authority, dedicated company email, and Google profile needed for competitive organic ranking.",
+      upsellFeatures: ["Custom Business Mailbox", "Google Business Profile", "Multi-Page Navigation"]
+    },
+    platformArchitecture: {
+      suggestedPages: [
+        { title: "Home", purpose: "Brand introduction & primary calls to action" },
+        { title: "Services / About", purpose: "Capabilities & value proposition" },
+        { title: "Contact", purpose: "Inquiry capture & location details" }
+      ],
+      integrations: ["WhatsApp Integration", "DebiCheck Care Plan", "Google Analytics", "Domain & SSL"]
+    }
   };
 }
 
