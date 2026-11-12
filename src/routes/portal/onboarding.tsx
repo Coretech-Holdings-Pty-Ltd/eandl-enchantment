@@ -171,8 +171,11 @@ function PortalOnboarding() {
 
   // Compute selected style details
   const activeStyleConfig = useMemo(() => {
-    return BRAND_STYLES.find(s => s.id === selectedStyle) || BRAND_STYLES[0];
+    return BRAND_STYLES.find(s => s.id === selectedStyle) || BRAND_STYLES[0] || { id: "modern-teal", name: "Modern Contractor", colors: ["#0d9488", "#0f172a", "#f8fafc"], vibe: "High-trust & crisp" };
   }, [selectedStyle]);
+
+  const primaryThemeColor = activeStyleConfig?.colors?.[0] || "#0d9488";
+  const themeName = activeStyleConfig?.name || "Modern Contractor";
 
   // Compute full deliverables breakdown
   const plannedPagesList = useMemo(() => {
@@ -427,7 +430,7 @@ function PortalOnboarding() {
       let reply = "";
 
       if (lower.includes("paint") || lower.includes("waterproof") || lower.includes("tile") || lower.includes("plumb") || lower.includes("solar") || lower.includes("roof") || lower.includes("paving")) {
-        const found = TRADE_SERVICES.find(s => lower.includes(s.label.toLowerCase().split(" ")[0]));
+        const found = TRADE_SERVICES.find(s => lower.includes(s.label.toLowerCase().split(" ")[0] || ""));
         const toAdd = found ? found.label : text.replace(/add|service|please/gi, "").trim();
         if (toAdd && !selectedServices.includes(toAdd)) {
           setSelectedServices(prev => [...prev, toAdd]);
@@ -508,46 +511,197 @@ function PortalOnboarding() {
 
   return (
     <PortalLayout>
-      {/* ── Interactive Navigation Header ── */}
-      <div style={{ marginBottom: "1.25rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+      {/* ── Interactive Gamified Onboarding Header ── */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        {/* Top Progress & Motivational Milestone Banner */}
+        <div style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "0.75rem",
+          marginBottom: "1rem",
+          background: "linear-gradient(135deg, rgba(13,148,136,0.12) 0%, rgba(15,23,42,0.6) 100%)",
+          border: "1px solid rgba(45,212,191,0.25)",
+          borderRadius: 16,
+          padding: "1rem 1.25rem",
+          boxShadow: "0 8px 24px -6px rgba(0,0,0,0.4)"
+        }}>
           <div>
-            <h1 className="portal-page-title" style={{ marginBottom: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem", flexWrap: "wrap" }}>
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                padding: "3px 10px",
+                borderRadius: 999,
+                background: step === 5 ? "rgba(16,185,129,0.25)" : "rgba(45,212,191,0.2)",
+                border: step === 5 ? "1px solid rgba(16,185,129,0.5)" : "1px solid rgba(45,212,191,0.4)",
+                color: step === 5 ? "#34d399" : "#2dd4bf",
+                fontSize: "0.72rem",
+                fontWeight: 900,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em"
+              }}>
+                {step === 5 ? "🎉 Final Launch Step" : `⚡ Step ${step} of 5`}
+              </span>
+              <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 600 }}>
+                {step === 1 && "Off to a flying start! Setup your core brand identity"}
+                {step === 2 && "Building momentum! Pick your services & operational scale"}
+                {step === 3 && "Halfway milestone reached! Lock your target clients & coverage"}
+                {step === 4 && "Almost there! Select your tailored growth package"}
+                {step === 5 && "You made it! Review your live website wireframe & blueprint"}
+              </span>
+            </div>
+            <h1 className="portal-page-title" style={{ fontSize: "1.35rem", marginBottom: 0, fontWeight: 900 }}>
               {STEPS[step - 1]?.title}
             </h1>
-            <p className="portal-page-sub">
-              Step {step} of 5 &bull; Quick, visual setup
-            </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-            <span style={{ fontSize: "0.85rem", fontWeight: 900, color: "#2dd4bf", fontFamily: "monospace" }}>
-              {Math.round((step / 5) * 100)}%
-            </span>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "0.7rem", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
+                Progress
+              </div>
+              <div style={{ fontSize: "1.25rem", fontWeight: 900, color: step === 5 ? "#34d399" : "#2dd4bf", fontFamily: "monospace", lineHeight: 1 }}>
+                {Math.round((step / 5) * 100)}%
+              </div>
+            </div>
+
+            {/* Quick Progress Ring or Mini-Counter */}
+            <div style={{
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+              background: `conic-gradient(#2dd4bf ${(step / 5) * 360}deg, rgba(255,255,255,0.08) 0deg)`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 4
+            }}>
+              <div style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                background: "#0f172a",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.75rem",
+                fontWeight: 900,
+                color: "#f8fafc"
+              }}>
+                {step}/5
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Dynamic Glowing Step Tabs */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.4rem" }}>
+        {/* Interactive 5-Step Stepper Cards (Clickable & Responsive) */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+          gap: "0.5rem",
+          marginBottom: "0.75rem"
+        }}>
           {STEPS.map((s) => {
             const isDone = step > s.num;
             const isCurrent = step === s.num;
+            const canJump = s.num < step;
+
             return (
-              <div
+              <button
                 key={s.num}
+                type="button"
                 onClick={() => {
-                  if (s.num < step) setStep(s.num as StepNumber);
+                  if (canJump) setStep(s.num as StepNumber);
                 }}
+                disabled={!canJump && !isCurrent}
                 style={{
-                  height: 4,
-                  borderRadius: 999,
-                  background: isCurrent ? "#2dd4bf" : isDone ? "#0d9488" : "rgba(255,255,255,0.08)",
-                  boxShadow: isCurrent ? "0 0 10px rgba(45,212,191,0.5)" : "none",
-                  cursor: s.num < step ? "pointer" : "default",
-                  transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.6rem 0.75rem",
+                  borderRadius: 12,
+                  background: isCurrent
+                    ? "linear-gradient(135deg, rgba(45,212,191,0.2) 0%, rgba(13,148,136,0.1) 100%)"
+                    : isDone
+                      ? "rgba(16,185,129,0.08)"
+                      : "rgba(255,255,255,0.03)",
+                  border: isCurrent
+                    ? "1px solid #2dd4bf"
+                    : isDone
+                      ? "1px solid rgba(16,185,129,0.3)"
+                      : "1px solid rgba(255,255,255,0.06)",
+                  boxShadow: isCurrent ? "0 0 16px rgba(45,212,191,0.25)" : "none",
+                  cursor: canJump ? "pointer" : "default",
+                  textAlign: "left",
+                  transition: "all 0.25s ease",
+                  outline: "none"
                 }}
-              />
+              >
+                {/* Step Circle with Checkmark or Number */}
+                <div style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: isDone
+                    ? "#10b981"
+                    : isCurrent
+                      ? "#2dd4bf"
+                      : "rgba(255,255,255,0.08)",
+                  color: isDone || isCurrent ? "#0f172a" : "#64748b",
+                  fontWeight: 900,
+                  fontSize: "0.75rem",
+                  flexShrink: 0
+                }}>
+                  {isDone ? <Check size={14} strokeWidth={3} /> : s.num}
+                </div>
+
+                {/* Step Text Info */}
+                <div style={{ minWidth: 0, overflow: "hidden" }}>
+                  <div style={{
+                    fontSize: "0.72rem",
+                    fontWeight: isCurrent ? 800 : 700,
+                    color: isCurrent ? "#f8fafc" : isDone ? "#cbd5e1" : "#64748b",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}>
+                    {s.title}
+                  </div>
+                  <div style={{
+                    fontSize: "0.62rem",
+                    color: isCurrent ? "#2dd4bf" : isDone ? "#34d399" : "#475569",
+                    fontWeight: 600
+                  }}>
+                    {isCurrent ? "In Progress" : isDone ? "Completed ✓" : "Upcoming"}
+                  </div>
+                </div>
+              </button>
             );
           })}
+        </div>
+
+        {/* Connecting Progress Bar */}
+        <div style={{
+          height: 4,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.06)",
+          overflow: "hidden",
+          position: "relative"
+        }}>
+          <div style={{
+            height: "100%",
+            width: `${(step / 5) * 100}%`,
+            background: "linear-gradient(90deg, #0d9488 0%, #2dd4bf 50%, #34d399 100%)",
+            borderRadius: 999,
+            transition: "width 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: "0 0 8px rgba(45,212,191,0.6)"
+          }} />
         </div>
       </div>
 
@@ -1024,7 +1178,7 @@ function PortalOnboarding() {
                     <div style={{ fontSize: "0.72rem", color: "#cbd5e1", lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.75rem", marginBottom: "1rem" }}>
                       {pkg.features.map((f, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", marginBottom: "0.3rem" }}>
-                          <Check size={12} color="#2dd4bf" style={{ marginTop: 2, shrink: 0 }} />
+                          <Check size={12} color="#2dd4bf" style={{ marginTop: 2, flexShrink: 0 }} />
                           <span>{f}</span>
                         </div>
                       ))}
@@ -1076,12 +1230,12 @@ function PortalOnboarding() {
                   <button
                     type="button"
                     onClick={generateAiBrief}
-                    disabled={isSynthesizing}
+                    disabled={isAiGenerating}
                     className="portal-btn portal-btn--ghost portal-btn--sm"
                     style={{ fontSize: "0.72rem", borderColor: "rgba(45,212,191,0.3)", color: "#2dd4bf" }}
                   >
-                    <Sparkles size={12} className={isSynthesizing ? "animate-spin" : ""} />
-                    {isSynthesizing ? "Synthesizing..." : "✨ AI Re-Synthesize"}
+                    <Sparkles size={12} className={isAiGenerating ? "animate-spin" : ""} />
+                    {isAiGenerating ? "Synthesizing..." : "✨ AI Re-Synthesize"}
                   </button>
                 </div>
               </div>
@@ -1145,7 +1299,7 @@ function PortalOnboarding() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", alignItems: "center", gap: "0.35rem" }}>
                     <Sparkle size={13} color="#2dd4bf" />
-                    <span>Interactive Preview of your staging site built on <strong>{activeStyleConfig.name}</strong> theme:</span>
+                    <span>Interactive Preview of your staging site built on <strong>{themeName}</strong> theme:</span>
                   </div>
 
                   <div style={{ display: "flex", gap: "0.25rem", background: "rgba(255,255,255,0.04)", padding: "2px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -1203,7 +1357,7 @@ function PortalOnboarding() {
                   {/* Mockup Header Navigation */}
                   <div style={{ padding: "0.75rem 1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <div style={{ width: 24, height: 24, borderRadius: 6, background: activeStyleConfig.colors[0], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: "12px" }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 6, background: primaryThemeColor, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: "12px" }}>
                         {(businessName || "A")[0]?.toUpperCase()}
                       </div>
                       <span style={{ fontSize: "0.85rem", fontWeight: 900, color: "#f8fafc" }}>
@@ -1221,7 +1375,7 @@ function PortalOnboarding() {
                       </div>
                     )}
 
-                    <span style={{ padding: "3px 8px", borderRadius: 6, background: activeStyleConfig.colors[0], color: "#ffffff", fontSize: "10px", fontWeight: 800 }}>
+                    <span style={{ padding: "3px 8px", borderRadius: 6, background: primaryThemeColor, color: "#ffffff", fontSize: "10px", fontWeight: 800 }}>
                       RFQ Quote
                     </span>
                   </div>
@@ -1230,7 +1384,7 @@ function PortalOnboarding() {
                   <div style={{
                     padding: mockupDevice === "mobile" ? "1.5rem 1rem" : "2.25rem 1.5rem",
                     textAlign: "center",
-                    background: `radial-gradient(ellipse at top, ${activeStyleConfig.colors[0]}22 0%, transparent 70%)`,
+                    background: `radial-gradient(ellipse at top, ${primaryThemeColor}22 0%, transparent 70%)`,
                     borderBottom: "1px solid rgba(255,255,255,0.04)",
                   }}>
                     <div style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "2px 8px", borderRadius: 999, background: "rgba(255,255,255,0.06)", fontSize: "10px", color: "#cbd5e1", marginBottom: "0.5rem" }}>
@@ -1244,7 +1398,7 @@ function PortalOnboarding() {
                     </p>
 
                     <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                      <span style={{ padding: "6px 14px", borderRadius: 8, background: activeStyleConfig.colors[0], color: "#ffffff", fontSize: "11px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                      <span style={{ padding: "6px 14px", borderRadius: 8, background: primaryThemeColor, color: "#ffffff", fontSize: "11px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
                         💬 WhatsApp Us Now
                       </span>
                       <span style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(255,255,255,0.08)", color: "#f8fafc", fontSize: "11px", fontWeight: 700 }}>
