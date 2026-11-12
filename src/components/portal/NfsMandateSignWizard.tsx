@@ -66,6 +66,12 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
   const [decemberDate, setDecemberDate] = useState("2026-12-15");
   const [trackingFacility, setTrackingFacility] = useState(true);
 
+  // Compulsory Signatory ID Upload State
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [idDocumentUrl, setIdDocumentUrl] = useState<string>("");
+  const [isUploadingId, setIsUploadingId] = useState(false);
+  const idFileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Step 2: Terms confirmation
   const [termsRead, setTermsRead] = useState(false);
   const [nonProcessingAgreed, setNonProcessingAgreed] = useState(true);
@@ -319,6 +325,28 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
         }
       } catch (storageErr) {
         console.warn("Storage upload note, falling back to data URL:", storageErr);
+      }
+
+      // Upload Signatory ID document to mandates bucket if file is selected
+      let finalIdUrl = idDocumentUrl;
+      if (idFile && !finalIdUrl) {
+        try {
+          const cleanName = idFile.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+          const idStoragePath = `${BRAND_ID}/${client?.id || "general"}/id_${Date.now()}_${cleanName}`;
+          const { error: idUploadErr } = await supabase.storage
+            .from("mandates")
+            .upload(idStoragePath, idFile, {
+              contentType: idFile.type || "application/octet-stream",
+              upsert: true,
+            });
+          if (!idUploadErr) {
+            const { data: idUrlData } = supabase.storage.from("mandates").getPublicUrl(idStoragePath);
+            finalIdUrl = idUrlData?.publicUrl || "";
+            setIdDocumentUrl(finalIdUrl);
+          }
+        } catch (idErr) {
+          console.warn("Storage upload note for Signatory ID:", idErr);
+        }
       }
 
       // If storage url is not available, create object URL for immediate viewing/printing
@@ -641,12 +669,103 @@ export function NfsMandateSignWizard({ isOpen, onClose, onComplete }: NfsMandate
                 </div>
               </div>
 
+              {/* Compulsory Signatory ID / Passport Document Upload Section */}
+              <div className="p-4 rounded-2xl bg-teal-500/[0.04] border border-teal-500/25 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs">
+                      ID
+                    </div>
+                    <div>
+                      <div className="text-xs font-black text-white flex items-center gap-1.5">
+                        Compulsory Signatory ID / Smart Card / Passport *
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          Compulsory
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-400">
+                        Required by South African PASA &amp; DebiCheck regulations to verify signing authority
+                      </div>
+                    </div>
+                  </div>
+
+                  {idFile && (
+                    <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 size={13} /> Verified
+                    </span>
+                  )}
+                </div>
+
+                <div
+                  onClick={() => idFileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
+                    idFile || idDocumentUrl
+                      ? "border-emerald-500/50 bg-emerald-500/[0.05]"
+                      : "border-teal-500/30 hover:border-teal-400/60 bg-white/[0.02] hover:bg-white/[0.04]"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    ref={idFileInputRef}
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      if (f.size > 15 * 1024 * 1024) {
+                        setToast("ID Document exceeds 15MB limit. Please upload a smaller scan or photo.");
+                        return;
+                      }
+                      setIdFile(f);
+                    }}
+                    accept="application/pdf,image/png,image/jpeg,image/webp"
+                    className="hidden"
+                  />
+
+                  {idFile ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-mono text-xs">
+                        ✓
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs font-bold text-white max-w-[240px] truncate">{idFile.name}</div>
+                        <div className="text-[10px] text-emerald-400">
+                          {(idFile.size / 1024 / 1024).toFixed(2)} MB &bull; Ready for DebiCheck bank verification
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setIdFile(null);
+                          setIdDocumentUrl("");
+                        }}
+                        className="ml-auto text-[11px] text-slate-400 hover:text-rose-400 underline cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="text-xs font-bold text-teal-300">
+                        Click to browse or drag &amp; drop Signatory SA ID or Passport
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Supports PDF, High-Res PNG or JPG (Identity card front &amp; back or green ID book)
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="pt-2 flex justify-end">
                 <button
                   type="button"
                   onClick={() => {
                     if (!accountHolder.trim() || !registrationOrIdNumber.trim() || !signatoryName.trim() || !bankName || !accountNumber.trim() || !branchCode.trim()) {
                       setToast("Please fill in your exact legal Accountholder Name, Reg/ID Number, Signatory Name, and Account Details.");
+                      return;
+                    }
+                    if (!idFile && !idDocumentUrl) {
+                      setToast("⚠️ Uploading the authorized Signatory ID document / Passport is compulsory for bank DebiCheck verification.");
                       return;
                     }
                     if (signMode === "type" && !typedName) {
