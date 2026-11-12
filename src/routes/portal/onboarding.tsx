@@ -151,21 +151,46 @@ function PortalOnboarding() {
   // ── Step 4: Plan ──────────────────────────────────────────────────
   const [selectedPackage, setSelectedPackage] = useState(queryPlan || "Build");
 
-  // ── Step 5: Live Spec Sheet & Review Chatbot ──────────────────────
+  // ── Step 5: Live Spec Sheet, Mockup Preview & Review Chatbot ─────
   const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
   const [scopeVerified, setScopeVerified] = useState(false);
   const [aiExecutiveSummary, setAiExecutiveSummary] = useState<string>("");
+  const [activeReviewTab, setActiveReviewTab] = useState<"preview" | "scope" | "plan">("preview");
+  const [mockupDevice, setMockupDevice] = useState<"mobile" | "desktop">("desktop");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Embedded Review Chatbot
   const [reviewChat, setReviewChat] = useState<Array<{ sender: "ai" | "user"; message: string }>>([
     {
       sender: "ai",
-      message: "👋 Hi! I'm your interactive scope assistant. Feel free to tweak your services or switch plans right here!",
+      message: "👋 Hi! I'm your interactive scope assistant. Everything look good on your website preview above? If you want to change anything (e.g. 'Add Waterproofing' or 'Change plan to Spark'), just tell me here!",
     },
   ]);
   const [reviewInput, setReviewInput] = useState("");
   const [isBotReplying, setIsBotReplying] = useState(false);
+
+  // Compute selected style details
+  const activeStyleConfig = useMemo(() => {
+    return BRAND_STYLES.find(s => s.id === selectedStyle) || BRAND_STYLES[0];
+  }, [selectedStyle]);
+
+  // Compute full deliverables breakdown
+  const plannedPagesList = useMemo(() => {
+    const isSpark = selectedPackage.toLowerCase() === "spark";
+    if (isSpark) {
+      return [
+        { title: "Home & Landing Showcase", purpose: "Hero header, direct WhatsApp quote trigger, trust badges, service overview, and contact info" },
+      ];
+    }
+    return [
+      { title: "Home", purpose: "Executive hero banner, core capabilities grid, client testimonials, and instant RFQ quote trigger" },
+      { title: "Services & Trade Capabilities", purpose: `Dedicated breakdown of ${selectedServices.slice(0, 4).join(", ")} with technical specifications` },
+      { title: "Workmanship & Before/After Gallery", purpose: "High-resolution photo portfolio showcasing completed projects and quality transformations" },
+      { title: "Online RFQ Quote Engine", purpose: "Interactive multi-step quotation form with property type and scope calculators" },
+      { title: "About Us & Verified Credentials", purpose: "Company background, director profile, CIPC registration, and 12-month workmanship warranty" },
+      { title: "Contact & Operating Areas", purpose: `Direct phone, WhatsApp live chat, physical address, and service coverage across ${selectedRegions.join(", ")}` },
+    ];
+  }, [selectedPackage, selectedServices, selectedRegions]);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/portal/login" });
@@ -204,13 +229,13 @@ function PortalOnboarding() {
     try {
       const summary = await synthesizeScopeWithGemini(
         [
-          { role: "user", text: `Generate a 2-sentence executive summary for ${businessName || "Client"} offering ${selectedServices.join(", ")} in ${selectedRegions.join(", ")}. Plan: ${selectedPackage}.` },
+          { role: "user", text: `Generate a comprehensive executive project brief for ${businessName || "Client"} offering ${selectedServices.join(", ")} in ${selectedRegions.join(", ")}. Plan: ${selectedPackage}. Client segments: ${selectedClients.join(", ")}.` },
         ],
         { businessName: businessName || "Client Business", contactPerson: directorName || "Director" }
       );
-      setAiExecutiveSummary(summary?.scopeSummary || `Digital contractor portal for ${businessName || "your business"} showcasing ${selectedServices.length} core services across ${selectedRegions.join(", ")}.`);
+      setAiExecutiveSummary(summary?.scopeSummary || `Tailored South African contractor platform for ${businessName || "your business"}. Features a conversion-optimized ${selectedPackage} architecture showcasing ${selectedServices.length} trade divisions, interactive quote funnels, and verified trust credentials across ${selectedRegions.join(", ")}.`);
     } catch (_) {
-      setAiExecutiveSummary(`Digital commercial presence for ${businessName || "your business"} showcasing ${selectedServices.length} trade divisions across ${selectedRegions.join(", ")}.`);
+      setAiExecutiveSummary(`Tailored South African contractor platform for ${businessName || "your business"}. Features a conversion-optimized ${selectedPackage} architecture showcasing ${selectedServices.length} trade divisions (${selectedServices.slice(0, 3).join(", ")}), interactive quote funnels, and verified trust credentials across ${selectedRegions.join(", ")}.`);
     }
   };
 
@@ -1020,69 +1045,364 @@ function PortalOnboarding() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            STEP 5: SPEC SHEET & REVIEW CHATBOT
+            STEP 5: SPEC SHEET, INTERACTIVE MOCKUP & REVIEW CHATBOT
             ══════════════════════════════════════════════════════════════ */}
         {step === 5 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-            {/* Executive Summary Card */}
+            {/* Celebratory Animated Header Banner */}
             <div style={{
-              padding: "1rem 1.25rem",
-              borderRadius: 14,
-              background: "linear-gradient(135deg, rgba(13,148,136,0.12) 0%, rgba(15,23,42,0.6) 100%)",
-              border: "1.5px solid rgba(45,212,191,0.35)",
+              padding: "1.25rem 1.5rem",
+              borderRadius: 16,
+              background: "linear-gradient(135deg, rgba(13,148,136,0.18) 0%, rgba(16,185,129,0.12) 50%, rgba(15,23,42,0.8) 100%)",
+              border: "1.5px solid rgba(45,212,191,0.4)",
+              position: "relative",
+              overflow: "hidden",
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
-                <Sparkles size={15} color="#2dd4bf" />
-                <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#2dd4bf" }}>
-                  EXECUTIVE PROJECT SPEC SHEET
-                </span>
-              </div>
-              <p style={{ fontSize: "0.82rem", color: "#e2e8f0", lineHeight: 1.5, margin: 0 }}>
-                {aiExecutiveSummary || `Digital contractor portal for ${businessName || "your business"} showcasing ${selectedServices.length} core services.`}
-              </p>
-            </div>
-
-            {/* Spec Sheet Overview */}
-            <div style={{
-              borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(0,0,0,0.25)",
-              padding: "1.25rem",
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.875rem",
-              fontSize: "0.8rem",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "0.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
                 <div>
-                  <div style={{ fontWeight: 800, color: "#f8fafc" }}>{businessName || "Your Company"}</div>
-                  <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{directorName} &bull; {phone}</div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "3px 10px", borderRadius: 999, background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#34d399", fontSize: "0.72rem", fontWeight: 800, marginBottom: "0.35rem" }}>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>🎉 100% READY TO LAUNCH</span>
+                  </div>
+                  <h2 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#f8fafc", margin: "0 0 0.25rem", letterSpacing: "-0.01em" }}>
+                    Review Your Digital Scope &amp; Website Preview
+                  </h2>
+                  <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>
+                    Here is the complete blueprint of your pages, features, and branding for <strong style={{ color: "#2dd4bf" }}>{businessName || "your business"}</strong>.
+                  </p>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ color: "#2dd4bf", fontWeight: 800 }}>{selectedPackage} Tier</span>
-                  <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>Monthly DebiCheck</div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <button
+                    type="button"
+                    onClick={generateAiBrief}
+                    disabled={isSynthesizing}
+                    className="portal-btn portal-btn--ghost portal-btn--sm"
+                    style={{ fontSize: "0.72rem", borderColor: "rgba(45,212,191,0.3)", color: "#2dd4bf" }}
+                  >
+                    <Sparkles size={12} className={isSynthesizing ? "animate-spin" : ""} />
+                    {isSynthesizing ? "Synthesizing..." : "✨ AI Re-Synthesize"}
+                  </button>
                 </div>
               </div>
 
-              <div>
-                <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Services ({selectedServices.length}): </span>
-                <span style={{ color: "#cbd5e1" }}>{selectedServices.join(", ")}</span>
-              </div>
-
-              <div>
-                <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Regions: </span>
-                <span style={{ color: "#cbd5e1" }}>{selectedRegions.join(", ")}</span>
-              </div>
-
-              <div>
-                <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Target Clients: </span>
-                <span style={{ color: "#cbd5e1" }}>{selectedClients.join(", ")}</span>
+              {/* AI Executive Scope Statement */}
+              <div style={{
+                marginTop: "0.875rem",
+                padding: "0.75rem 1rem",
+                borderRadius: 10,
+                background: "rgba(0,0,0,0.35)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontSize: "0.82rem",
+                color: "#e2e8f0",
+                lineHeight: 1.6,
+              }}>
+                <strong style={{ color: "#2dd4bf" }}>Executive Brief: </strong>
+                {aiExecutiveSummary || `Tailored digital contractor platform for ${businessName || "your business"}. Showcases ${selectedServices.length} trade divisions across ${selectedRegions.join(", ")} with instant quote funnels and Google search presence.`}
               </div>
             </div>
 
-            {/* Optional Document Upload */}
+            {/* ── Interactive View Tabs: Preview vs Scope vs Dossier ── */}
+            <div style={{ display: "flex", gap: "0.5rem", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "0.5rem", overflowX: "auto" }}>
+              {[
+                { id: "preview", label: "🌐 Live Website Mockup", icon: <Eye size={13} /> },
+                { id: "scope", label: "📑 Full Scope & Pages (" + plannedPagesList.length + ")", icon: <Layout size={13} /> },
+                { id: "plan", label: "💼 Company Dossier & Plan", icon: <FileText size={13} /> },
+              ].map(tab => {
+                const isActive = activeReviewTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveReviewTab(tab.id as any)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      padding: "0.5rem 1rem",
+                      borderRadius: 10,
+                      fontSize: "0.78rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      border: `1.5px solid ${isActive ? "#2dd4bf" : "rgba(255,255,255,0.06)"}`,
+                      background: isActive ? "rgba(13,148,136,0.2)" : "rgba(255,255,255,0.02)",
+                      color: isActive ? "#2dd4bf" : "#94a3b8",
+                      transition: "all 0.2s",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {tab.icon}
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ── TAB 1: LIVE INTERACTIVE WEBSITE MOCKUP PREVIEW ── */}
+            {activeReviewTab === "preview" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+                {/* Device Selector */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <Sparkle size={13} color="#2dd4bf" />
+                    <span>Interactive Preview of your staging site built on <strong>{activeStyleConfig.name}</strong> theme:</span>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "0.25rem", background: "rgba(255,255,255,0.04)", padding: "2px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <button
+                      type="button"
+                      onClick={() => setMockupDevice("desktop")}
+                      style={{
+                        display: "flex", alignItems: "center", gap: "0.3rem", padding: "3px 8px", borderRadius: 6,
+                        background: mockupDevice === "desktop" ? "rgba(45,212,191,0.2)" : "transparent",
+                        color: mockupDevice === "desktop" ? "#2dd4bf" : "#64748b",
+                        fontSize: "0.7rem", fontWeight: 700, border: "none", cursor: "pointer"
+                      }}
+                    >
+                      <Laptop size={12} /> Desktop
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMockupDevice("mobile")}
+                      style={{
+                        display: "flex", alignItems: "center", gap: "0.3rem", padding: "3px 8px", borderRadius: 6,
+                        background: mockupDevice === "mobile" ? "rgba(45,212,191,0.2)" : "transparent",
+                        color: mockupDevice === "mobile" ? "#2dd4bf" : "#64748b",
+                        fontSize: "0.7rem", fontWeight: 700, border: "none", cursor: "pointer"
+                      }}
+                    >
+                      <Smartphone size={12} /> Mobile
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mockup Frame Container */}
+                <div style={{
+                  maxWidth: mockupDevice === "mobile" ? "380px" : "100%",
+                  margin: "0 auto",
+                  width: "100%",
+                  borderRadius: 16,
+                  border: "2px solid rgba(45,212,191,0.3)",
+                  boxShadow: "0 20px 40px -10px rgba(0,0,0,0.8), 0 0 25px rgba(13,148,136,0.15)",
+                  overflow: "hidden",
+                  background: "#090d16",
+                  transition: "all 0.3s ease",
+                }}>
+                  {/* Browser Bar */}
+                  <div style={{ padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", gap: "4px" }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f43f5e" }} />
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#34d399" }} />
+                    </div>
+                    <div style={{ flex: 1, padding: "2px 10px", borderRadius: 999, background: "rgba(0,0,0,0.4)", fontSize: "10px", color: "#64748b", textAlign: "center", fontFamily: "monospace" }}>
+                      🔒 https://www.{(businessName || "yourcompany").toLowerCase().replace(/[^a-z0-9]/g, "")}.co.za
+                    </div>
+                  </div>
+
+                  {/* Mockup Header Navigation */}
+                  <div style={{ padding: "0.75rem 1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 6, background: activeStyleConfig.colors[0], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: "12px" }}>
+                        {(businessName || "A")[0]?.toUpperCase()}
+                      </div>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 900, color: "#f8fafc" }}>
+                        {businessName || "Apex Contractor"}
+                      </span>
+                    </div>
+
+                    {mockupDevice === "desktop" && (
+                      <div style={{ display: "flex", gap: "0.875rem", fontSize: "0.72rem", color: "#94a3b8", fontWeight: 600 }}>
+                        <span style={{ color: "#2dd4bf" }}>Home</span>
+                        <span>Services</span>
+                        <span>Gallery</span>
+                        <span>About</span>
+                        <span>Contact</span>
+                      </div>
+                    )}
+
+                    <span style={{ padding: "3px 8px", borderRadius: 6, background: activeStyleConfig.colors[0], color: "#ffffff", fontSize: "10px", fontWeight: 800 }}>
+                      RFQ Quote
+                    </span>
+                  </div>
+
+                  {/* Mockup Hero Section */}
+                  <div style={{
+                    padding: mockupDevice === "mobile" ? "1.5rem 1rem" : "2.25rem 1.5rem",
+                    textAlign: "center",
+                    background: `radial-gradient(ellipse at top, ${activeStyleConfig.colors[0]}22 0%, transparent 70%)`,
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "2px 8px", borderRadius: 999, background: "rgba(255,255,255,0.06)", fontSize: "10px", color: "#cbd5e1", marginBottom: "0.5rem" }}>
+                      📍 Serving {selectedRegions.slice(0, 2).join(" & ")} &bull; Free Site Quotes
+                    </div>
+                    <h3 style={{ fontSize: mockupDevice === "mobile" ? "1.1rem" : "1.4rem", fontWeight: 900, color: "#f8fafc", margin: "0 0 0.5rem", lineHeight: 1.2 }}>
+                      {businessName || "Your Contracting Firm"}
+                    </h3>
+                    <p style={{ fontSize: "0.75rem", color: "#94a3b8", maxWidth: "420px", margin: "0 auto 1rem", lineHeight: 1.5 }}>
+                      {aboutUs || "Reliable, precision-driven contracting and property maintenance delivered on-time across residential estates and commercial buildings."}
+                    </p>
+
+                    <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <span style={{ padding: "6px 14px", borderRadius: 8, background: activeStyleConfig.colors[0], color: "#ffffff", fontSize: "11px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                        💬 WhatsApp Us Now
+                      </span>
+                      <span style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(255,255,255,0.08)", color: "#f8fafc", fontSize: "11px", fontWeight: 700 }}>
+                        📋 Request Quote
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Mockup Service Badges */}
+                  <div style={{ padding: "1rem 1.25rem", background: "rgba(0,0,0,0.2)" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 800, textTransform: "uppercase", color: "#64748b", marginBottom: "0.5rem", letterSpacing: "0.5px" }}>
+                      Specialized Trade Divisions
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: mockupDevice === "mobile" ? "1fr 1fr" : "repeat(3, 1fr)", gap: "0.5rem" }}>
+                      {selectedServices.slice(0, 6).map((service, idx) => (
+                        <div key={idx} style={{ padding: "0.5rem", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", fontSize: "0.72rem", color: "#e2e8f0", fontWeight: 600 }}>
+                          &bull; {service}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Trust Footer */}
+                  <div style={{ padding: "0.75rem 1.25rem", background: "rgba(0,0,0,0.4)", borderTop: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "#64748b" }}>
+                    <span>Verified CIPC Compliant</span>
+                    <span>12-Month Workmanship Guarantee</span>
+                    <span>DebiCheck Secured</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 2: FULL SCOPE & PLANNED PAGES ARCHITECTURE ── */}
+            {activeReviewTab === "scope" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc", marginBottom: "0.25rem" }}>
+                    Included Website Pages ({plannedPagesList.length} Dedicated Sections)
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                    Here is what our development engine is scaffolding for your build:
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.75rem" }}>
+                  {plannedPagesList.map((p, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        padding: "0.875rem",
+                        borderRadius: 12,
+                        background: "rgba(255,255,255,0.02)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.35rem" }}>
+                        <div style={{ width: 20, height: 20, borderRadius: 6, background: "rgba(45,212,191,0.15)", color: "#2dd4bf", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 800 }}>
+                          {i + 1}
+                        </div>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc" }}>
+                          {p.title}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: "0.73rem", color: "#94a3b8", lineHeight: 1.5 }}>
+                        {p.purpose}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Digital Superpowers / Included Features */}
+                <div style={{ marginTop: "0.5rem" }}>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc", marginBottom: "0.5rem" }}>
+                    Standard Features &amp; Integrations Included
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.5rem" }}>
+                    {[
+                      { icon: "💬", title: "WhatsApp Direct Chat", desc: "Instant click-to-chat button connected to your phone" },
+                      { icon: "📋", title: "Line-Item RFQ Quote Engine", desc: "Multi-step quotation form for property owners" },
+                      { icon: "🖼️", title: "Workmanship Photo Gallery", desc: "Before & after project showcase with high-res zoom" },
+                      { icon: "📍", title: "Google Local Search SEO", desc: "Indexed for local suburb searches (Sandton, Pretoria, etc.)" },
+                      { icon: "📧", title: "Custom Business Mailbox", desc: `info@${(businessName || "yourcompany").toLowerCase().replace(/[^a-z0-9]/g, "")}.co.za` },
+                      { icon: "🛡️", title: "SSL Security & Cloud Backups", desc: "Bank-grade encryption and daily automated site backups" },
+                    ].map((f, idx) => (
+                      <div key={idx} style={{ padding: "0.75rem", borderRadius: 10, background: "rgba(13,148,136,0.06)", border: "1px solid rgba(13,148,136,0.15)", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                        <span style={{ fontSize: "1.2rem" }}>{f.icon}</span>
+                        <div>
+                          <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#f8fafc" }}>{f.title}</div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: 2 }}>{f.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 3: COMPANY DOSSIER & LEGAL SPEC SHEET ── */}
+            {activeReviewTab === "plan" && (
+              <div style={{
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(0,0,0,0.25)",
+                padding: "1.25rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.875rem",
+                fontSize: "0.8rem",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "0.5rem" }}>
+                  <div>
+                    <div style={{ fontWeight: 900, color: "#f8fafc", fontSize: "0.95rem" }}>{businessName || "Your Company"}</div>
+                    <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{directorName} &bull; {phone} &bull; {email}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span style={{ color: "#2dd4bf", fontWeight: 800 }}>{selectedPackage} Tier</span>
+                    <div style={{ fontSize: "0.72rem", color: "#38bdf8", fontWeight: 700 }}>
+                      R{PACKAGES.find(p => p.name.toLowerCase() === selectedPackage.toLowerCase())?.fee || 349}/month
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                  <div>
+                    <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>CIPC Registration: </span>
+                    <span style={{ color: "#cbd5e1" }}>{regNumber || "CIPC Pending"}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Registered Address: </span>
+                    <span style={{ color: "#cbd5e1" }}>{address || "Gauteng, South Africa"}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Services ({selectedServices.length}): </span>
+                  <span style={{ color: "#cbd5e1" }}>{selectedServices.join(", ")}</span>
+                </div>
+
+                <div>
+                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Operating Regions: </span>
+                  <span style={{ color: "#cbd5e1" }}>{selectedRegions.join(", ")}</span>
+                </div>
+
+                <div>
+                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Target Clients: </span>
+                  <span style={{ color: "#cbd5e1" }}>{selectedClients.join(", ")}</span>
+                </div>
+
+                <div>
+                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Billing Mode: </span>
+                  <span style={{ color: "#34d399", fontWeight: 700 }}>DebiCheck Debit Order &bull; Month-to-month &bull; Cancel anytime</span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Document Upload Dropzone ── */}
             <div>
-              <label className="portal-label">Upload Logo or CIPC Document (Optional)</label>
+              <label className="portal-label">Upload Company Logo, Brochure, or CIPC Certificate (Optional)</label>
               <div
                 onClick={() => fileInputRef.current?.click()}
                 style={{
@@ -1092,12 +1412,14 @@ function PortalOnboarding() {
                   textAlign: "center",
                   cursor: "pointer",
                   background: "rgba(45,212,191,0.02)",
+                  transition: "all 0.2s",
                 }}
               >
                 <UploadCloud size={20} color="#2dd4bf" style={{ margin: "0 auto 0.25rem", display: "block" }} />
                 <div style={{ fontSize: "0.78rem", color: "#f8fafc", fontWeight: 700 }}>
-                  Click to upload Logo or CIPC Document
+                  Click to select files from your device
                 </div>
+                <div style={{ fontSize: "0.7rem", color: "#64748b" }}>PNG, JPG, or PDF (up to 15MB each)</div>
               </div>
               <input
                 type="file"
@@ -1119,32 +1441,33 @@ function PortalOnboarding() {
               )}
             </div>
 
-            {/* Review Chatbot for quick changes */}
+            {/* ── Creative Live Scope Assistant Chatbot ── */}
             <div style={{
               borderRadius: 14,
-              border: "1px solid rgba(45,212,191,0.2)",
-              background: "rgba(13,148,136,0.04)",
-              padding: "0.875rem",
+              border: "1.5px solid rgba(45,212,191,0.25)",
+              background: "linear-gradient(135deg, rgba(13,148,136,0.06) 0%, rgba(15,23,42,0.4) 100%)",
+              padding: "1rem",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
-                <Bot size={15} color="#2dd4bf" />
-                <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "#f8fafc" }}>
-                  Quick Scope Assistant
+                <Bot size={16} color="#2dd4bf" />
+                <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#f8fafc" }}>
+                  Need a quick tweak? Ask your Live Scope Assistant
                 </span>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: "110px", overflowY: "auto", marginBottom: "0.5rem", padding: "0.4rem", borderRadius: 8, background: "rgba(0,0,0,0.2)" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: "110px", overflowY: "auto", marginBottom: "0.5rem", padding: "0.5rem", borderRadius: 8, background: "rgba(0,0,0,0.3)" }}>
                 {reviewChat.map((m, i) => (
                   <div
                     key={i}
                     style={{
                       fontSize: "0.73rem",
                       color: m.sender === "ai" ? "#2dd4bf" : "#f8fafc",
-                      padding: "0.3rem 0.5rem",
+                      padding: "0.35rem 0.6rem",
                       borderRadius: 6,
-                      background: m.sender === "ai" ? "rgba(13,148,136,0.12)" : "rgba(255,255,255,0.06)",
+                      background: m.sender === "ai" ? "rgba(13,148,136,0.15)" : "rgba(255,255,255,0.06)",
                       alignSelf: m.sender === "ai" ? "flex-start" : "flex-end",
                       maxWidth: "90%",
+                      lineHeight: 1.4,
                     }}
                   >
                     {m.message}
@@ -1154,14 +1477,14 @@ function PortalOnboarding() {
 
               {/* Quick Pills */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
-                {["+ Add Roofing", "+ Add Electrical", "Switch to Build", "Switch to Spark"].map(q => (
+                {["+ Add Roofing", "+ Add Electrical", "Switch to Build (R349)", "Switch to Spark (R199)"].map(q => (
                   <button
                     key={q}
                     type="button"
                     onClick={() => handleBotSubmit(q)}
                     style={{
                       fontSize: "0.68rem",
-                      padding: "2px 7px",
+                      padding: "2px 8px",
                       borderRadius: 999,
                       background: "rgba(255,255,255,0.03)",
                       border: "1px solid rgba(255,255,255,0.08)",
@@ -1177,10 +1500,10 @@ function PortalOnboarding() {
               <div style={{ display: "flex", gap: "0.4rem" }}>
                 <input
                   className="portal-input"
-                  style={{ fontSize: "0.75rem", padding: "0.4rem 0.65rem" }}
+                  style={{ fontSize: "0.75rem", padding: "0.45rem 0.75rem" }}
                   value={reviewInput}
                   onChange={e => setReviewInput(e.target.value)}
-                  placeholder="Need a quick change? Type here..."
+                  placeholder="Tell the assistant: e.g. Add waterproofing, change to Build tier..."
                   onKeyDown={e => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -1199,7 +1522,7 @@ function PortalOnboarding() {
               </div>
             </div>
 
-            {/* Verification Checkbox */}
+            {/* Scope Verification Checkbox */}
             <div style={{
               padding: "0.875rem",
               borderRadius: 12,
@@ -1214,7 +1537,7 @@ function PortalOnboarding() {
                   style={{ marginTop: 2, accentColor: "#10b981", width: 16, height: 16 }}
                 />
                 <div style={{ fontSize: "0.8rem", color: "#f8fafc", lineHeight: 1.4 }}>
-                  <strong>I confirm:</strong> I have reviewed this spec sheet and authorize E&amp;L Digital to configure our build.
+                  <strong>Client Sign-off &amp; Authorization:</strong> I have reviewed this scope and authorize E&amp;L Digital to configure and launch our website.
                 </div>
               </label>
             </div>
