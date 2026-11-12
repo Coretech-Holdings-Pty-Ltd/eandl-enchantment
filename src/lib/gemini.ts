@@ -64,6 +64,11 @@ export interface ScopingResult {
     coreServices?: string[];
     targetMarkets?: string[];
     workingApproach?: string[];
+    vision?: string;
+    mission?: string;
+    coreValues?: string[];
+    whyChooseUs?: string[];
+    aboutUs?: string;
   };
   scopeAdoption?: {
     requestedPlan?: string;

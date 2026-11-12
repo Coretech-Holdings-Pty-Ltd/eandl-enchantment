@@ -94,6 +94,11 @@ function OnboardingPage() {
   const [workingApproach, setWorkingApproach] = useState(
     "1. Client consultation -> 2. Site inspection -> 3. Formal quotation -> 4. Planning & execution -> 5. Quality control -> 6. Handover"
   );
+  const [aboutUs, setAboutUs] = useState("");
+  const [vision, setVision] = useState("");
+  const [mission, setMission] = useState("");
+  const [coreValues, setCoreValues] = useState<string[]>(["Quality", "Precision", "Reliability", "Integrity", "Customer Satisfaction"]);
+  const [whyChooseUs, setWhyChooseUs] = useState("");
 
   // Step 2: AI Chat & Uploads
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -254,7 +259,12 @@ function OnboardingPage() {
             "4. Planning & execution of approved work",
             "5. Quality control & final inspection sign-off",
             "6. Project completion & client handover"
-          ]
+          ],
+          vision: vision || undefined,
+          mission: mission || undefined,
+          coreValues: coreValues.length > 0 ? coreValues : undefined,
+          whyChooseUs: whyChooseUs ? whyChooseUs.split('\n').filter(Boolean) : undefined,
+          aboutUs: aboutUs || undefined,
         },
         scopeAdoption: {
           requestedPlan: "Spark (R199/mo)",
@@ -372,7 +382,21 @@ function OnboardingPage() {
           ai_readiness_score: scopingResult.leadScore || 95,
           ai_recommendation: scopingResult.scopeSummary || `Recommended plan: ${selectedPackage} at R${scopingResult.monthlyFee}/month`,
           required_features: scopingResult.keyFeatures || [],
-          chat_history: messages,
+          chat_history: {
+            messages: messages,
+            dossier: {
+              companyProfile: {
+                ...scopingResult.companyProfile,
+                aboutUs: aboutUs || undefined,
+                vision: vision || undefined,
+                mission: mission || undefined,
+                coreValues: coreValues.length > 0 ? coreValues : undefined,
+                whyChooseUs: whyChooseUs ? whyChooseUs.split('\n').filter(Boolean) : undefined,
+              },
+              scopeAdoption: scopingResult.scopeAdoption,
+            },
+            uploadedAssets: uploadedAssets.map(a => a.name),
+          },
           status: user ? "completed" : "in_progress",
         }, { onConflict: "session_id" });
 
@@ -399,6 +423,11 @@ function OnboardingPage() {
           slogan: tagline || scopingResult.companyProfile?.tagline,
           director_name: contactPerson,
           director_id: directorId,
+          about_us: aboutUs || undefined,
+          vision: vision || undefined,
+          mission: mission || undefined,
+          core_values: coreValues.length > 0 ? coreValues : scopingResult.companyProfile?.coreValues || [],
+          why_choose_us: whyChooseUs ? whyChooseUs.split('\n').filter(Boolean) : [],
           core_services: coreServices.length > 0 ? coreServices : scopingResult.companyProfile?.coreServices || [],
           target_market: targetMarkets.length > 0 ? targetMarkets : scopingResult.companyProfile?.targetMarkets || [],
           working_approach: scopingResult.companyProfile?.workingApproach || [],
@@ -698,6 +727,69 @@ function OnboardingPage() {
                         value={tagline}
                         onChange={e => setTagline(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-foreground mb-1">About Your Company <span className="text-muted-foreground font-normal">(Company Overview)</span></label>
+                      <textarea
+                        rows={3}
+                        placeholder="e.g. First Class Fixers (Pty) Ltd is a property maintenance and renovation company dedicated to providing reliable, professional and high-quality maintenance solutions..."
+                        value={aboutUs}
+                        onChange={e => setAboutUs(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-bold text-foreground mb-1">Our Vision</label>
+                        <textarea
+                          rows={2}
+                          placeholder="e.g. To become a leading and trusted property maintenance company..."
+                          value={vision}
+                          onChange={e => setVision(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-foreground mb-1">Our Mission</label>
+                        <textarea
+                          rows={2}
+                          placeholder="e.g. To provide professional property maintenance services through quality workmanship..."
+                          value={mission}
+                          onChange={e => setMission(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-foreground mb-1">Core Values</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["Quality", "Precision", "Reliability", "Integrity", "Innovation", "Customer Satisfaction", "Transparency", "Excellence"].map(val => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setCoreValues(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val])}
+                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border ${
+                              coreValues.includes(val)
+                                ? "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/30"
+                                : "bg-background text-muted-foreground border-border/60 hover:border-teal-500/40"
+                            }`}
+                          >{val}</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-foreground mb-1">Why Choose Us <span className="text-muted-foreground font-normal">(Key Differentiators)</span></label>
+                      <textarea
+                        rows={3}
+                        placeholder="e.g. Professional and reliable service delivery. Expertise across various property maintenance services. Strong focus on quality workmanship..."
+                        value={whyChooseUs}
+                        onChange={e => setWhyChooseUs(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
                       />
                     </div>
 
