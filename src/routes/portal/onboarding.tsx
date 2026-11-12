@@ -192,8 +192,17 @@ function PortalOnboarding() {
   const [regNumber, setRegNumber] = useState("");
   const [address, setAddress] = useState("");
 
-  const currentIndustryConfig = useMemo(() => {
-    return INDUSTRY_SECTORS.find(s => s.id === selectedIndustry) || INDUSTRY_SECTORS[0];
+  const DEFAULT_INDUSTRY: IndustrySector = INDUSTRY_SECTORS[0] || {
+    id: "services_trades",
+    name: "Trades, Construction & Property",
+    icon: "🔨",
+    description: "Contractors, renovations, plumbing, electrical, maintenance & engineering",
+    sampleServices: ["General Contracting", "Renovations & Alterations", "Plumbing & Repairs", "Electrical & Solar", "Painting & Waterproofing", "Roofing & Ceilings", "Tiling & Paving"],
+    suggestedClients: ["Residential Homeowners", "Body Corporates & Estates", "Commercial Buildings", "Property Managers"]
+  };
+
+  const currentIndustryConfig: IndustrySector = useMemo(() => {
+    return INDUSTRY_SECTORS.find(s => s.id === selectedIndustry) || DEFAULT_INDUSTRY;
   }, [selectedIndustry]);
 
   // ── Step 2: Services & Scale Slider ───────────────────────────────
