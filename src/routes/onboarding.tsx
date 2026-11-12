@@ -5,7 +5,9 @@ import {
   Building, User, Mail, Phone, Rocket, MessageSquare, CheckCircle2,
   Clock, DollarSign, ExternalLink, HelpCircle, Layers, Zap,
   UploadCloud, File, Image as ImageIcon, X, Lock, Eye, EyeOff,
-  FileText, Briefcase, MapPin, Award, TrendingUp, AlertCircle, Plus
+  FileText, Briefcase, MapPin, Award, TrendingUp, AlertCircle, Plus,
+  Layout, ChevronDown, ChevronUp, Pencil, Trash2, Globe, ShoppingCart,
+  Calendar, Image, Star, Users, Settings
 } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import { usePortalAuth } from "@/lib/portal-auth";
 import {
   askGeminiArchitect,
   synthesizeScopeWithGemini,
+  suggestPlatformPagesWithGemini,
   evaluateScopingProgress,
   type ChatMessage,
   type ScopingResult,
@@ -36,6 +39,32 @@ interface UploadedAsset {
   size: number;
   type: string;
 }
+
+interface SitePage {
+  id: string;
+  title: string;
+  purpose: string;
+  sections: string[];
+  isExpanded?: boolean;
+}
+
+const FEATURE_OPTIONS = [
+  { id: "rfq", label: "RFQ / Quote Request Form", icon: "📋" },
+  { id: "gallery", label: "Before & After Project Gallery", icon: "🖼" },
+  { id: "booking", label: "Appointment / Booking System", icon: "📅" },
+  { id: "whatsapp", label: "WhatsApp Live Chat Button", icon: "💬" },
+  { id: "google_profile", label: "Google Business Profile Setup", icon: "📍" },
+  { id: "mailbox", label: "Professional Business Mailbox", icon: "📧" },
+  { id: "ecommerce", label: "eCommerce / Online Store", icon: "🛒" },
+  { id: "blog", label: "Blog / News Articles", icon: "📰" },
+  { id: "testimonials", label: "Client Testimonials / Reviews", icon: "⭐" },
+  { id: "live_chat", label: "Live Chat Support Widget", icon: "🤖" },
+  { id: "seo", label: "SEO & Local Search Optimisation", icon: "🔍" },
+  { id: "portal", label: "Client / Member Login Portal", icon: "🔐" },
+  { id: "paystack", label: "Paystack / Online Payments", icon: "💳" },
+  { id: "map", label: "Interactive Map & Directions", icon: "🗺" },
+  { id: "social_feed", label: "Social Media Feed Integration", icon: "📱" },
+];
 
 const AVAILABLE_PLANS = [
   { name: "Spark", fee: 199, desc: "1-Page Presence, Hosting & Domain (Best for single-service side gigs)" },
@@ -69,8 +98,8 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const { user, profile, register } = usePortalAuth();
 
-  // Wizard Steps: 1 = Business Intake, 2 = AI Chat (if AI mode), 3 = Scope Review Dossier & Plan, 4 = Ready / Account
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  // Wizard Steps: 1=Business Intake, 2=AI Chat, 2.5=Page & Feature Planning, 2.75=Scope Verify, 3=Dossier+Plan, 4=Account
+  const [step, setStep] = useState<1 | 2 | 2.5 | 2.75 | 3 | 4>(1);
 
   // Intake Mode: "ai" (Conversational Gemini Architect) vs "form" (Detailed Structured Intake)
   const [intakeMode, setIntakeMode] = useState<"ai" | "form">("ai");
@@ -113,6 +142,17 @@ function OnboardingPage() {
   const [scopingResult, setScopingResult] = useState<ScopingResult | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<string>("Build");
   const [isSaving, setIsSaving] = useState(false);
+
+  // ── Step 2.5: Pages & Features Planning ──────────────────────────
+  const [sitePages, setSitePages] = useState<SitePage[]>([]);
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(["rfq", "whatsapp", "google_profile", "mailbox"]);
+  const [newPageTitle, setNewPageTitle] = useState("");
+  const [newPagePurpose, setNewPagePurpose] = useState("");
+  const [isAiSuggestingPages, setIsAiSuggestingPages] = useState(false);
+  const [pagesSuggested, setPagesSuggested] = useState(false);
+
+  // ── Step 2.75: Scope Verification ────────────────────────────────
+  const [scopeVerified, setScopeVerified] = useState(false);
 
   // Step 4: Account creation state for guests
   const [accountPassword, setAccountPassword] = useState("");
@@ -188,6 +228,76 @@ function OnboardingPage() {
       setTargetMarkets(prev => prev.filter(m => m !== mkt));
     } else {
       setTargetMarkets(prev => [...prev, mkt]);
+    }
+  };
+
+  // ── Pages & Features Management ──────────────────────────────────
+  const handleToggleFeature = (fId: string) => {
+    setSelectedFeatures(prev =>
+      prev.includes(fId) ? prev.filter(f => f !== fId) : [...prev, fId]
+    );
+  };
+
+  const handleAddPage = () => {
+    if (!newPageTitle.trim()) return;
+    const newPage: SitePage = {
+      id: `custom_page_${Date.now()}`,
+      title: newPageTitle.trim(),
+      purpose: newPagePurpose.trim() || "Dedicated business conversion page",
+      sections: ["Hero Header & Introduction", "Key Details & Content", "Direct Call to Action"],
+      isExpanded: true,
+    };
+    setSitePages(prev => [...prev, newPage]);
+    setNewPageTitle("");
+    setNewPagePurpose("");
+  };
+
+  const handleDeletePage = (id: string) => {
+    setSitePages(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleTogglePageExpand = (id: string) => {
+    setSitePages(prev =>
+      prev.map(p => (p.id === id ? { ...p, isExpanded: !p.isExpanded } : p))
+    );
+  };
+
+  const handleAddSectionToPage = (pageId: string, sectionText: string) => {
+    if (!sectionText.trim()) return;
+    setSitePages(prev =>
+      prev.map(p =>
+        p.id === pageId
+          ? { ...p, sections: [...p.sections, sectionText.trim()] }
+          : p
+      )
+    );
+  };
+
+  const handleRemoveSectionFromPage = (pageId: string, sectionIdx: number) => {
+    setSitePages(prev =>
+      prev.map(p =>
+        p.id === pageId
+          ? { ...p, sections: p.sections.filter((_, idx) => idx !== sectionIdx) }
+          : p
+      )
+    );
+  };
+
+  const handleRegeneratePagesWithAi = async () => {
+    setIsAiSuggestingPages(true);
+    try {
+      const suggested = await suggestPlatformPagesWithGemini({
+        businessName,
+        industry,
+        coreServices,
+        targetMarkets,
+      });
+      setSitePages(suggested);
+      setPagesSuggested(true);
+    } catch (err) {
+      console.warn("AI page generator error:", err);
+    } finally {
+      setIsAiSuggestingPages(false);
     }
   };
 
@@ -292,7 +402,7 @@ function OnboardingPage() {
 
       setScopingResult(dossier);
       setSelectedPackage(recommendedPkg);
-      setStep(3);
+      setStep(2.5);
     } finally {
       setIsSynthesizing(false);
     }
@@ -343,9 +453,35 @@ function OnboardingPage() {
       if (operatingAreas && result.companyProfile) result.companyProfile.operatingAreas = operatingAreas;
       if (tagline && result.companyProfile) result.companyProfile.tagline = tagline;
 
+      // Extract or generate site pages
+      let pagesToUse = sitePages;
+      if (pagesToUse.length === 0) {
+        if (result.platformArchitecture?.suggestedPages?.length) {
+          pagesToUse = result.platformArchitecture.suggestedPages.map((p, idx) => ({
+            id: `p_${idx}`,
+            title: p.title,
+            purpose: p.purpose,
+            sections: p.sections || [
+              "Overview & Value Proposition",
+              "Service Details & Specifications",
+              "Direct Inquiry & Call to Action"
+            ],
+            isExpanded: idx === 0
+          }));
+        } else {
+          pagesToUse = await suggestPlatformPagesWithGemini({
+            businessName,
+            industry,
+            coreServices,
+            targetMarkets
+          });
+        }
+        setSitePages(pagesToUse);
+      }
+
       setScopingResult(result);
       setSelectedPackage(result.recommendedPackage);
-      setStep(3);
+      setStep(2.5);
     } catch (err) {
       console.warn("Synthesis fallback:", err);
       await handleSynthesizeFormScope();
@@ -361,6 +497,12 @@ function OnboardingPage() {
 
     try {
       const sessionId = "ob_web_" + Date.now();
+      const finalPages = sitePages.map(p => ({
+        title: p.title,
+        purpose: p.purpose,
+        sections: p.sections
+      }));
+      const finalFeatures = selectedFeatures.map(f => FEATURE_OPTIONS.find(o => o.id === f)?.label || f);
 
       // 1. Save to partner.onboardings
       await partnerSchema()
@@ -381,7 +523,7 @@ function OnboardingPage() {
           total_steps: 4,
           ai_readiness_score: scopingResult.leadScore || 95,
           ai_recommendation: scopingResult.scopeSummary || `Recommended plan: ${selectedPackage} at R${scopingResult.monthlyFee}/month`,
-          required_features: scopingResult.keyFeatures || [],
+          required_features: finalFeatures,
           chat_history: {
             messages: messages,
             dossier: {
@@ -394,6 +536,13 @@ function OnboardingPage() {
                 whyChooseUs: whyChooseUs ? whyChooseUs.split('\n').filter(Boolean) : undefined,
               },
               scopeAdoption: scopingResult.scopeAdoption,
+              platformArchitecture: {
+                suggestedPages: finalPages,
+                integrations: finalFeatures
+              },
+              scopeVerified: true,
+              verifiedBy: `${contactPerson} (${businessName})`,
+              verifiedAt: new Date().toISOString()
             },
             uploadedAssets: uploadedAssets.map(a => a.name),
           },
@@ -435,7 +584,13 @@ function OnboardingPage() {
           dossier: {
             projectTitle: scopingResult.projectTitle,
             leadScore: scopingResult.leadScore,
-            platformArchitecture: scopingResult.platformArchitecture,
+            platformArchitecture: {
+              suggestedPages: finalPages,
+              integrations: finalFeatures
+            },
+            scopeVerified: true,
+            verifiedBy: `${contactPerson} (${businessName})`,
+            verifiedAt: new Date().toISOString()
           }
         };
 
@@ -507,33 +662,40 @@ function OnboardingPage() {
             </p>
 
             {/* Stepper Bar */}
-            <div className="flex items-center justify-center gap-3 pt-4 text-xs font-bold">
-              <div className={`flex items-center gap-2 ${step >= 1 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 1 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+            <div className="flex items-center justify-center gap-2 sm:gap-3 pt-4 text-xs font-bold flex-wrap">
+              <div className={`flex items-center gap-1.5 ${step >= 1 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
+                <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 1 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
                   1
                 </span>
-                <span>Profile &amp; Intake</span>
+                <span>Profile</span>
               </div>
-              <div className={`w-10 h-0.5 ${step >= 2 ? "bg-teal-600" : "bg-border"}`} />
-              <div className={`flex items-center gap-2 ${step >= 2 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+              <div className={`w-6 sm:w-8 h-0.5 ${step >= 2 ? "bg-teal-600" : "bg-border"}`} />
+              <div className={`flex items-center gap-1.5 ${step >= 2 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
+                <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
                   2
                 </span>
-                <span>{intakeMode === "ai" ? "AI Scoping" : "Review Ready"}</span>
+                <span>Scoping</span>
               </div>
-              <div className={`w-10 h-0.5 ${step >= 3 ? "bg-teal-600" : "bg-border"}`} />
-              <div className={`flex items-center gap-2 ${step >= 3 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+              <div className={`w-6 sm:w-8 h-0.5 ${step >= 2.5 ? "bg-teal-600" : "bg-border"}`} />
+              <div className={`flex items-center gap-1.5 ${step >= 2.5 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
+                <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2.5 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
                   3
                 </span>
-                <span>Scope Dossier</span>
+                <span>Pages &amp; Features</span>
               </div>
-              <div className={`w-10 h-0.5 ${step >= 4 ? "bg-teal-600" : "bg-border"}`} />
-              <div className={`flex items-center gap-2 ${step >= 4 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 4 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+              <div className={`w-6 sm:w-8 h-0.5 ${step >= 2.75 ? "bg-teal-600" : "bg-border"}`} />
+              <div className={`flex items-center gap-1.5 ${step >= 2.75 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
+                <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2.75 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
                   4
                 </span>
-                <span>Ready</span>
+                <span>Verify Scope</span>
+              </div>
+              <div className={`w-6 sm:w-8 h-0.5 ${step >= 3 ? "bg-teal-600" : "bg-border"}`} />
+              <div className={`flex items-center gap-1.5 ${step >= 3 ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}>
+                <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? "bg-teal-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+                  5
+                </span>
+                <span>Plan &amp; Activate</span>
               </div>
             </div>
           </div>
@@ -1085,6 +1247,461 @@ function OnboardingPage() {
           )}
 
           {/* ════════════════════════════════════════════════════════════════════
+             STEP 2.5: PAGES & FEATURES ARCHITECT (AI-ASSISTED PLANNER)
+             ════════════════════════════════════════════════════════════════════ */}
+          {step === 2.5 && (
+            <div className="rounded-3xl border border-glass-border bg-card p-6 sm:p-10 shadow-xl space-y-6 animate-in fade-in duration-200">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border/60">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 dark:text-teal-400 tracking-wider uppercase mb-1">
+                    <Layout size={14} />
+                    <span>PLATFORM ARCHITECTURE &bull; PAGES &amp; FEATURES</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-foreground">
+                    Customize Your Pages &amp; Features Blueprint
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Define the exact pages your website should have and what content each page must contain. Let our AI Architect suggest modules tailored for <strong>{businessName}</strong>.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    type="button"
+                    onClick={handleRegeneratePagesWithAi}
+                    disabled={isAiSuggestingPages}
+                    variant="glass"
+                    className="pill-button text-xs font-bold py-2 px-3.5 border-teal-500/30 text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20"
+                  >
+                    <Sparkles size={13} className={isAiSuggestingPages ? "animate-spin" : ""} />
+                    <span>{isAiSuggestingPages ? "Architecting..." : "Re-Architect with AI"}</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Part A: Page Structure Breakdown */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Globe size={14} className="text-teal-600" />
+                    <span>Planned Pages ({sitePages.length} pages planned)</span>
+                  </h3>
+                  <span className="text-[11px] text-muted-foreground">Click any page to expand &amp; inspect its content sections</span>
+                </div>
+
+                {sitePages.length === 0 ? (
+                  <div className="p-8 text-center rounded-2xl border border-dashed border-border bg-secondary/30 space-y-3">
+                    <Layout className="w-8 h-8 text-muted-foreground mx-auto opacity-50" />
+                    <p className="font-bold text-foreground text-xs">No pages configured yet</p>
+                    <p className="text-[11px] text-muted-foreground">Click below to generate an AI sitemap blueprint or add custom pages manually.</p>
+                    <Button
+                      type="button"
+                      onClick={handleRegeneratePagesWithAi}
+                      variant="brand"
+                      className="pill-button text-xs font-bold py-2 px-4"
+                    >
+                      <Sparkles size={13} /> Generate Suggested Pages with AI
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sitePages.map((page, pIdx) => (
+                      <div
+                        key={page.id}
+                        className="rounded-2xl border border-border/70 bg-secondary/30 overflow-hidden transition-all hover:border-teal-500/40"
+                      >
+                        {/* Page Header Strip */}
+                        <div
+                          onClick={() => handleTogglePageExpand(page.id)}
+                          className="p-4 flex items-center justify-between cursor-pointer bg-secondary/40 hover:bg-secondary/60 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="w-7 h-7 rounded-xl bg-teal-500/15 text-teal-700 dark:text-teal-300 text-xs font-extrabold flex items-center justify-center shrink-0 border border-teal-500/30">
+                              {pIdx + 1}
+                            </span>
+                            <div className="min-w-0">
+                              <span className="font-bold text-sm text-foreground truncate block">{page.title}</span>
+                              <span className="text-[11px] text-muted-foreground truncate block">{page.purpose}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-background text-muted-foreground border border-border/60">
+                              {page.sections.length} sections
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePage(page.id);
+                              }}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                              title="Delete Page"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                            <span className="text-muted-foreground">
+                              {page.isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Page Expanded Section Editor */}
+                        {page.isExpanded && (
+                          <div className="p-4 sm:p-5 border-t border-border/60 bg-background/50 space-y-4 text-xs animate-in fade-in duration-150">
+                            {/* Page metadata inputs */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block font-bold text-foreground mb-1">Page Title</label>
+                                <input
+                                  type="text"
+                                  value={page.title}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setSitePages(prev => prev.map(p => p.id === page.id ? { ...p, title: val } : p));
+                                  }}
+                                  className="w-full px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                                />
+                              </div>
+                              <div>
+                                <label className="block font-bold text-foreground mb-1">Page Purpose &amp; Conversion Goal</label>
+                                <input
+                                  type="text"
+                                  value={page.purpose}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setSitePages(prev => prev.map(p => p.id === page.id ? { ...p, purpose: val } : p));
+                                  }}
+                                  className="w-full px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Section Modules on this page */}
+                            <div>
+                              <label className="block font-bold text-foreground mb-1.5">
+                                Content Sections &amp; Modules on this page:
+                              </label>
+                              <div className="space-y-1.5 mb-2.5">
+                                {page.sections.map((sec, sIdx) => (
+                                  <div
+                                    key={sIdx}
+                                    className="flex items-center justify-between gap-2 p-2 rounded-xl bg-secondary/50 border border-border/60 text-xs"
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <span className="w-4 h-4 rounded-full bg-teal-500/20 text-teal-700 dark:text-teal-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                        {sIdx + 1}
+                                      </span>
+                                      <span className="text-foreground truncate">{sec}</span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSectionFromPage(page.id, sIdx)}
+                                      className="text-muted-foreground hover:text-red-500 p-1"
+                                      title="Remove Section"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Add Section Input */}
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Add another section module to this page (e.g. Workmanship Warranty Terms)..."
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      const input = e.currentTarget as HTMLInputElement;
+                                      handleAddSectionToPage(page.id, input.value);
+                                      input.value = "";
+                                    }
+                                  }}
+                                  id={`new_sec_input_${page.id}`}
+                                  className="flex-1 px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    const input = document.getElementById(`new_sec_input_${page.id}`) as HTMLInputElement;
+                                    if (input && input.value) {
+                                      handleAddSectionToPage(page.id, input.value);
+                                      input.value = "";
+                                    }
+                                  }}
+                                  variant="glass"
+                                  className="pill-button text-xs py-1 px-3"
+                                >
+                                  <Plus size={12} /> Add Section
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Custom Page Form */}
+                <div className="p-4 rounded-2xl border border-dashed border-border/80 bg-background/50 space-y-3">
+                  <div className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                    <Plus size={13} className="text-teal-600" />
+                    <span>Add Another Custom Page</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <input
+                      type="text"
+                      placeholder="Page title (e.g. Health & Safety / B-BBEE)..."
+                      value={newPageTitle}
+                      onChange={e => setNewPageTitle(e.target.value)}
+                      className="px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Page purpose (e.g. Compliance certification)..."
+                        value={newPagePurpose}
+                        onChange={e => setNewPagePurpose(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && (e.preventDefault(), handleAddPage())}
+                        className="flex-1 px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAddPage}
+                        disabled={!newPageTitle.trim()}
+                        variant="glass"
+                        className="pill-button text-xs py-1 px-3.5 whitespace-nowrap"
+                      >
+                        <Plus size={12} /> Add Page
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Part B: Interactive Platform Features */}
+              <div className="space-y-3 pt-4 border-t border-border/60">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <Zap size={14} className="text-teal-600" />
+                      <span>Platform Capabilities &amp; Conversion Features</span>
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Select the features and integrations required for your business platform:</p>
+                  </div>
+                  <span className="text-[11px] font-bold text-teal-700 dark:text-teal-400 font-mono">
+                    {selectedFeatures.length} active
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {FEATURE_OPTIONS.map((feat) => {
+                    const isSelected = selectedFeatures.includes(feat.id);
+                    return (
+                      <div
+                        key={feat.id}
+                        onClick={() => handleToggleFeature(feat.id)}
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-2.5 text-xs ${
+                          isSelected
+                            ? "bg-teal-500/15 border-teal-500/40 text-foreground font-bold shadow-xs"
+                            : "bg-secondary/30 border-border/60 text-muted-foreground hover:border-teal-500/30"
+                        }`}
+                      >
+                        <span className="text-base">{feat.icon}</span>
+                        <span className="flex-1 text-[11px] leading-tight">{feat.label}</span>
+                        <div
+                          className={`w-4 h-4 rounded-md flex items-center justify-center border text-[10px] ${
+                            isSelected ? "bg-teal-600 text-white border-teal-600" : "border-border bg-background"
+                          }`}
+                        >
+                          {isSelected && <Check size={10} strokeWidth={3} />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Navigation Actions */}
+              <div className="pt-4 flex justify-between items-center border-t border-border/60">
+                <Button
+                  type="button"
+                  onClick={() => setStep(intakeMode === "ai" ? 2 : 1)}
+                  variant="glass"
+                  className="pill-button text-xs font-bold px-4"
+                >
+                  <ArrowLeft size={13} /> Back
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => setStep(2.75)}
+                  disabled={sitePages.length === 0}
+                  variant="brand"
+                  className="pill-button font-bold text-sm px-6"
+                >
+                  Proceed to Scope Verification &rarr;
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════
+             STEP 2.75: SCOPE VERIFICATION & CLIENT APPROVAL
+             ════════════════════════════════════════════════════════════════════ */}
+          {step === 2.75 && (
+            <div className="rounded-3xl border border-glass-border bg-card p-6 sm:p-10 shadow-xl space-y-6 animate-in fade-in duration-200">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-baseline gap-3 pb-4 border-b border-border/60">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 dark:text-teal-400 tracking-wider uppercase mb-1">
+                    <ShieldCheck size={14} />
+                    <span>CLIENT SCOPE VERIFICATION &amp; SIGN-OFF</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-foreground">
+                    Verify Your Platform Blueprint Before Submission
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Please review all captured company details, planned pages, and selected features. You must verify this scope before proceeding to plan confirmation.
+                  </p>
+                </div>
+              </div>
+
+              {/* 1. Verified Company Identity */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-secondary/40 border border-border/60 space-y-3 text-xs">
+                <div className="font-bold text-foreground uppercase tracking-wider text-[11px] text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
+                  <Building size={13} />
+                  <span>Company Credentials &amp; Identity</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-foreground">
+                  <div><span className="text-muted-foreground block text-[10px]">Registered Name</span><strong>{businessName}</strong></div>
+                  <div><span className="text-muted-foreground block text-[10px]">CIPC Registration Number</span><strong>{regNumber || "2025/670159/07"}</strong></div>
+                  <div><span className="text-muted-foreground block text-[10px]">Director / Contact</span><strong>{contactPerson} ({phone})</strong></div>
+                  <div><span className="text-muted-foreground block text-[10px]">Registered Address</span><strong>{address || "1268 Drieziek 4 Orange Farm, Johannesburg"}</strong></div>
+                  <div><span className="text-muted-foreground block text-[10px]">Operating Areas</span><strong>{operatingAreas || "Gauteng"}</strong></div>
+                  <div><span className="text-muted-foreground block text-[10px]">Tagline</span><em>"{tagline || "Quality Workmanship. Precision. Reliability."}"</em></div>
+                </div>
+              </div>
+
+              {/* 2. Planned Page Architecture */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-secondary/40 border border-border/60 space-y-3 text-xs">
+                <div className="font-bold text-foreground uppercase tracking-wider text-[11px] text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
+                  <Layout size={13} />
+                  <span>Verified Page Structure ({sitePages.length} Pages)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {sitePages.map((page, idx) => (
+                    <div key={page.id} className="p-3 rounded-xl bg-background/60 border border-border/50 text-xs space-y-1">
+                      <div className="font-bold text-foreground flex items-center gap-1.5">
+                        <span className="w-4 h-4 rounded-md bg-teal-500/20 text-teal-700 dark:text-teal-300 text-[10px] flex items-center justify-center font-black">
+                          {idx + 1}
+                        </span>
+                        <span>{page.title}</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{page.purpose}</p>
+                      <div className="pt-1.5 flex flex-wrap gap-1">
+                        {page.sections.map((s, sIdx) => (
+                          <span key={sIdx} className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-secondary text-muted-foreground border border-border/40">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Selected Platform Features */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-secondary/40 border border-border/60 space-y-3 text-xs">
+                <div className="font-bold text-foreground uppercase tracking-wider text-[11px] text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
+                  <Zap size={13} />
+                  <span>Approved Features &amp; Conversion Modules ({selectedFeatures.length})</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedFeatures.map(fId => {
+                    const feat = FEATURE_OPTIONS.find(o => o.id === fId);
+                    return (
+                      <span key={fId} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-teal-500/15 border border-teal-500/30 text-teal-800 dark:text-teal-300 text-xs font-semibold">
+                        <span>{feat?.icon || "✓"}</span>
+                        <span>{feat?.label || fId}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 4. Strategic Scope Adoption Analysis */}
+              {scopingResult?.scopeAdoption && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3 text-xs">
+                  <div className="font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <TrendingUp size={13} />
+                    <span>Scope Adoption Intelligence &amp; Plan Right-Sizing</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Client Requested Plan</span>
+                      <strong className="text-foreground">{scopingResult.scopeAdoption.requestedPlan || "Spark (R199/mo)"}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">AI Architect Recommended</span>
+                      <strong className="text-emerald-700 dark:text-emerald-400 font-extrabold">{scopingResult.scopeAdoption.recommendedPlan || "Build (R349/mo)"}</strong>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed pt-1 border-t border-amber-500/20">
+                    {scopingResult.scopeAdoption.rationale}
+                  </p>
+                </div>
+              )}
+
+              {/* Mandatory Client Sign-Off Checkbox */}
+              <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={scopeVerified}
+                    onChange={e => setScopeVerified(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-border"
+                  />
+                  <div className="text-xs">
+                    <span className="font-bold text-foreground block">
+                      I, {contactPerson || "Client"}, on behalf of {businessName || "our company"}, have reviewed and verified this platform architecture, page structure, and service scope.
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                      By verifying, I authorize E&amp;L Digital to provision our engineering deliverables based on this blueprint. Digital mandate signing will be triggered upon administrative review and conversion.
+                    </span>
+                  </div>
+                </label>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-4 flex justify-between items-center border-t border-border/60">
+                <Button
+                  type="button"
+                  onClick={() => setStep(2.5)}
+                  variant="glass"
+                  className="pill-button text-xs font-bold px-4"
+                >
+                  <ArrowLeft size={13} /> Edit Pages &amp; Features
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  disabled={!scopeVerified}
+                  variant="brand"
+                  className="pill-button font-bold text-sm px-6"
+                >
+                  Confirm Scope &amp; Select Plan &rarr;
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════
              STEP 3: KIRA-STYLE COMPREHENSIVE SCOPE REVIEW DOSSIER
              ════════════════════════════════════════════════════════════════════ */}
           {step === 3 && scopingResult && (
@@ -1311,6 +1928,10 @@ function OnboardingPage() {
                   <span className="font-bold text-teal-700 dark:text-teal-300">{selectedPackage}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
+                  <span>Planned Pages:</span>
+                  <span className="font-bold text-foreground">{sitePages.length} Pages Verified</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
                   <span>Contact Email:</span>
                   <span className="font-bold text-foreground">{email}</span>
                 </div>
@@ -1320,6 +1941,17 @@ function OnboardingPage() {
                     <span className="font-bold text-foreground">{operatingAreas}</span>
                   </div>
                 )}
+              </div>
+
+              {/* Activation Roadmap Alert */}
+              <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/25 max-w-md mx-auto text-left text-xs space-y-2">
+                <div className="font-bold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
+                  <Clock size={14} />
+                  <span>Next Step: Admin Approval &amp; Mandate Activation</span>
+                </div>
+                <p className="text-muted-foreground text-[11px] leading-relaxed">
+                  Your verified scope is now under engineering review. Once our admin team approves and converts your project from the admin portal, your <strong>NFS DebiCheck debit order mandate</strong> will unlock in your client dashboard for electronic signing.
+                </p>
               </div>
 
               {/* If user is ALREADY logged in: instant link to portal */}

@@ -77,7 +77,7 @@ export interface ScopingResult {
     upsellFeatures?: string[];
   };
   platformArchitecture?: {
-    suggestedPages?: { title: string; purpose: string }[];
+    suggestedPages?: { title: string; purpose: string; sections?: string[] }[];
     integrations?: string[];
   };
 }
@@ -551,4 +551,201 @@ Instructions:
     return `Signature deep slate (#0F172A) complemented by energetic teal (#0D9488) and crisp silver-white accents for an elevated executive aesthetic.`;
   }
   return val || `${biz} — Premium ${ind} solutions tailored for modern client success.`;
+}
+
+export interface SuggestedPageItem {
+  id: string;
+  title: string;
+  purpose: string;
+  sections: string[];
+}
+
+/**
+ * Intelligent AI Page & Feature Architect.
+ * Generates structured pages and section contents tailored to the company's service lines and target markets.
+ */
+export async function suggestPlatformPagesWithGemini(context: {
+  businessName: string;
+  industry?: string;
+  coreServices?: string[];
+  targetMarkets?: string[];
+}): Promise<SuggestedPageItem[]> {
+  const biz = context.businessName || "Our Client";
+  const ind = context.industry || "General Business";
+  const services = (context.coreServices && context.coreServices.length > 0)
+    ? context.coreServices
+    : ["Property Maintenance", "Renovations", "Waterproofing", "Painting"];
+  const markets = (context.targetMarkets && context.targetMarkets.length > 0)
+    ? context.targetMarkets
+    : ["Residential Homeowners", "Commercial Estates", "Body Corporates"];
+
+  if (API_KEY) {
+    try {
+      const prompt = `You are a Senior Web Solutions Architect at E&L Digital.
+Architect the ideal sitemap and page contents for "${biz}" (Industry: ${ind}).
+Core Services offered: ${services.join(", ")}
+Target Audience: ${markets.join(", ")}
+
+Generate a complete list of 4 to 6 recommended pages for their website.
+For each page, define:
+1. "title": Crisp page title (e.g. "Home", "Services Hub", "Commercial & Estates", "Projects Gallery", "About & Compliance", "Request a Quote")
+2. "purpose": Why this page exists and how it converts visitors.
+3. "sections": Array of 3-5 specific content modules that must be on this page (e.g. "Hero Banner & CIPC Badges", "Service Breakdown Grid", "Before/After Workmanship Slider", "Instant RFQ Form").
+
+Return ONLY a valid JSON array of objects:
+[
+  {
+    "title": "Home",
+    "purpose": "First impressions, trust credentials & direct call to action",
+    "sections": ["Hero Banner with CIPC Verification", "Core Services Quick-Nav", "Why Choose Us Highlights", "Client Testimonials & Google Rating", "WhatsApp & Callout CTA"]
+  }
+]`;
+
+      const res = await callGemini({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 1000, temperature: 0.6 }
+      });
+
+      if (res && res.ok) {
+        const data = await res.json();
+        const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (raw) {
+          const cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+          const parsed = JSON.parse(cleaned);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map((p, idx) => ({
+              id: `page_${Date.now()}_${idx}`,
+              title: p.title || `Page ${idx + 1}`,
+              purpose: p.purpose || "Conversion page",
+              sections: Array.isArray(p.sections) ? p.sections : ["Hero Section", "Key Content", "Call to Action"],
+            }));
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[Gemini] Page architect error:", err);
+    }
+  }
+
+  // Instant Tailored Fallback
+  const isMaintenanceOrContractor = services.some(s =>
+    /paint|waterproof|tile|plumb|renovat|fix|repair|construct|estate/i.test(s)
+  );
+
+  if (isMaintenanceOrContractor) {
+    return [
+      {
+        id: "p_home",
+        title: "Home",
+        purpose: "Establish immediate credibility, highlight registered CIPC standing, and funnel visitors into quotations.",
+        sections: [
+          "Hero Banner with CIPC Registration Badge & Free Inspection CTA",
+          `Core Service Capabilities Grid (${services.slice(0, 4).join(", ")})`,
+          "Why Choose Us & 6-Step Working Methodology Overview",
+          "Before & After Workmanship Project Highlights",
+          "Direct WhatsApp Consultation & Quick Contact Drawer"
+        ]
+      },
+      {
+        id: "p_services",
+        title: "Specialized Services",
+        purpose: "Comprehensive breakdown of all individual trade divisions with technical specifications and scope of work.",
+        sections: [
+          "Service Catalog Header & Operating Standards",
+          ...services.slice(0, 4).map(s => `${s}: Process, Materials & Maintenance Guarantees`),
+          "Common Property Defects & Preventative Solutions Guide",
+          "Interactive Quotation Estimator Trigger"
+        ]
+      },
+      {
+        id: "p_commercial",
+        title: "Commercial & Estate Solutions",
+        purpose: "Dedicated conversion page for Property Managers, Body Corporates, HOAs, and Real Estate Agencies.",
+        sections: [
+          "Commercial Facilities Maintenance Value Proposition",
+          "SLA Retainer Options & Priority Emergency Callout Terms",
+          "Body Corporate Compliance & Safety Standards Overview",
+          "Formal RFQ Tender Submission Form"
+        ]
+      },
+      {
+        id: "p_gallery",
+        title: "Workmanship Gallery",
+        purpose: "Showcase completed projects with high-resolution before-and-after imagery to prove craftsmanship.",
+        sections: [
+          "Interactive Filterable Project Portfolio (Residential vs Commercial)",
+          "Before & After Renovation Sliders with Work Descriptions",
+          "Site Inspection Quality Assurance Sign-off Badges",
+          "Client Reviews & Recommendation Letters"
+        ]
+      },
+      {
+        id: "p_about",
+        title: "About & Compliance",
+        purpose: "Deep-dive into company history, director leadership, safety compliance, and registered credentials.",
+        sections: [
+          "Company Mission, Vision & Core Values",
+          "Director Profile & Team Experience",
+          "Official CIPC & Compliance Documentation Vault",
+          "Service Guarantees & Workmanship Warranty Terms"
+        ]
+      },
+      {
+        id: "p_contact",
+        title: "Request a Quote / Contact",
+        purpose: "High-converting multi-step RFQ quotation engine with site inspection scheduling.",
+        sections: [
+          "Interactive RFQ Form with Property Type & Service Selection",
+          "Photo & Document Upload for Remote Damage Assessment",
+          "Operating Regions & Coverage Map (Gauteng / Regional)",
+          "Direct Phone, WhatsApp, and Emergency Dispatch Contacts"
+        ]
+      }
+    ];
+  }
+
+  return [
+    {
+      id: "p_home",
+      title: "Home",
+      purpose: "Hero positioning, core values & primary call to action.",
+      sections: [
+        "Executive Hero Header with Tagline & Value Proposition",
+        "Primary Capabilities & Services Showcase",
+        "Trust Badges, Client Testimonials & Social Proof",
+        "Inbound Inquiry & Consultation Trigger"
+      ]
+    },
+    {
+      id: "p_services",
+      title: "Services & Capabilities",
+      purpose: "Detailed overview of solutions provided.",
+      sections: [
+        "Detailed Capabilities Breakdown",
+        "Process & Methodology Walkthrough",
+        "Pricing / Package Tiers Comparison",
+        "Custom Scope Request CTA"
+      ]
+    },
+    {
+      id: "p_about",
+      title: "About Us & Credentials",
+      purpose: "Build trust with director background, company mission, and verified credentials.",
+      sections: [
+        "Mission, Vision & Core Values",
+        "Leadership Background & Track Record",
+        "Compliance & Accreditation Badges"
+      ]
+    },
+    {
+      id: "p_contact",
+      title: "Contact & Consultation",
+      purpose: "Capture qualified leads and schedule initial project discovery.",
+      sections: [
+        "Multi-channel Contact Form",
+        "Physical Office Address & Operating Hours",
+        "Direct WhatsApp & Phone Click-to-Action"
+      ]
+    }
+  ];
 }

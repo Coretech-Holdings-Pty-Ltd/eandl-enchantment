@@ -240,8 +240,10 @@ function PortalDashboard() {
         </div>
       )}
 
-      {/* ── NFS Debit Order Mandate Signing Card (Shown whenever mandate is pending) ── */}
-      {client?.mandateStatus !== "authorized" && (
+      {/* ── NFS Debit Order Mandate Signing Card
+           Only shown AFTER admin converts the client (client record exists).
+           Pre-conversion clients see the "awaiting approval" banner above instead. ── */}
+      {client && client?.mandateStatus !== "authorized" && (
         <div className="portal-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(239,68,68,0.45)", background: "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(15,23,42,0.6))" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
             <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(239,68,68,0.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
