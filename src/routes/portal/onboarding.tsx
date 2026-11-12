@@ -39,69 +39,135 @@ interface UploadedAsset {
   dataUrl?: string;
 }
 
+export interface IndustrySector {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  sampleServices: string[];
+  suggestedClients: string[];
+}
+
+const INDUSTRY_SECTORS: IndustrySector[] = [
+  {
+    id: "services_trades",
+    name: "Trades, Construction & Property",
+    icon: "🔨",
+    description: "Contractors, renovations, plumbing, electrical, maintenance & engineering",
+    sampleServices: ["General Contracting", "Renovations & Alterations", "Plumbing & Repairs", "Electrical & Solar", "Painting & Waterproofing", "Roofing & Ceilings", "Tiling & Paving"],
+    suggestedClients: ["Residential Homeowners", "Body Corporates & Estates", "Commercial Buildings", "Property Managers"]
+  },
+  {
+    id: "professional_services",
+    name: "Professional & Corporate Services",
+    icon: "💼",
+    description: "Law firms, accounting, tax, business consulting, HR & financial advisory",
+    sampleServices: ["Business Advisory & Strategy", "Accounting & Bookkeeping", "Tax Compliance & Filing", "Legal Consulting & Contracts", "Corporate HR & Talent", "Financial Planning & Wealth"],
+    suggestedClients: ["Small & Medium Enterprises", "Corporate Executives", "Founders & Startups", "Private High-Net-Worth Clients"]
+  },
+  {
+    id: "retail_ecommerce",
+    name: "Retail, Products & E-Commerce",
+    icon: "🛍️",
+    description: "Online stores, boutique shops, fashion, FMCG, electronics & wholesale",
+    sampleServices: ["Direct-to-Consumer Sales", "B2B Wholesale Supply", "Custom Orders & Merchandising", "Product Showcase & Catalogue", "Nationwide Courier Delivery", "Subscription Bundles"],
+    suggestedClients: ["Everyday Consumers", "Retail Stockists", "Wholesale Distributors", "Corporate Gift Buyers"]
+  },
+  {
+    id: "health_wellness",
+    name: "Health, Medical & Wellness",
+    icon: "🩺",
+    description: "Clinics, therapy, fitness studios, dental, aesthetics, psychology & wellness",
+    sampleServices: ["Patient Consultations", "Specialized Treatments", "Online Appointment Booking", "Wellness & Fitness Programs", "Preventative Care", "Emergency Walk-ins"],
+    suggestedClients: ["Private Patients", "Families & Children", "Corporate Wellness Programs", "Athletes & Fitness Enthusiasts"]
+  },
+  {
+    id: "tech_digital",
+    name: "Tech, SaaS & Creative Agency",
+    icon: "💻",
+    description: "Software, IT support, creative studios, marketing, media & digital platforms",
+    sampleServices: ["Custom Web & Software Development", "Managed Cloud & IT Support", "Brand Design & Visual Identity", "Digital Marketing & SEO", "Mobile App Engineering", "Video & Content Production"],
+    suggestedClients: ["Startups & Tech Ventures", "Growing Businesses", "Enterprise Teams", "E-commerce Brands"]
+  },
+  {
+    id: "hospitality_events",
+    name: "Hospitality, Food & Events",
+    icon: "🍽️",
+    description: "Restaurants, catering, event planning, venues, travel, lodges & tourism",
+    sampleServices: ["Dining & Table Bookings", "Event Catering & Private Chef", "Venue Hire & Celebrations", "Corporate Conference Packages", "Tour & Experience Bookings", "Delivery & Takeaway"],
+    suggestedClients: ["Private Diners & Families", "Corporate Event Planners", "Wedding Couples & Planners", "Tourists & Travelers"]
+  },
+  {
+    id: "logistics_industrial",
+    name: "Logistics, Transport & Industrial",
+    icon: "🚚",
+    description: "Freight, courier, warehousing, manufacturing, fleet services & supply chain",
+    sampleServices: ["Road Freight & Cross-Border Transport", "Warehousing & Storage", "Courier & Last-Mile Delivery", "Fleet Management Solutions", "Industrial Equipment Supply", "Custom Fabrication"],
+    suggestedClients: ["Manufacturers & Distributors", "Retailers & Exporters", "Construction Sites", "FMCG Companies"]
+  },
+  {
+    id: "education_coaching",
+    name: "Education, Training & Coaching",
+    icon: "🎓",
+    description: "Academies, courses, executive coaching, tutors, workshops & seminars",
+    sampleServices: ["Accredited Training Programs", "1-on-1 Executive Coaching", "Interactive Online Workshops", "Corporate Skills Development", "Curriculum & Certification", "Student Mentorship"],
+    suggestedClients: ["Career Professionals", "Corporate HR Departments", "High School & University Students", "Aspiring Entrepreneurs"]
+  },
+  {
+    id: "other_business",
+    name: "Specialized & Niche Enterprise",
+    icon: "✨",
+    description: "Unique niche, hybrid business model, NGO, or bespoke commercial venture",
+    sampleServices: ["Bespoke Client Solutions", "Project Consultations", "Service Retainers", "Custom Deliverables", "Specialized Operations"],
+    suggestedClients: ["Target B2B Clients", "Private Clients", "Partner Organizations", "Institutional Buyers"]
+  }
+];
+
 const BRAND_STYLES = [
-  { id: "modern-teal", name: "Modern Contractor", colors: ["#0d9488", "#0f172a", "#f8fafc"], vibe: "High-trust & crisp" },
-  { id: "bold-amber", name: "Industrial & Safety", colors: ["#f59e0b", "#18181b", "#ffffff"], vibe: "Heavy-duty & prominent" },
-  { id: "clean-slate", name: "Corporate Clean", colors: ["#3b82f6", "#0f172a", "#f1f5f9"], vibe: "Sleek & institutional" },
-  { id: "luxury-gold", name: "Luxury Renovations", colors: ["#eab308", "#1c1917", "#fafaf9"], vibe: "High-end residential" },
-];
-
-const TRADE_SERVICES = [
-  { id: "painting", label: "Painting & Coating", icon: "🎨", popular: true },
-  { id: "waterproofing", label: "Waterproofing", icon: "💧", popular: true },
-  { id: "tiling", label: "Tiling & Paving", icon: "🧱", popular: true },
-  { id: "plumbing", label: "Plumbing Repairs", icon: "🔧", popular: true },
-  { id: "repairs", label: "Crack & Wall Repairs", icon: "🔨", popular: true },
-  { id: "estate", label: "Estate Upkeep", icon: "🏡", popular: true },
-  { id: "roofing", label: "Roofing & Gutters", icon: "🏠", popular: false },
-  { id: "electrical", label: "Electrical & Solar", icon: "⚡", popular: false },
-  { id: "renovations", label: "Turnkey Renovations", icon: "🏗️", popular: false },
-  { id: "carpentry", label: "Carpentry & Ceilings", icon: "🪚", popular: false },
-];
-
-const CLIENT_TYPES = [
-  { id: "homeowners", label: "Homeowners", icon: "🏡", desc: "Private houses & townhouses" },
-  { id: "estates", label: "Body Corporates & Estates", icon: "🏢", desc: "HOAs, complexes & property managers" },
-  { id: "commercial", label: "Offices & Retail", icon: "🏬", desc: "Commercial & industrial facilities" },
-  { id: "agencies", label: "Letting Agencies", icon: "📋", desc: "Rental maintenance & tenant inspections" },
+  { id: "modern-teal", name: "Modern & High-Trust", colors: ["#0d9488", "#0f172a", "#f8fafc"], vibe: "Clean, trustworthy & contemporary" },
+  { id: "bold-amber", name: "Bold & Dynamic", colors: ["#f59e0b", "#18181b", "#ffffff"], vibe: "Energetic, prominent & action-oriented" },
+  { id: "clean-slate", name: "Corporate & Refined", colors: ["#3b82f6", "#0f172a", "#f1f5f9"], vibe: "Sleek, structured & institutional" },
+  { id: "luxury-gold", name: "Luxury & Editorial", colors: ["#eab308", "#1c1917", "#fafaf9"], vibe: "High-end, sophisticated & exclusive" },
+  { id: "emerald-growth", name: "Organic & Vital", colors: ["#10b981", "#064e3b", "#f0fdf4"], vibe: "Fresh, sustainable & wellness-focused" },
+  { id: "purple-creative", name: "Creative & Visionary", colors: ["#8b5cf6", "#1e1b4b", "#faf5ff"], vibe: "Innovative, modern & tech-forward" },
 ];
 
 const PACKAGES = [
   {
     name: "Spark",
     fee: 199,
-    tagline: "High-Impact 1-Pager",
-    pages: "Single-Page Fast Launch",
-    idealFor: "Side-gigs or focused solo trades",
-    features: ["1 Clean Landing Page", "Direct WhatsApp Chat Button", "High-speed .co.za Domain & SSL", "Instant Launch"],
+    tagline: "High-Impact Fast Launch",
+    pages: "Single-Page Conversion Funnel",
+    idealFor: "Solo founders, rapid product launches, or focused service offerings",
+    features: ["1 Clean High-Conversion Landing Page", "Direct WhatsApp Lead Routing Button", "High-Speed .co.za Domain & SSL", "Google Mobile Optimization", "Instant Setup"],
   },
   {
     name: "Build",
     fee: 349,
-    tagline: "Commercial Contractor Suite",
+    tagline: "Full Brand & Commercial Suite",
     pages: "Up to 5 Dedicated Pages",
     featured: true,
-    badge: "⭐ Recommended for Contractors",
-    idealFor: "Multi-trade companies tendering for estates & complexes",
-    features: ["Up to 5 Custom Pages", "Online RFQ Quote Engine", "Before & After Workmanship Gallery", "Professional Business Email (@yourbusiness)", "Google Profile Local SEO Setup"],
+    badge: "⭐ Most Popular",
+    idealFor: "Growing businesses, professional firms, and active service providers",
+    features: ["Up to 5 Custom Scaffolded Pages", "Interactive Online RFQ / Inquiry Funnel", "Workmanship & Case Studies Gallery", "Professional Business Email (@yourbusiness.co.za)", "Google Business Profile & Local SEO"],
   },
   {
     name: "Business",
     fee: 1200,
     tagline: "Multi-Division Enterprise",
     pages: "Up to 10 Tailored Pages",
-    badge: "Full Team Scale",
-    idealFor: "Established teams with corporate tenders",
-    features: ["Up to 10 Trade Pages", "Corporate Tender Showcase", "Priority Same-Day Update Turnaround", "Dedicated Account Manager"],
+    badge: "Full Scale",
+    idealFor: "Established companies, corporate tenders & complex multi-service groups",
+    features: ["Up to 10 Dedicated Architecture Pages", "Multi-Tier Inbound Quote Calculator", "Priority Same-Day Update Turnaround", "Dedicated Account Manager & SLA", "Corporate Presentation Integration"],
   },
 ];
 
 const STEPS = [
-  { num: 1, title: "Identity & Vibe", icon: <Building2 size={14} /> },
-  { num: 2, title: "Services & Scale", icon: <Layers size={14} /> },
-  { num: 3, title: "Clients & Launch", icon: <Target size={14} /> },
-  { num: 4, title: "Choose Plan", icon: <Zap size={14} /> },
-  { num: 5, title: "Review & Launch", icon: <CheckCircle2 size={14} /> },
+  { num: 1, title: "Brand & Sector", icon: <Building2 size={14} /> },
+  { num: 2, title: "Services & Scope", icon: <Layers size={14} /> },
+  { num: 3, title: "Audience & Reach", icon: <Target size={14} /> },
+  { num: 4, title: "Plan Selection", icon: <Zap size={14} /> },
+  { num: 5, title: "Scope Spec Sheet", icon: <CheckCircle2 size={14} /> },
 ];
 
 function PortalOnboarding() {
@@ -114,7 +180,8 @@ function PortalOnboarding() {
   const [saved, setSaved] = useState(false);
   const [isAiGenerating, setIsAiGenerating] = useState(false);
 
-  // ── Step 1: Identity & Vibe ───────────────────────────────────────
+  // ── Step 1: Industry & Brand Identity ─────────────────────────────
+  const [selectedIndustry, setSelectedIndustry] = useState<string>("services_trades");
   const [businessName, setBusinessName] = useState("");
   const [directorName, setDirectorName] = useState("");
   const [phone, setPhone] = useState("");
@@ -125,11 +192,15 @@ function PortalOnboarding() {
   const [regNumber, setRegNumber] = useState("");
   const [address, setAddress] = useState("");
 
+  const currentIndustryConfig = useMemo(() => {
+    return INDUSTRY_SECTORS.find(s => s.id === selectedIndustry) || INDUSTRY_SECTORS[0];
+  }, [selectedIndustry]);
+
   // ── Step 2: Services & Scale Slider ───────────────────────────────
   const [selectedServices, setSelectedServices] = useState<string[]>([
-    "Painting & Coating",
-    "Waterproofing",
-    "Tiling & Paving",
+    "General Contracting",
+    "Renovations & Alterations",
+    "Plumbing & Repairs",
   ]);
   const [customService, setCustomService] = useState("");
   // Scale slider: 1 = Solo/Specialist, 2 = Growing Team (3-8), 3 = Commercial Crew (10+)
@@ -137,7 +208,7 @@ function PortalOnboarding() {
 
   // ── Step 3: Clients & Launch Urgency Slider ───────────────────────
   const [selectedClients, setSelectedClients] = useState<string[]>([
-    "Homeowners",
+    "Residential Homeowners",
     "Body Corporates & Estates",
   ]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([
@@ -151,19 +222,30 @@ function PortalOnboarding() {
   // ── Step 4: Plan ──────────────────────────────────────────────────
   const [selectedPackage, setSelectedPackage] = useState(queryPlan || "Build");
 
-  // ── Step 5: Live Spec Sheet, Mockup Preview & Review Chatbot ─────
+  // ── Step 5: Live Scope Spec Sheet & Architecture ──────────────────
   const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
   const [scopeVerified, setScopeVerified] = useState(false);
   const [aiExecutiveSummary, setAiExecutiveSummary] = useState<string>("");
-  const [activeReviewTab, setActiveReviewTab] = useState<"preview" | "scope" | "plan">("preview");
-  const [mockupDevice, setMockupDevice] = useState<"mobile" | "desktop">("desktop");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Interactive Editable Architecture Pages
+  const [customPages, setCustomPages] = useState<Array<{ id: string; title: string; purpose: string; included: boolean }>>([
+    { id: "p_home", title: "Home & Executive Brand Showcase", purpose: "Hero value proposition, conversion funnel, verified trust credentials, and instant RFQ quote triggers", included: true },
+    { id: "p_services", title: "Services & Capabilities Matrix", purpose: "Dedicated breakdown of your core services with in-depth scope specifications and client benefits", included: true },
+    { id: "p_gallery", title: "Portfolio, Case Studies & Gallery", purpose: "High-resolution project highlights, transformations, client testimonials, and track record showcase", included: true },
+    { id: "p_rfq", title: "Interactive Inbound Quote Funnel", purpose: "Automated RFQ inquiry generator capturing service requirements, location, and project timelines", included: true },
+    { id: "p_about", title: "About Us & Leadership Credentials", purpose: "Company heritage, director profile, registration details, mission, and satisfaction guarantee", included: true },
+    { id: "p_contact", title: "Contact & Operational Coverage", purpose: "Interactive coverage map, office location, direct WhatsApp desk, and service availability", included: true },
+  ]);
+  const [newPageTitle, setNewPageTitle] = useState("");
+  const [newPagePurpose, setNewPagePurpose] = useState("");
+  const [isAddingPage, setIsAddingPage] = useState(false);
 
   // Embedded Review Chatbot
   const [reviewChat, setReviewChat] = useState<Array<{ sender: "ai" | "user"; message: string }>>([
     {
       sender: "ai",
-      message: "👋 Hi! I'm your interactive scope assistant. Everything look good on your website preview above? If you want to change anything (e.g. 'Add Waterproofing' or 'Change plan to Spark'), just tell me here!",
+      message: "👋 Hi! I'm your interactive scope architect. You can adjust your spec sheet, add custom pages, or tweak your plan right here!",
     },
   ]);
   const [reviewInput, setReviewInput] = useState("");
@@ -171,11 +253,11 @@ function PortalOnboarding() {
 
   // Compute selected style details
   const activeStyleConfig = useMemo(() => {
-    return BRAND_STYLES.find(s => s.id === selectedStyle) || BRAND_STYLES[0] || { id: "modern-teal", name: "Modern Contractor", colors: ["#0d9488", "#0f172a", "#f8fafc"], vibe: "High-trust & crisp" };
+    return BRAND_STYLES.find(s => s.id === selectedStyle) || BRAND_STYLES[0] || { id: "modern-teal", name: "Modern & High-Trust", colors: ["#0d9488", "#0f172a", "#f8fafc"], vibe: "Clean & contemporary" };
   }, [selectedStyle]);
 
   const primaryThemeColor = activeStyleConfig?.colors?.[0] || "#0d9488";
-  const themeName = activeStyleConfig?.name || "Modern Contractor";
+  const themeName = activeStyleConfig?.name || "Modern & High-Trust";
 
   // Compute full deliverables breakdown
   const plannedPagesList = useMemo(() => {
@@ -232,13 +314,13 @@ function PortalOnboarding() {
     try {
       const summary = await synthesizeScopeWithGemini(
         [
-          { role: "user", text: `Generate a comprehensive executive project brief for ${businessName || "Client"} offering ${selectedServices.join(", ")} in ${selectedRegions.join(", ")}. Plan: ${selectedPackage}. Client segments: ${selectedClients.join(", ")}.` },
+          { role: "user", text: `Generate a comprehensive executive project brief for ${businessName || "Client"} operating in ${currentIndustryConfig.name} offering ${selectedServices.join(", ")} in ${selectedRegions.join(", ")}. Plan: ${selectedPackage}. Client segments: ${selectedClients.join(", ")}.` },
         ],
         { businessName: businessName || "Client Business", contactPerson: directorName || "Director" }
       );
-      setAiExecutiveSummary(summary?.scopeSummary || `Tailored South African contractor platform for ${businessName || "your business"}. Features a conversion-optimized ${selectedPackage} architecture showcasing ${selectedServices.length} trade divisions, interactive quote funnels, and verified trust credentials across ${selectedRegions.join(", ")}.`);
+      setAiExecutiveSummary(summary?.scopeSummary || `Tailored digital platform for ${businessName || "your business"} in the ${currentIndustryConfig.name} sector. Features a conversion-optimized ${selectedPackage} architecture showcasing ${selectedServices.length} core service divisions, interactive client inquiries, and verified credentials across ${selectedRegions.join(", ")}.`);
     } catch (_) {
-      setAiExecutiveSummary(`Tailored South African contractor platform for ${businessName || "your business"}. Features a conversion-optimized ${selectedPackage} architecture showcasing ${selectedServices.length} trade divisions (${selectedServices.slice(0, 3).join(", ")}), interactive quote funnels, and verified trust credentials across ${selectedRegions.join(", ")}.`);
+      setAiExecutiveSummary(`Tailored digital platform for ${businessName || "your business"} in the ${currentIndustryConfig.name} sector. Features a conversion-optimized ${selectedPackage} architecture showcasing ${selectedServices.length} core service divisions (${selectedServices.slice(0, 3).join(", ")}), interactive inquiry funnels, and verified brand credentials across ${selectedRegions.join(", ")}.`);
     }
   };
 
@@ -250,14 +332,14 @@ function PortalOnboarding() {
     }
     setIsAiGenerating(true);
     try {
-      const prompt = `Write a clean, high-trust 2-paragraph company bio for a South African contractor named "${businessName}". Services: ${selectedServices.join(", ")}. Coverage: ${selectedRegions.join(", ")}. Make it sound dependable, prompt, and experienced.`;
-      const result = await askGeminiArchitect([], prompt, { businessName, contactPerson: directorName, industry: "Contractor" });
+      const prompt = `Write a clean, high-trust 2-paragraph company overview for a South African business named "${businessName}". Sector: ${currentIndustryConfig.name}. Services offered: ${selectedServices.join(", ")}. Operating areas: ${selectedRegions.join(", ")}. Tone: authoritative, client-centric, and dependable.`;
+      const result = await askGeminiArchitect([], prompt, { businessName, contactPerson: directorName, industry: currentIndustryConfig.name });
       if (result) {
         setAboutUs(result);
-        if (setToast) setToast("✨ AI drafted your professional company bio!");
+        if (setToast) setToast("✨ AI drafted your company overview!");
       }
     } catch (_) {
-      setAboutUs(`${businessName} is a premier South African contracting team specializing in ${selectedServices.slice(0, 3).join(", ")}. We pride ourselves on precision, guaranteed workmanship, and fast turnaround across ${selectedRegions.join(", ")}.`);
+      setAboutUs(`${businessName} is a premier South African business specializing in ${selectedServices.slice(0, 3).join(", ")}. We pride ourselves on precision, guaranteed delivery, and exceptional customer satisfaction across ${selectedRegions.join(", ")}.`);
     } finally {
       setIsAiGenerating(false);
     }
@@ -296,6 +378,8 @@ function PortalOnboarding() {
           directorName,
           phone,
           email,
+          industry: currentIndustryConfig.name,
+          industrySectorId: selectedIndustry,
           regNumber,
           address,
           aboutUs,
@@ -306,6 +390,7 @@ function PortalOnboarding() {
           targetMarkets: selectedClients,
           urgency: urgencyIndex === 1 ? "Rapid (< 7 Days)" : urgencyIndex === 2 ? "Standard (2 Weeks)" : "Flexible",
         },
+        plannedPages: customPages.filter(p => p.included),
         selectedPackage,
         scopeVerified,
         uploadedAssets,
@@ -316,7 +401,7 @@ function PortalOnboarding() {
         businessName,
         contactPerson: directorName,
         phone,
-        industry: "Construction & Services",
+        industry: currentIndustryConfig.name,
         targetAudience: selectedClients.join(", "),
         businessGoals: aboutUs || `Services: ${selectedServices.join(", ")}`,
         selectedPackageCode: selectedPackage,
@@ -332,6 +417,7 @@ function PortalOnboarding() {
               business_name: businessName,
               client_name: directorName,
               client_phone: phone,
+              industry: currentIndustryConfig.name,
               selected_package_code: selectedPackage,
               business_goals: aboutUs || `Services: ${selectedServices.join(", ")}`,
               target_audience: selectedClients.join(", "),
@@ -385,12 +471,12 @@ function PortalOnboarding() {
         businessName,
         contactPerson: directorName,
         phone,
-        industry: "Contracting & Maintenance",
+        industry: currentIndustryConfig.name,
         targetAudience: selectedClients.join(", "),
         businessGoals: aboutUs,
         selectedPackageCode: selectedPackage,
         mode: "manual",
-        aiRecommendation: aiExecutiveSummary || `Contractor spec sheet for ${businessName}. Services: ${selectedServices.join(", ")}. Plan: ${selectedPackage}.`,
+        aiRecommendation: aiExecutiveSummary || `Spec sheet for ${businessName}. Sector: ${currentIndustryConfig.name}. Services: ${selectedServices.join(", ")}. Plan: ${selectedPackage}.`,
         chatHistory: { dossier } as any,
       });
 
@@ -405,7 +491,7 @@ function PortalOnboarding() {
             email: email || user?.email || "",
             phone: phone || null,
             account_status: "pending_approval",
-            business_type: "contractor",
+            business_type: currentIndustryConfig.id,
           }, { onConflict: "brand_id,email" });
       } catch (_) {}
 
@@ -429,14 +515,17 @@ function PortalOnboarding() {
       const lower = text.toLowerCase();
       let reply = "";
 
-      if (lower.includes("paint") || lower.includes("waterproof") || lower.includes("tile") || lower.includes("plumb") || lower.includes("solar") || lower.includes("roof") || lower.includes("paving")) {
-        const found = TRADE_SERVICES.find(s => lower.includes(s.label.toLowerCase().split(" ")[0] || ""));
-        const toAdd = found ? found.label : text.replace(/add|service|please/gi, "").trim();
-        if (toAdd && !selectedServices.includes(toAdd)) {
-          setSelectedServices(prev => [...prev, toAdd]);
-          reply = `Done! Added "${toAdd}" to your services list.`;
+      if (lower.includes("page")) {
+        const pageName = text.replace(/add|include|page|please/gi, "").trim();
+        if (pageName) {
+          const newId = "p_custom_" + Date.now();
+          setCustomPages(prev => [
+            ...prev,
+            { id: newId, title: pageName, purpose: `Custom ${pageName} section configured for ${businessName || "your business"}`, included: true }
+          ]);
+          reply = `Done! Added page "${pageName}" to your website architecture.`;
         } else {
-          reply = `"${toAdd}" is already in your services list!`;
+          reply = "Which page would you like to add? E.g. 'Add Pricing page' or 'Add FAQ page'.";
         }
       } else if (lower.includes("spark") || lower.includes("build") || lower.includes("business")) {
         const found = PACKAGES.find(p => lower.includes(p.name.toLowerCase()));
@@ -445,13 +534,19 @@ function PortalOnboarding() {
           reply = `Switched your plan to ${found.name} (R${found.fee}/mo).`;
         }
       } else {
-        reply = "I've noted this request. You can also adjust sliders or options on previous steps anytime!";
+        const toAdd = text.replace(/add|service|please/gi, "").trim();
+        if (toAdd && toAdd.length > 2 && !selectedServices.includes(toAdd)) {
+          setSelectedServices(prev => [...prev, toAdd]);
+          reply = `Done! Added "${toAdd}" to your service offerings.`;
+        } else {
+          reply = "I've noted this update. You can also customize pages and services on the spec sheet directly!";
+        }
       }
 
       setReviewChat(prev => [...prev, { sender: "ai", message: reply }]);
       setIsBotReplying(false);
       if (setToast) setToast("✅ Spec sheet updated live!");
-    }, 450);
+    }, 400);
   };
 
   // ── Completed View ───────────────────────────────────────────────
@@ -709,10 +804,59 @@ function PortalOnboarding() {
       <div className="portal-card" style={{ padding: "1.5rem" }}>
 
         {/* ══════════════════════════════════════════════════════════════
-            STEP 1: IDENTITY & VIBE (Visual & Expressive)
+            STEP 1: IDENTITY, SECTOR & VIBE (Multi-Industry Supported)
             ══════════════════════════════════════════════════════════════ */}
         {step === 1 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            {/* ── Business Sector / Industry Grid ── */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.5rem" }}>
+                <label className="portal-label" style={{ marginBottom: 0 }}>
+                  Select Your Business Sector / Industry *
+                </label>
+                <span style={{ fontSize: "0.72rem", color: "#2dd4bf", fontWeight: 700 }}>
+                  {currentIndustryConfig.name}
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "0.5rem" }}>
+                {INDUSTRY_SECTORS.map(sec => {
+                  const isSelected = selectedIndustry === sec.id;
+                  return (
+                    <div
+                      key={sec.id}
+                      onClick={() => {
+                        setSelectedIndustry(sec.id);
+                        setSelectedServices(sec.sampleServices.slice(0, 4));
+                        setSelectedClients(sec.suggestedClients.slice(0, 2));
+                      }}
+                      style={{
+                        padding: "0.75rem 0.875rem",
+                        borderRadius: 12,
+                        border: `1.5px solid ${isSelected ? "#2dd4bf" : "rgba(255,255,255,0.08)"}`,
+                        background: isSelected ? "rgba(13,148,136,0.18)" : "rgba(255,255,255,0.02)",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "0.6rem",
+                      }}
+                    >
+                      <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>{sec.icon}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "0.82rem", fontWeight: 800, color: isSelected ? "#2dd4bf" : "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {sec.name}
+                        </div>
+                        <div style={{ fontSize: "0.68rem", color: "#94a3b8", marginTop: 2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {sec.description}
+                        </div>
+                      </div>
+                      {isSelected && <Check size={14} color="#2dd4bf" style={{ flexShrink: 0, marginTop: 2 }} />}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Quick Core Inputs */}
             <div className="portal-form-row">
               <div className="portal-form-group">
@@ -877,26 +1021,51 @@ function PortalOnboarding() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            STEP 2: SERVICES & SCALE SLIDER (Zero Textwalls)
+            STEP 2: SERVICES & SCALE SLIDER (Dynamic to Chosen Sector)
             ══════════════════════════════════════════════════════════════ */}
         {step === 2 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            {/* Visual Trade Matrix */}
+            {/* Dynamic Services Matrix for Sector */}
             <div>
-              <label className="portal-label" style={{ marginBottom: "0.5rem" }}>
-                Tap the services you provide:
-              </label>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: "0.5rem" }}>
-                {TRADE_SERVICES.map(t => {
-                  const isSelected = selectedServices.includes(t.label);
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <label className="portal-label" style={{ marginBottom: 0 }}>
+                  Tap the services or products you offer ({currentIndustryConfig.name}):
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sample = currentIndustryConfig.sampleServices;
+                    setSelectedServices(prev => Array.from(new Set([...prev, ...sample])));
+                  }}
+                  style={{
+                    background: "rgba(13,148,136,0.15)",
+                    border: "1px solid rgba(13,148,136,0.3)",
+                    color: "#2dd4bf",
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                  }}
+                >
+                  <Sparkles size={11} /> Select All Industry Standards
+                </button>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.5rem" }}>
+                {Array.from(new Set([...currentIndustryConfig.sampleServices, ...selectedServices])).map((service, idx) => {
+                  const isSelected = selectedServices.includes(service);
                   return (
                     <div
-                      key={t.id}
+                      key={idx}
                       onClick={() => {
                         setSelectedServices(
                           isSelected
-                            ? selectedServices.filter(s => s !== t.label)
-                            : [...selectedServices, t.label]
+                            ? selectedServices.filter(s => s !== service)
+                            : [...selectedServices, service]
                         );
                       }}
                       style={{
@@ -914,8 +1083,8 @@ function PortalOnboarding() {
                         transition: "all 0.15s",
                       }}
                     >
-                      <span style={{ fontSize: "1.1rem" }}>{t.icon}</span>
-                      <span style={{ flex: 1 }}>{t.label}</span>
+                      <span style={{ fontSize: "1rem" }}>{isSelected ? "✨" : "▫️"}</span>
+                      <span style={{ flex: 1 }}>{service}</span>
                       {isSelected && <Check size={14} color="#2dd4bf" />}
                     </div>
                   );
@@ -929,11 +1098,13 @@ function PortalOnboarding() {
                 className="portal-input"
                 value={customService}
                 onChange={e => setCustomService(e.target.value)}
-                placeholder="Other trade? Type here and press Enter"
+                placeholder="Custom service or product? Type here & press Enter"
                 onKeyDown={e => {
                   if (e.key === "Enter" && customService.trim()) {
                     e.preventDefault();
-                    setSelectedServices([...selectedServices, customService.trim()]);
+                    if (!selectedServices.includes(customService.trim())) {
+                      setSelectedServices([...selectedServices, customService.trim()]);
+                    }
                     setCustomService("");
                   }
                 }}
@@ -941,7 +1112,7 @@ function PortalOnboarding() {
               <button
                 type="button"
                 onClick={() => {
-                  if (customService.trim()) {
+                  if (customService.trim() && !selectedServices.includes(customService.trim())) {
                     setSelectedServices([...selectedServices, customService.trim()]);
                     setCustomService("");
                   }
@@ -962,10 +1133,10 @@ function PortalOnboarding() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
                 <div>
                   <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc" }}>
-                    What is your business scale?
+                    What is your business operational scale?
                   </div>
                   <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>
-                    Helps us tailor your website authority and RFQ capacity
+                    Helps us tailor your website conversion funnels and inbound capacity
                   </div>
                 </div>
                 <span style={{
@@ -976,7 +1147,7 @@ function PortalOnboarding() {
                   fontSize: "0.75rem",
                   fontWeight: 800,
                 }}>
-                  {teamScale === 1 ? "Solo Specialist (1-2)" : teamScale === 2 ? "Growing Team (3-10)" : "Commercial Contractor (15+)"}
+                  {teamScale === 1 ? "Solo Specialist / Boutique (1-2)" : teamScale === 2 ? "Growing Team & Agency (3-10)" : "Commercial Enterprise (15+)"}
                 </span>
               </div>
 
@@ -991,35 +1162,35 @@ function PortalOnboarding() {
               />
 
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.7rem", color: "#64748b", marginTop: "0.35rem" }}>
-                <span>Solo / Hands-on</span>
-                <span>Established Team</span>
-                <span>Commercial Scale</span>
+                <span>Boutique / Specialist</span>
+                <span>Established Firm</span>
+                <span>Commercial Enterprise</span>
               </div>
             </div>
           </div>
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            STEP 3: CLIENTS & LAUNCH TIMELINE SLIDER
+            STEP 3: TARGET AUDIENCE & REGIONAL COVERAGE
             ══════════════════════════════════════════════════════════════ */}
         {step === 3 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            {/* Visual Client Types */}
+            {/* Dynamic Suggested Clients for Sector */}
             <div>
               <label className="portal-label" style={{ marginBottom: "0.5rem" }}>
-                Who are your primary clients?
+                Who is your primary target clientele? ({currentIndustryConfig.name})
               </label>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.6rem" }}>
-                {CLIENT_TYPES.map(c => {
-                  const isSelected = selectedClients.includes(c.label);
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "0.6rem" }}>
+                {Array.from(new Set([...currentIndustryConfig.suggestedClients, ...selectedClients])).map((client, idx) => {
+                  const isSelected = selectedClients.includes(client);
                   return (
                     <div
-                      key={c.id}
+                      key={idx}
                       onClick={() => {
                         setSelectedClients(
                           isSelected
-                            ? selectedClients.filter(item => item !== c.label)
-                            : [...selectedClients, c.label]
+                            ? selectedClients.filter(c => c !== client)
+                            : [...selectedClients, client]
                         );
                       }}
                       style={{
@@ -1032,14 +1203,14 @@ function PortalOnboarding() {
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: "1.2rem" }}>{c.icon}</span>
+                        <span style={{ fontSize: "1.2rem" }}>🎯</span>
                         {isSelected && <Check size={14} color="#2dd4bf" />}
                       </div>
                       <div style={{ fontSize: "0.82rem", fontWeight: 800, color: isSelected ? "#2dd4bf" : "#f8fafc", marginTop: "0.35rem" }}>
-                        {c.label}
+                        {client}
                       </div>
                       <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>
-                        {c.desc}
+                        Target audience segment
                       </div>
                     </div>
                   );
@@ -1050,10 +1221,14 @@ function PortalOnboarding() {
             {/* Operating Areas Pills */}
             <div>
               <label className="portal-label" style={{ marginBottom: "0.4rem" }}>
-                Where do you operate?
+                Where do you deliver or operate?
               </label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.5rem" }}>
-                {["Gauteng", "Sandton", "Pretoria", "Centurion", "Johannesburg North", "East Rand", "West Rand", "Nationwide"].map(a => {
+                {[
+                  "Gauteng", "Sandton & Joburg North", "Pretoria & Centurion",
+                  "Cape Town & Western Cape", "Durban & KZN", "Gqeberha / Port Elizabeth",
+                  "Bloemfontein", "Nationwide (Online / Delivery)", "International / SADC"
+                ].map(a => {
                   const isSelected = selectedRegions.includes(a);
                   return (
                     <button
@@ -1199,7 +1374,7 @@ function PortalOnboarding() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            STEP 5: SPEC SHEET, INTERACTIVE MOCKUP & REVIEW CHATBOT
+            STEP 5: EXECUTIVE SCOPE OF WORK SPEC SHEET & ARCHITECTURE
             ══════════════════════════════════════════════════════════════ */}
         {step === 5 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -1216,13 +1391,13 @@ function PortalOnboarding() {
                 <div>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "3px 10px", borderRadius: 999, background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#34d399", fontSize: "0.72rem", fontWeight: 800, marginBottom: "0.35rem" }}>
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span>🎉 100% READY TO LAUNCH</span>
+                    <span>🎉 100% READY TO LAUNCH &bull; EXECUTIVE SCOPE OF WORK</span>
                   </div>
                   <h2 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#f8fafc", margin: "0 0 0.25rem", letterSpacing: "-0.01em" }}>
-                    Review Your Digital Scope &amp; Website Preview
+                    Executive Scope &amp; Architecture Spec Sheet
                   </h2>
                   <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>
-                    Here is the complete blueprint of your pages, features, and branding for <strong style={{ color: "#2dd4bf" }}>{businessName || "your business"}</strong>.
+                    Official digital blueprint for <strong style={{ color: "#2dd4bf" }}>{businessName || "your business"}</strong>. Review included pages, digital superpowers, and care plan terms before launching.
                   </p>
                 </div>
 
@@ -1252,309 +1427,294 @@ function PortalOnboarding() {
                 lineHeight: 1.6,
               }}>
                 <strong style={{ color: "#2dd4bf" }}>Executive Brief: </strong>
-                {aiExecutiveSummary || `Tailored digital contractor platform for ${businessName || "your business"}. Showcases ${selectedServices.length} trade divisions across ${selectedRegions.join(", ")} with instant quote funnels and Google search presence.`}
+                {aiExecutiveSummary || `Tailored digital platform for ${businessName || "your business"} within the ${currentIndustryConfig.name} sector. Showcases ${selectedServices.length} core services across ${selectedRegions.slice(0, 3).join(", ")} with direct WhatsApp conversion funnels, Google local search indexing, and DebiCheck month-to-month care.`}
               </div>
             </div>
 
-            {/* ── Interactive View Tabs: Preview vs Scope vs Dossier ── */}
-            <div style={{ display: "flex", gap: "0.5rem", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "0.5rem", overflowX: "auto" }}>
-              {[
-                { id: "preview", label: "🌐 Live Website Mockup", icon: <Eye size={13} /> },
-                { id: "scope", label: "📑 Full Scope & Pages (" + plannedPagesList.length + ")", icon: <Layout size={13} /> },
-                { id: "plan", label: "💼 Company Dossier & Plan", icon: <FileText size={13} /> },
-              ].map(tab => {
-                const isActive = activeReviewTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveReviewTab(tab.id as any)}
+            {/* ── Dossier Metrics Bar ── */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+              gap: "0.75rem",
+              padding: "1rem",
+              borderRadius: 14,
+              background: "rgba(0,0,0,0.25)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}>
+              <div>
+                <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#64748b", textTransform: "uppercase" }}>Enterprise</span>
+                <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#f8fafc", marginTop: 2 }}>
+                  {businessName || "Your Company"}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{directorName || "Director"} &bull; {phone || "071 000 0000"}</div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#64748b", textTransform: "uppercase" }}>Sector &amp; Theme</span>
+                <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#2dd4bf", marginTop: 2, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                  <span>{currentIndustryConfig.icon}</span>
+                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentIndustryConfig.name}</span>
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{themeName}</div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#64748b", textTransform: "uppercase" }}>Selected Tier</span>
+                <div style={{ fontSize: "0.9rem", fontWeight: 900, color: "#38bdf8", marginTop: 2 }}>
+                  {selectedPackage} Tier &bull; R{PACKAGES.find(p => p.name.toLowerCase() === selectedPackage.toLowerCase())?.fee || 349}/mo
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "#34d399", fontWeight: 700 }}>DebiCheck Protected &bull; Zero lock-in</div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#64748b", textTransform: "uppercase" }}>Coverage &amp; Delivery</span>
+                <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {selectedRegions.slice(0, 2).join(", ")}{selectedRegions.length > 2 ? ` +${selectedRegions.length - 2}` : ""}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: urgencyIndex === 1 ? "#fbbf24" : "#2dd4bf", fontWeight: 700 }}>
+                  {urgencyIndex === 1 ? "⚡ Rapid (< 7 Days)" : urgencyIndex === 2 ? "Standard (2 Weeks)" : "Flexible (1 Month)"}
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 1: INTERACTIVE SCAFFOLDED WEBSITE ARCHITECTURE & PAGES ── */}
+            <div style={{
+              borderRadius: 16,
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              padding: "1.25rem",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                <div>
+                  <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc", margin: 0 }}>
+                    1. Scaffolded Website Architecture ({customPages.filter(p => p.included).length} Included Pages)
+                  </h3>
+                  <div style={{ fontSize: "0.72rem", color: "#94a3b8", marginTop: 2 }}>
+                    These are the dedicated pages engineered for your site. Toggle any page or add custom sections below:
+                  </div>
+                </div>
+                <span style={{ fontSize: "0.72rem", color: "#2dd4bf", fontWeight: 700 }}>
+                  ✓ Included in your {selectedPackage} build
+                </span>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "0.75rem", marginBottom: "1rem" }}>
+                {customPages.map((page, idx) => (
+                  <div
+                    key={page.id}
                     style={{
+                      padding: "0.875rem",
+                      borderRadius: 12,
+                      background: page.included ? "rgba(13,148,136,0.08)" : "rgba(255,255,255,0.01)",
+                      border: `1.5px solid ${page.included ? "rgba(45,212,191,0.3)" : "rgba(255,255,255,0.06)"}`,
                       display: "flex",
-                      alignItems: "center",
-                      gap: "0.4rem",
-                      padding: "0.5rem 1rem",
-                      borderRadius: 10,
-                      fontSize: "0.78rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      border: `1.5px solid ${isActive ? "#2dd4bf" : "rgba(255,255,255,0.06)"}`,
-                      background: isActive ? "rgba(13,148,136,0.2)" : "rgba(255,255,255,0.02)",
-                      color: isActive ? "#2dd4bf" : "#94a3b8",
-                      transition: "all 0.2s",
-                      whiteSpace: "nowrap",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      gap: "0.5rem",
+                      transition: "all 0.2s ease",
                     }}
                   >
-                    {tab.icon}
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                          <span style={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            background: page.included ? "rgba(45,212,191,0.2)" : "rgba(255,255,255,0.06)",
+                            color: page.included ? "#2dd4bf" : "#64748b",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "11px",
+                            fontWeight: 800
+                          }}>
+                            {idx + 1}
+                          </span>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 800, color: page.included ? "#f8fafc" : "#64748b" }}>
+                            {page.title}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCustomPages(prev => prev.map(p => p.id === page.id ? { ...p, included: !p.included } : p));
+                          }}
+                          style={{
+                            background: page.included ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.04)",
+                            border: `1px solid ${page.included ? "rgba(16,185,129,0.4)" : "rgba(255,255,255,0.1)"}`,
+                            color: page.included ? "#34d399" : "#64748b",
+                            padding: "2px 8px",
+                            borderRadius: 999,
+                            fontSize: "10px",
+                            fontWeight: 800,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {page.included ? "✓ Included" : "+ Excluded"}
+                        </button>
+                      </div>
+
+                      <div style={{ fontSize: "0.72rem", color: page.included ? "#cbd5e1" : "#64748b", lineHeight: 1.5 }}>
+                        {page.purpose}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      {customPages.length > 3 && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomPages(prev => prev.filter(p => p.id !== page.id))}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#64748b",
+                            fontSize: "10px",
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
+                        >
+                          Remove from list
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Custom Page Input Bar */}
+              <div style={{
+                display: "flex",
+                gap: "0.5rem",
+                padding: "0.75rem",
+                borderRadius: 12,
+                background: "rgba(0,0,0,0.3)",
+                border: "1px dashed rgba(45,212,191,0.3)",
+              }}>
+                <input
+                  className="portal-input"
+                  style={{ fontSize: "0.78rem", padding: "0.45rem 0.75rem" }}
+                  value={newPageTitle}
+                  onChange={e => setNewPageTitle(e.target.value)}
+                  placeholder="Need another page? Type name (e.g. Pricing Table, FAQ, Online Booking, Team Bios)..."
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && newPageTitle.trim()) {
+                      e.preventDefault();
+                      setCustomPages(prev => [
+                        ...prev,
+                        {
+                          id: "custom_" + Date.now(),
+                          title: newPageTitle.trim(),
+                          purpose: `Dedicated ${newPageTitle.trim()} section tailored for ${businessName || "your business"}`,
+                          included: true
+                        }
+                      ]);
+                      setNewPageTitle("");
+                      if (setToast) setToast("✅ Page added to scope!");
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newPageTitle.trim()) {
+                      setCustomPages(prev => [
+                        ...prev,
+                        {
+                          id: "custom_" + Date.now(),
+                          title: newPageTitle.trim(),
+                          purpose: `Dedicated ${newPageTitle.trim()} section tailored for ${businessName || "your business"}`,
+                          included: true
+                        }
+                      ]);
+                      setNewPageTitle("");
+                      if (setToast) setToast("✅ Page added to scope!");
+                    }
+                  }}
+                  className="portal-btn portal-btn--ghost portal-btn--sm"
+                  style={{ whiteSpace: "nowrap", borderColor: "rgba(45,212,191,0.4)", color: "#2dd4bf" }}
+                >
+                  <Plus size={13} /> Add Page
+                </button>
+              </div>
             </div>
 
-            {/* ── TAB 1: LIVE INTERACTIVE WEBSITE MOCKUP PREVIEW ── */}
-            {activeReviewTab === "preview" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
-                {/* Device Selector */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                    <Sparkle size={13} color="#2dd4bf" />
-                    <span>Interactive Preview of your staging site built on <strong>{themeName}</strong> theme:</span>
-                  </div>
+            {/* ── SECTION 2: DIGITAL CAPABILITIES & SUPERPOWERS MATRIX ── */}
+            <div style={{
+              borderRadius: 16,
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              padding: "1.25rem",
+            }}>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc", margin: "0 0 0.25rem" }}>
+                2. Digital Superpowers &amp; Included Integrations
+              </h3>
+              <div style={{ fontSize: "0.72rem", color: "#94a3b8", marginBottom: "0.875rem" }}>
+                Every website built by E&amp;L Digital includes standard enterprise features at zero extra charge:
+              </div>
 
-                  <div style={{ display: "flex", gap: "0.25rem", background: "rgba(255,255,255,0.04)", padding: "2px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <button
-                      type="button"
-                      onClick={() => setMockupDevice("desktop")}
-                      style={{
-                        display: "flex", alignItems: "center", gap: "0.3rem", padding: "3px 8px", borderRadius: 6,
-                        background: mockupDevice === "desktop" ? "rgba(45,212,191,0.2)" : "transparent",
-                        color: mockupDevice === "desktop" ? "#2dd4bf" : "#64748b",
-                        fontSize: "0.7rem", fontWeight: 700, border: "none", cursor: "pointer"
-                      }}
-                    >
-                      <Laptop size={12} /> Desktop
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMockupDevice("mobile")}
-                      style={{
-                        display: "flex", alignItems: "center", gap: "0.3rem", padding: "3px 8px", borderRadius: 6,
-                        background: mockupDevice === "mobile" ? "rgba(45,212,191,0.2)" : "transparent",
-                        color: mockupDevice === "mobile" ? "#2dd4bf" : "#64748b",
-                        fontSize: "0.7rem", fontWeight: 700, border: "none", cursor: "pointer"
-                      }}
-                    >
-                      <Smartphone size={12} /> Mobile
-                    </button>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.6rem" }}>
+                {[
+                  { icon: "💬", title: "WhatsApp Direct Lead Router", desc: "Instant click-to-chat connected directly to your mobile phone or sales desk" },
+                  { icon: "📋", title: "Line-Item RFQ Quote Engine", desc: "Interactive quotation and intake form collecting service specs, volume, and deadlines" },
+                  { icon: "⚡", title: "Mobile-First Ultra-Fast Speed", desc: "Engineered for sub-second page loads on cellular data across all mobile browsers" },
+                  { icon: "📍", title: "Google Local Search SEO", desc: `Indexed and structured for local suburb searches across ${selectedRegions.slice(0, 2).join(" & ")}` },
+                  { icon: "📧", title: "Custom Business Mailbox", desc: `Professional info@${(businessName || "yourcompany").toLowerCase().replace(/[^a-z0-9]/g, "")}.co.za mailbox` },
+                  { icon: "🛡️", title: "Bank-Grade SSL & Cloud Backups", desc: "256-bit SSL encryption, automated daily backups, and DebiCheck compliance" },
+                ].map((f, idx) => (
+                  <div key={idx} style={{ padding: "0.75rem 0.875rem", borderRadius: 10, background: "rgba(13,148,136,0.06)", border: "1px solid rgba(13,148,136,0.15)", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                    <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>{f.icon}</span>
+                    <div>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "#f8fafc" }}>{f.title}</div>
+                      <div style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: 2, lineHeight: 1.4 }}>{f.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── SECTION 3: RETAINER SLA & CARE TERMS ── */}
+            <div style={{
+              borderRadius: 16,
+              background: "linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.4) 100%)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              padding: "1.25rem",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#f8fafc", margin: 0 }}>
+                  3. Retainer SLA &amp; Client Peace of Mind
+                </h3>
+                <span style={{ padding: "3px 10px", borderRadius: 999, background: "rgba(56,189,248,0.15)", color: "#38bdf8", fontSize: "0.72rem", fontWeight: 800 }}>
+                  Active SLA Included
+                </span>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem", marginTop: "0.75rem" }}>
+                <div style={{ padding: "0.75rem", borderRadius: 10, background: "rgba(0,0,0,0.3)" }}>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#2dd4bf" }}>⏱️ Monthly Developer Time</div>
+                  <div style={{ fontSize: "0.72rem", color: "#cbd5e1", marginTop: 3 }}>
+                    Up to 60 mins of direct developer updates, menu changes, and content uploads every single month.
                   </div>
                 </div>
 
-                {/* Mockup Frame Container */}
-                <div style={{
-                  maxWidth: mockupDevice === "mobile" ? "380px" : "100%",
-                  margin: "0 auto",
-                  width: "100%",
-                  borderRadius: 16,
-                  border: "2px solid rgba(45,212,191,0.3)",
-                  boxShadow: "0 20px 40px -10px rgba(0,0,0,0.8), 0 0 25px rgba(13,148,136,0.15)",
-                  overflow: "hidden",
-                  background: "#090d16",
-                  transition: "all 0.3s ease",
-                }}>
-                  {/* Browser Bar */}
-                  <div style={{ padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f43f5e" }} />
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#34d399" }} />
-                    </div>
-                    <div style={{ flex: 1, padding: "2px 10px", borderRadius: 999, background: "rgba(0,0,0,0.4)", fontSize: "10px", color: "#64748b", textAlign: "center", fontFamily: "monospace" }}>
-                      🔒 https://www.{(businessName || "yourcompany").toLowerCase().replace(/[^a-z0-9]/g, "")}.co.za
-                    </div>
+                <div style={{ padding: "0.75rem", borderRadius: 10, background: "rgba(0,0,0,0.3)" }}>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#38bdf8" }}>⚡ 99.9% Cloud Uptime</div>
+                  <div style={{ fontSize: "0.72rem", color: "#cbd5e1", marginTop: 3 }}>
+                    High-speed edge cloud delivery with continuous monitoring, SSL renewals, and automated DNS management.
                   </div>
+                </div>
 
-                  {/* Mockup Header Navigation */}
-                  <div style={{ padding: "0.75rem 1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <div style={{ width: 24, height: 24, borderRadius: 6, background: primaryThemeColor, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: "12px" }}>
-                        {(businessName || "A")[0]?.toUpperCase()}
-                      </div>
-                      <span style={{ fontSize: "0.85rem", fontWeight: 900, color: "#f8fafc" }}>
-                        {businessName || "Apex Contractor"}
-                      </span>
-                    </div>
-
-                    {mockupDevice === "desktop" && (
-                      <div style={{ display: "flex", gap: "0.875rem", fontSize: "0.72rem", color: "#94a3b8", fontWeight: 600 }}>
-                        <span style={{ color: "#2dd4bf" }}>Home</span>
-                        <span>Services</span>
-                        <span>Gallery</span>
-                        <span>About</span>
-                        <span>Contact</span>
-                      </div>
-                    )}
-
-                    <span style={{ padding: "3px 8px", borderRadius: 6, background: primaryThemeColor, color: "#ffffff", fontSize: "10px", fontWeight: 800 }}>
-                      RFQ Quote
-                    </span>
-                  </div>
-
-                  {/* Mockup Hero Section */}
-                  <div style={{
-                    padding: mockupDevice === "mobile" ? "1.5rem 1rem" : "2.25rem 1.5rem",
-                    textAlign: "center",
-                    background: `radial-gradient(ellipse at top, ${primaryThemeColor}22 0%, transparent 70%)`,
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
-                  }}>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "2px 8px", borderRadius: 999, background: "rgba(255,255,255,0.06)", fontSize: "10px", color: "#cbd5e1", marginBottom: "0.5rem" }}>
-                      📍 Serving {selectedRegions.slice(0, 2).join(" & ")} &bull; Free Site Quotes
-                    </div>
-                    <h3 style={{ fontSize: mockupDevice === "mobile" ? "1.1rem" : "1.4rem", fontWeight: 900, color: "#f8fafc", margin: "0 0 0.5rem", lineHeight: 1.2 }}>
-                      {businessName || "Your Contracting Firm"}
-                    </h3>
-                    <p style={{ fontSize: "0.75rem", color: "#94a3b8", maxWidth: "420px", margin: "0 auto 1rem", lineHeight: 1.5 }}>
-                      {aboutUs || "Reliable, precision-driven contracting and property maintenance delivered on-time across residential estates and commercial buildings."}
-                    </p>
-
-                    <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                      <span style={{ padding: "6px 14px", borderRadius: 8, background: primaryThemeColor, color: "#ffffff", fontSize: "11px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                        💬 WhatsApp Us Now
-                      </span>
-                      <span style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(255,255,255,0.08)", color: "#f8fafc", fontSize: "11px", fontWeight: 700 }}>
-                        📋 Request Quote
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Mockup Service Badges */}
-                  <div style={{ padding: "1rem 1.25rem", background: "rgba(0,0,0,0.2)" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 800, textTransform: "uppercase", color: "#64748b", marginBottom: "0.5rem", letterSpacing: "0.5px" }}>
-                      Specialized Trade Divisions
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: mockupDevice === "mobile" ? "1fr 1fr" : "repeat(3, 1fr)", gap: "0.5rem" }}>
-                      {selectedServices.slice(0, 6).map((service, idx) => (
-                        <div key={idx} style={{ padding: "0.5rem", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", fontSize: "0.72rem", color: "#e2e8f0", fontWeight: 600 }}>
-                          &bull; {service}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Trust Footer */}
-                  <div style={{ padding: "0.75rem 1.25rem", background: "rgba(0,0,0,0.4)", borderTop: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "#64748b" }}>
-                    <span>Verified CIPC Compliant</span>
-                    <span>12-Month Workmanship Guarantee</span>
-                    <span>DebiCheck Secured</span>
+                <div style={{ padding: "0.75rem", borderRadius: 10, background: "rgba(0,0,0,0.3)" }}>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#34d399" }}>🔒 Month-to-Month DebiCheck</div>
+                  <div style={{ fontSize: "0.72rem", color: "#cbd5e1", marginTop: 3 }}>
+                    Zero long-term lock-in contracts. Authenticated via South African Reserve Bank DebiCheck; cancel anytime.
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* ── TAB 2: FULL SCOPE & PLANNED PAGES ARCHITECTURE ── */}
-            {activeReviewTab === "scope" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <div>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc", marginBottom: "0.25rem" }}>
-                    Included Website Pages ({plannedPagesList.length} Dedicated Sections)
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
-                    Here is what our development engine is scaffolding for your build:
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.75rem" }}>
-                  {plannedPagesList.map((p, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: "0.875rem",
-                        borderRadius: 12,
-                        background: "rgba(255,255,255,0.02)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.35rem" }}>
-                        <div style={{ width: 20, height: 20, borderRadius: 6, background: "rgba(45,212,191,0.15)", color: "#2dd4bf", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 800 }}>
-                          {i + 1}
-                        </div>
-                        <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc" }}>
-                          {p.title}
-                        </div>
-                      </div>
-                      <div style={{ fontSize: "0.73rem", color: "#94a3b8", lineHeight: 1.5 }}>
-                        {p.purpose}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Digital Superpowers / Included Features */}
-                <div style={{ marginTop: "0.5rem" }}>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "#f8fafc", marginBottom: "0.5rem" }}>
-                    Standard Features &amp; Integrations Included
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.5rem" }}>
-                    {[
-                      { icon: "💬", title: "WhatsApp Direct Chat", desc: "Instant click-to-chat button connected to your phone" },
-                      { icon: "📋", title: "Line-Item RFQ Quote Engine", desc: "Multi-step quotation form for property owners" },
-                      { icon: "🖼️", title: "Workmanship Photo Gallery", desc: "Before & after project showcase with high-res zoom" },
-                      { icon: "📍", title: "Google Local Search SEO", desc: "Indexed for local suburb searches (Sandton, Pretoria, etc.)" },
-                      { icon: "📧", title: "Custom Business Mailbox", desc: `info@${(businessName || "yourcompany").toLowerCase().replace(/[^a-z0-9]/g, "")}.co.za` },
-                      { icon: "🛡️", title: "SSL Security & Cloud Backups", desc: "Bank-grade encryption and daily automated site backups" },
-                    ].map((f, idx) => (
-                      <div key={idx} style={{ padding: "0.75rem", borderRadius: 10, background: "rgba(13,148,136,0.06)", border: "1px solid rgba(13,148,136,0.15)", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                        <span style={{ fontSize: "1.2rem" }}>{f.icon}</span>
-                        <div>
-                          <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#f8fafc" }}>{f.title}</div>
-                          <div style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: 2 }}>{f.desc}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── TAB 3: COMPANY DOSSIER & LEGAL SPEC SHEET ── */}
-            {activeReviewTab === "plan" && (
-              <div style={{
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "rgba(0,0,0,0.25)",
-                padding: "1.25rem",
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.875rem",
-                fontSize: "0.8rem",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "0.5rem" }}>
-                  <div>
-                    <div style={{ fontWeight: 900, color: "#f8fafc", fontSize: "0.95rem" }}>{businessName || "Your Company"}</div>
-                    <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{directorName} &bull; {phone} &bull; {email}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span style={{ color: "#2dd4bf", fontWeight: 800 }}>{selectedPackage} Tier</span>
-                    <div style={{ fontSize: "0.72rem", color: "#38bdf8", fontWeight: 700 }}>
-                      R{PACKAGES.find(p => p.name.toLowerCase() === selectedPackage.toLowerCase())?.fee || 349}/month
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                  <div>
-                    <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>CIPC Registration: </span>
-                    <span style={{ color: "#cbd5e1" }}>{regNumber || "CIPC Pending"}</span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Registered Address: </span>
-                    <span style={{ color: "#cbd5e1" }}>{address || "Gauteng, South Africa"}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Services ({selectedServices.length}): </span>
-                  <span style={{ color: "#cbd5e1" }}>{selectedServices.join(", ")}</span>
-                </div>
-
-                <div>
-                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Operating Regions: </span>
-                  <span style={{ color: "#cbd5e1" }}>{selectedRegions.join(", ")}</span>
-                </div>
-
-                <div>
-                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Target Clients: </span>
-                  <span style={{ color: "#cbd5e1" }}>{selectedClients.join(", ")}</span>
-                </div>
-
-                <div>
-                  <span style={{ color: "#64748b", textTransform: "uppercase", fontSize: "0.7rem", fontWeight: 800 }}>Billing Mode: </span>
-                  <span style={{ color: "#34d399", fontWeight: 700 }}>DebiCheck Debit Order &bull; Month-to-month &bull; Cancel anytime</span>
-                </div>
-              </div>
-            )}
-
-            {/* ── Document Upload Dropzone ── */}
+            {/* ── SECTION 4: DOCUMENT UPLOAD DROPZONE ── */}
             <div>
               <label className="portal-label">Upload Company Logo, Brochure, or CIPC Certificate (Optional)</label>
               <div
@@ -1595,7 +1755,7 @@ function PortalOnboarding() {
               )}
             </div>
 
-            {/* ── Creative Live Scope Assistant Chatbot ── */}
+            {/* ── SECTION 5: LIVE SCOPE ASSISTANT CHATBOT ── */}
             <div style={{
               borderRadius: 14,
               border: "1.5px solid rgba(45,212,191,0.25)",
@@ -1629,9 +1789,9 @@ function PortalOnboarding() {
                 ))}
               </div>
 
-              {/* Quick Pills */}
+              {/* Quick Adjustment Pills */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
-                {["+ Add Roofing", "+ Add Electrical", "Switch to Build (R349)", "Switch to Spark (R199)"].map(q => (
+                {["+ Add FAQ Page", "+ Add Pricing Page", "Switch to Build (R349)", "Switch to Spark (R199)"].map(q => (
                   <button
                     key={q}
                     type="button"
@@ -1657,7 +1817,7 @@ function PortalOnboarding() {
                   style={{ fontSize: "0.75rem", padding: "0.45rem 0.75rem" }}
                   value={reviewInput}
                   onChange={e => setReviewInput(e.target.value)}
-                  placeholder="Tell the assistant: e.g. Add waterproofing, change to Build tier..."
+                  placeholder="Tell the assistant: e.g. Add FAQ page, add Cape Town, change to Build tier..."
                   onKeyDown={e => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -1676,7 +1836,7 @@ function PortalOnboarding() {
               </div>
             </div>
 
-            {/* Scope Verification Checkbox */}
+            {/* ── SECTION 6: CLIENT SIGN-OFF AUTHORIZATION ── */}
             <div style={{
               padding: "0.875rem",
               borderRadius: 12,
